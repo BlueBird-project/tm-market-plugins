@@ -5,9 +5,9 @@ from effi_onto_tools.utils import DictBaseSettings
 from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 
-from tm import app_args
 
-__TIME_ZONE__ = ZoneInfo("Europe/Warsaw")
+
+from tm_entso_e import app_args
 
 
 class APPSettings(DictBaseSettings):
@@ -15,8 +15,6 @@ class APPSettings(DictBaseSettings):
     use_scheduler: bool = Field(default=False)
     use_rest_api: bool = Field(default=True)
     use_ke_api: bool = Field(default=False)
-    # logging_out_path: str = Field(default="./resources/logging.ini")
-    # ke_config_path: str = Field(default="./resources/ke_config.yml")
     model_config = SettingsConfigDict(env_prefix='APP_', env_file=DictBaseSettings.env_path(),
                                       env_file_encoding="utf-8")
 

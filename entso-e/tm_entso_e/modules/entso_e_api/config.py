@@ -9,10 +9,11 @@ from tm_entso_e.utils import DictBaseSettings, load_yml_obj
 __CONFIG_SECTION__ = "ENTSOE"
 
 
-class KESettings(DictBaseSettings):
+class ENTSOEAPISettings(DictBaseSettings):
     # knowledge_base_id: str = Field(...)
     endpoint: str = Field(default="https://web-api.tp.entsoe.eu/api")
     token: str = Field()
+    api_timeout: int = Field(default=30, description="Timeout in seconds")
 
     model_config = SettingsConfigDict(env_prefix=__CONFIG_SECTION__ + "_", env_file=app_variables.ENV_FILE,
                                       env_file_encoding="utf-8",
@@ -33,3 +34,6 @@ class KESettings(DictBaseSettings):
 
         return cls(dict_settings={})
         # return super().load(yml_path=yml_path, section_name="KE".lower
+
+
+api_settings = ENTSOEAPISettings()
