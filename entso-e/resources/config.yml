@@ -1,0 +1,29 @@
+service:
+  port: 8080
+  host: "0.0.0.0"
+  root_path: ""
+  name: "entose-service"
+app:
+  logging_conf_path: "./resources/logging.ini"
+  use_scheduler: false
+  use_rest_api: true
+  use_ke_api: false
+#db does not require env prefix
+#TODO: make db as prefix -> db_host = "DB_" + "HOST"
+db:
+  db_host: "postgres"
+  db_user: "postgres"
+  db_name: "postgres"
+  db_port: 5432
+  #  db_pass:
+  db_log_query: false
+  db_log_error_query: true
+  db_max_rows: 65000
+  #  db_init_script_location: "path/to/script.sql"
+  db_table_prefix: ""
+  db_schema_name: "public"
+  db_init: false
+ke:
+#  knowledge_base_id: TODO:
+#  rest_endpoint:
+  ki_config_path: ./resources/deployment/ke_config.yml

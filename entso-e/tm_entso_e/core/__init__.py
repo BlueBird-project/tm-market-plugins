@@ -5,8 +5,6 @@ from effi_onto_tools.utils import DictBaseSettings
 from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 
-
-
 from tm_entso_e import app_args
 
 
