@@ -40,17 +40,19 @@ class ENTSOEServiceSettings(DictBaseSettings):
 
 class ENTSOEAPISettings(BaseSettings, extra=Extra.allow):
     __SECTION__ = "entsoe_api"
-    subscribed_regions: Optional[List[SubscribedEIC]] = None
+    subscribed_eic: Optional[List[SubscribedEIC]] = None
     eic_codes: Dict[str, EICArea]
     _country_eic_code_map_: Dict[str, str]
     _area_eic_code_map_: Dict[str, str]
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, _country_code_map_={}, _area_eic_code_map_={}, **kwargs)
+        super().__init__(*args, **kwargs)
         for eic_area in self.eic_codes.values():
             if eic_area.country_codes is not None:
+                self._country_eic_code_map_ = {}
                 for country_code in eic_area.country_codes:
-                    self._country_code_map_[country_code] = eic_area.code
+                    self._country_eic_code_map_[country_code] = eic_area.code
+            self._area_eic_code_map_ = {}
             for area_name in eic_area.area_names:
                 self._area_eic_code_map_[area_name] = eic_area.code
 
@@ -67,13 +69,16 @@ service_settings = ENTSOEServiceSettings()
 api_settings: ENTSOEAPISettings = ENTSOEAPISettings(eic_codes={})
 
 
-def configure_api():
+def configure_api() -> ENTSOEAPISettings:
+    from tm_entso_e import app_args
     global service_settings
     global api_settings
+    if app_args.config_path is not None:
+        service_settings = ENTSOEServiceSettings.load(yml_path=app_args.config_path)
     api_config_path = service_settings.api_config_path
     import os
     if api_config_path is None:
-        return
+        return api_settings
         # todo: log warning ?
     if not os.path.exists(api_config_path):
         raise FileNotFoundError(
@@ -82,3 +87,4 @@ def configure_api():
 
     _api_settings = load_yml_obj(api_config_path, section=ENTSOEAPISettings.__SECTION__, settings_constructor=dict)
     api_settings = ENTSOEAPISettings.model_validate(_api_settings)
+    return api_settings

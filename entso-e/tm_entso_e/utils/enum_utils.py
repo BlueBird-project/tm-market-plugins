@@ -4,19 +4,6 @@ from typing import Type, Optional, List
 class EnumUtils:
     __value__: str
 
-    # enum_type: Type = None
-    #
-    # # @abstractmethod
-    # def parse(self, s: str) -> str:
-    #     if self.enum_type is None:
-    #         raise NotImplementedError("parse not implemented")
-    #     return EnumUtils.parse_enum(self.enum_type, s)
-    #
-    # # @abstractmethod
-    # def try_parse(self, s: Optional[str]) -> Optional[str]:
-    #     if self.enum_type is None:
-    #         raise NotImplementedError("try_parse not implemented")
-    #     return EnumUtils.try_parse_enum(self.enum_type, s)
     def __init__(self, v):
         self.__value__ = self.__class__.parse(v)
 
@@ -57,7 +44,7 @@ class EnumUtils:
         return hash(str(self.value))
 
     def __eq__(self, other):
-        if type(other) == str:
+        if type(other) is str:
             return self.value == other
         return self.value == other
 

@@ -2,7 +2,7 @@ service:
   port: 8080
   host: "0.0.0.0"
   root_path: ""
-  name: "entose-service"
+  name: "entsoe-service"
 app:
   logging_conf_path: "./resources/logging.ini"
   use_scheduler: false

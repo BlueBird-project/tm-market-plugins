@@ -1,16 +1,24 @@
 import datetime
 import logging
+import re
 from logging import Logger
 from typing import Optional, Dict
 
 import requests
 from pydantic import BaseModel
-from xml.etree.ElementTree import Element, ElementTree, parse as parse_xml
+from xml.etree.ElementTree import Element, ElementTree
+import xml.etree.ElementTree as ET
 
 from requests import Response
 
 from tm_entso_e.modules.entso_e_api import DATE_FORMAT, ApiKeys
 from tm_entso_e.utils import time_utils
+
+
+def _get_ns(el: Element) -> str:
+    match = re.match(r'\{(.*)}', el.tag)
+    namespace = match.group(1) if match else ""
+    return namespace
 
 
 class RESTClient(BaseModel):
@@ -29,21 +37,31 @@ class RESTClient(BaseModel):
         # self._verify_cert_ = verify_cert
         from tm_entso_e.modules.entso_e_api.config import service_settings
         self._logger_ = logging.getLogger() if logger is None else logger
-        super().__init__(_timeout_=service_settings.api_timeout,
-                         _token_=service_settings.token,
-                         _endpoint_=service_settings.endpoint, **kwargs)
+        super().__init__(**kwargs)
+        self._token_ = service_settings.token
+        self._timeout_ = service_settings.api_timeout
+        self._endpoint_ = service_settings.endpoint
 
     @property
     def logger(self):
         return self._logger_
 
     # region requests
-    def get_timestamp(self, parameters: Dict[str, str]):
+    def get_timeseries(self, parameters: Dict[str, str]):
         parameters[ApiKeys.security_token] = self._token_
         # TODO: validate all parameters keys
         api_args = "&".join([f"{k}={v}" for k, v in parameters.items()])
         url = f"{self._endpoint_}?{api_args}"
-        resp_content=self._api_send_request_(url=url, headers={})
+        resp_content = self._api_send_request_(url=url, headers={})
+        ns = _get_ns(resp_content)
+        # TODO: xml nod
+        d={}
+        for node in resp_content:
+
+            tag=node.tag[(len(ns)+2):]
+            value = node.text
+            d[tag]=value
+        # status = "has children" if len(node) > 0 else "is a leaf"
         # TODO: process
         return resp_content
 
@@ -69,20 +87,21 @@ class RESTClient(BaseModel):
             err = f"Invalid response for {response.url}: {response.status_code}"
             # resp_content = None
             try:
-                resp_content: ElementTree = parse_xml(response.content)
+                resp_content: Element = ET.fromstring(response.content)
             except Exception as exc:
                 self.logger.error(f"{err}: Error in parsing xml content {response.text}")
                 raise Exception("Invalid response")
-            resp_content_root: Element = resp_content.find("Acknowledgement_MarketDocument/Reason")
-            self.logger.error(f"{err}: {resp_content_root.text} ")
+            # resp_content_root: Element = resp_content.find("Acknowledgement_MarketDocument/Reason")
+            # TODO: process this xml with error
+            self.logger.error(f"{err}: {resp_content.text} ")
 
         assert response.ok
         try:
-            resp_content: ElementTree = parse_xml(response.content)
+            resp_content: Element = ET.fromstring(response.content)
         except Exception as err:
             self.logger.error(f"{err}: Error in parsing xml content {response.text}")
             raise Exception("Invalid response")
-        return resp_content.getroot()
+        return resp_content
 
         # endregion
 

@@ -1,5 +1,6 @@
 import logging
 import tm_entso_e
+from tm_entso_e.utils import TimeSpan
 
 if __name__ == "__main__":
     ###
@@ -22,8 +23,14 @@ if __name__ == "__main__" and app_settings:
     # configure entsoe
     from tm_entso_e.modules.entso_e_api.config import configure_api
 
-    configure_api()
+    api_settings = configure_api()
+    from tm_entso_e.modules.entso_e_api.energy_api import MarketAPI
 
+    # init api client
+    market_api = MarketAPI()
+    eic_area = api_settings.subscribed_eic[0]
+    result = market_api.get_energy_prices(eic=eic_area, ti=TimeSpan.last_48h())
+    print(result)
 # if app_settings.use_ke_api:
 #     # setup ke
 #     import ke_client

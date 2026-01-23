@@ -5,10 +5,12 @@ from typing import Optional, Dict
 import requests
 from xml.etree.ElementTree import Element, ElementTree, parse as parse_xml
 
-from effi_onto_tools.db import TimeSpan
 from pydantic import BaseModel
 
+from tm_entso_e.modules.entso_e_api import ApiKeys
+from tm_entso_e.modules.entso_e_api.model import SubscribedEIC
 from tm_entso_e.modules.entso_e_api.rest import RESTClient
+from tm_entso_e.utils import TimeSpan
 
 
 class MarketRequest(BaseModel):
@@ -20,6 +22,12 @@ class MarketRequest(BaseModel):
     out_domain: str
     # [M] EIC code of a Bidding Zone
     in_domain: str
+    market_contract_type: str
+    offset: int = 0
+
+    @property
+    def api_args(self) -> Dict[str, str]:
+        return {ApiKeys.__dict__[k]: v for k, v in self.__dict__.items()}
 
 
 # [M] Pattern yyyyMMddHHmm e.g. 201601010000
@@ -53,6 +61,16 @@ class MarketAPI(RESTClient):
     def __init__(self, logger: Optional[Logger] = None, **kwargs):
         super().__init__(logger=logger, **kwargs)
 
-    def get_energy_prices(self, eic_code: str, ti: TimeSpan):
-        MarketRequest(document_type="A44", in_domain=eic_code, out_domain=eic_code)
-        args = {}
+    def get_energy_prices(self, eic: SubscribedEIC, ti: TimeSpan):
+        # TODO: move 'A44' to some constant object
+        # classificationSequence_AttributeInstanceComponent.position
+        # TODO: eic.market_codes -> if empty log warning
+        res = {}
+        for market_code in eic.market_codes:
+            mr = MarketRequest(document_type="A44", in_domain=eic.code, out_domain=eic.code, offset=0,
+                               market_contract_type=market_code, period_start=self.parse_time(ti.ts_from),
+                               period_end=self.parse_time(ti.ts_to))
+
+            timeseries = self.get_timeseries(parameters=mr.api_args)
+            res[market_code] = timeseries
+        return res

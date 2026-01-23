@@ -1,6 +1,8 @@
 # __DATE_FORMAT__ = """%d-%m-%y"""
 # __DATE_WRITE_FORMAT__ = """%d-%m-%y"""
-DATE_FORMAT = "yyyyMMddHHmm"
+
+#ENTSOE date format: "yyyyMMddHHmm"
+DATE_FORMAT = "%Y%m%d%H%M"
 
 
 class ApiKeys:
@@ -10,6 +12,9 @@ class ApiKeys:
     period_end = "periodEnd"
     out_domain = "out_Domain"
     in_domain = "in_Domain"
+    market_contract_type="contract_MarketAgreement.type"
+    # classification_sequence_position="classificationSequence_AttributeInstanceComponent.position"
+    offset="offset"
 
 
 class EICAreaType:
