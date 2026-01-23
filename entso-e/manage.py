@@ -6,7 +6,6 @@ if __name__ == "__main__":
     # setup configurations
     ###
     tm_entso_e.init_args()
-    from effi_onto_tools import utils
     from tm_entso_e.core import service_settings, app_settings
 
     # utils.ENV_FILE = main.app_args.env_path
@@ -19,7 +18,12 @@ if __name__ == "__main__":
     #
     # setup_db()
 
-# if __name__ == "__main__" and app_settings:
+if __name__ == "__main__" and app_settings:
+    # configure entsoe
+    from tm_entso_e.modules.entso_e_api.config import configure_api
+
+    configure_api()
+
 # if app_settings.use_ke_api:
 #     # setup ke
 #     import ke_client

@@ -1,3 +1,4 @@
+import datetime
 import logging
 from logging import Logger
 from typing import Optional, Dict
@@ -8,6 +9,9 @@ from xml.etree.ElementTree import Element, ElementTree, parse as parse_xml
 
 from requests import Response
 
+from tm_entso_e.modules.entso_e_api import DATE_FORMAT, ApiKeys
+from tm_entso_e.utils import time_utils
+
 
 class RESTClient(BaseModel):
     # region private fields
@@ -16,22 +20,37 @@ class RESTClient(BaseModel):
     _verify_cert_: bool = True
     # state of client
     _timeout_: int = 30
+    _token_: str
+    _endpoint_: str
 
     # endregion
 
     def __init__(self, logger: Optional[Logger] = None, **kwargs):
         # self._verify_cert_ = verify_cert
-        from tm_entso_e.modules.entso_e_api.config import api_settings
+        from tm_entso_e.modules.entso_e_api.config import service_settings
         self._logger_ = logging.getLogger() if logger is None else logger
-        super().__init__(_timeout_=api_settings.api_timeout, **kwargs)
+        super().__init__(_timeout_=service_settings.api_timeout,
+                         _token_=service_settings.token,
+                         _endpoint_=service_settings.endpoint, **kwargs)
 
     @property
     def logger(self):
         return self._logger_
 
     # region requests
+    def get_timestamp(self, parameters: Dict[str, str]):
+        parameters[ApiKeys.security_token] = self._token_
+        # TODO: validate all parameters keys
+        api_args = "&".join([f"{k}={v}" for k, v in parameters.items()])
+        url = f"{self._endpoint_}?{api_args}"
+        resp_content=self._api_send_request_(url=url, headers={})
+        # TODO: process
+        return resp_content
 
-    def _api_send_request_(self, url: str, headers: Dict, register=False) -> Element:
+    # endregion
+    # region requests core
+
+    def _api_send_request_(self, url: str, headers: Dict) -> Element:
         try:
             headers["Content-Type"] = "application/xml"
             response: Response = requests.get(url, headers=headers, timeout=self._timeout_, verify=self._verify_cert_)
@@ -66,3 +85,7 @@ class RESTClient(BaseModel):
         return resp_content.getroot()
 
         # endregion
+
+    @staticmethod
+    def parse_time(ts: int) -> str:
+        return time_utils.format_timestamp(ts, date_format=DATE_FORMAT)

@@ -24,6 +24,8 @@ db:
   db_schema_name: "public"
   db_init: false
 ke:
-#  knowledge_base_id: TODO:
-#  rest_endpoint:
+  #  knowledge_base_id: TODO:
+  #  rest_endpoint:
   ki_config_path: ./resources/deployment/ke_config.yml
+entsoe:
+  api_config_path: ./resources/deployment/entsoe.yml

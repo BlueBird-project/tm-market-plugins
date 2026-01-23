@@ -69,6 +69,10 @@ def from_timestamp(ts_ms: int) -> dt:
     return dt.fromtimestamp(timestamp=(float(ts_ms) / 1000.0))
 
 
+def format_timestamp(ts_ms: int, date_format: str = DATE_FORMAT) -> str:
+    return dt.fromtimestamp(timestamp=(float(ts_ms) / 1000.0)).strftime(format=date_format)
+
+
 def current_timestamp() -> int:
     now_utc = dt.now(timezone.utc)
     return int(now_utc.timestamp() * 1000)
