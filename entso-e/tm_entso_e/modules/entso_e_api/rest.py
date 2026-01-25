@@ -47,23 +47,14 @@ class RESTClient(BaseModel):
         return self._logger_
 
     # region requests
-    def get_timeseries(self, parameters: Dict[str, str]):
+    def send_request(self, parameters: Dict[str, str]):
         parameters[ApiKeys.security_token] = self._token_
         # TODO: validate all parameters keys
         api_args = "&".join([f"{k}={v}" for k, v in parameters.items()])
         url = f"{self._endpoint_}?{api_args}"
         resp_content = self._api_send_request_(url=url, headers={})
-        ns = _get_ns(resp_content)
-        # TODO: xml nod
-        d={}
-        for node in resp_content:
-
-            tag=node.tag[(len(ns)+2):]
-            value = node.text
-            d[tag]=value
-        # status = "has children" if len(node) > 0 else "is a leaf"
-        # TODO: process
         return resp_content
+
 
     # endregion
     # region requests core

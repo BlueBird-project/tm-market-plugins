@@ -24,7 +24,7 @@ class XMLBaseModel(BaseModel):
         return aliases
 
     @staticmethod
-    def process_field(fi: FieldInfo, current_ele: ET.Element):
+    def process_field(fi: FieldInfo, current_ele: ET.Element, namespace_len: int, skip_fields: bool):
         field_annotation = fi.annotation
         f_origin = get_origin(field_annotation)
         # handle union
@@ -40,7 +40,7 @@ class XMLBaseModel(BaseModel):
                 # todo write some text error
                 assert len(f_args) == 1
                 if issubclass(f_args[0], XMLBaseModel):
-                    processed_obj = f_args[0].from_xml(current_ele)
+                    processed_obj = f_args[0].from_xml(current_ele, namespace_len, skip_fields)
                     # expected list
                     return [processed_obj]
                 else:
@@ -52,13 +52,13 @@ class XMLBaseModel(BaseModel):
                 raise Exception("Not supported case :TODO: ")
         else:
             if issubclass(field_annotation, XMLBaseModel):
-                processed_obj = field_annotation.from_xml(current_ele)
+                processed_obj = field_annotation.from_xml(current_ele, namespace_len, skip_fields)
                 return processed_obj
             else:
                 return field_annotation(current_ele.text.strip())
 
     @classmethod
-    def from_xml(cls, root_ele: ET.Element, namespace_len:str,skip_fields=False):
+    def from_xml(cls, root_ele: ET.Element, namespace_len: int, skip_fields=False):
         aliased_fields = cls.get_aliased_fields()
         obj_dict = {}
         for ele in root_ele:
@@ -66,7 +66,8 @@ class XMLBaseModel(BaseModel):
             try:
                 tag_name = ele.tag[namespace_len:]
                 field_name, field_info = aliased_fields[tag_name]
-                processed_value = XMLBaseModel.process_field(fi=field_info, current_ele=ele)
+                processed_value = XMLBaseModel.process_field(fi=field_info, current_ele=ele,
+                                                             namespace_len=namespace_len, skip_fields=skip_fields)
                 if field_name in obj_dict:
                     # its list
                     obj_dict[field_name].append(processed_value[0])

@@ -8,8 +8,9 @@ from xml.etree.ElementTree import Element, ElementTree, parse as parse_xml
 from pydantic import BaseModel
 
 from tm_entso_e.modules.entso_e_api import ApiKeys
+from tm_entso_e.modules.entso_e_api.api_model import MarketDocument
 from tm_entso_e.modules.entso_e_api.model import SubscribedEIC
-from tm_entso_e.modules.entso_e_api.rest import RESTClient
+from tm_entso_e.modules.entso_e_api.rest import RESTClient, _get_ns
 from tm_entso_e.utils import TimeSpan
 
 
@@ -71,6 +72,10 @@ class MarketAPI(RESTClient):
                                market_contract_type=market_code, period_start=self.parse_time(ti.ts_from),
                                period_end=self.parse_time(ti.ts_to))
 
-            timeseries = self.get_timeseries(parameters=mr.api_args)
-            res[market_code] = timeseries
+            resp_content = self.send_request(parameters=mr.api_args)
+            ns = _get_ns(resp_content)
+            md: MarketDocument = MarketDocument.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
+                                                         skip_fields=True)
+            # TODO: xml nod
+            res[market_code] = md
         return res
