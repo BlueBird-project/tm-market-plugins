@@ -1,0 +1,46 @@
+from typing import Annotated, List
+
+from pydantic import Field
+
+from tm_entso_e.modules.entso_e_api.utils import XMLBaseModel
+
+
+class PeriodInterval(XMLBaseModel):
+    start: str
+    end: str
+
+
+class Point(XMLBaseModel):
+    position: Annotated[int, Field(alias='position')]
+    price: Annotated[float, Field(alias='price.amount')]
+
+
+class Period(XMLBaseModel):
+    time_interval: Annotated[PeriodInterval, Field(alias='timeInterval')]
+    resolution: Annotated[str, Field(alias='resolution')]
+    points: Annotated[List[Point], Field(alias='Point')]
+
+
+class TimeSeries(XMLBaseModel):
+    m_rid: Annotated[str, Field(alias='mRID')]
+    auction_type: Annotated[str, Field(alias='auction.type')]
+    business_type: Annotated[str, Field(alias='businessType')]
+    currency_unit: Annotated[str, Field(alias='currency_Unit.name')]
+    measurement_unit: Annotated[str, Field(alias='price_Measure_Unit.name')]
+    periods: Annotated[List[Period], Field(alias='Period')]
+
+
+# <in_Domain.mRID codingScheme="A01">10YPL-AREA-----S</in_Domain.mRID>
+# <out_Domain.mRID codingScheme="A01">10YPL-AREA-----S</out_Domain.mRID>
+# <contract_MarketAgreement.type>A01</contract_MarketAgreement.type>
+# <currency_Unit.name>EUR</currency_Unit.name>
+# <curveType>A03</curveType>
+
+
+class MarketDocument(XMLBaseModel):
+    m_rid: Annotated[str, Field(alias='mRID')]
+    revision_number: Annotated[int, Field(alias='revisionNumber')]
+    document_type: Annotated[str, Field(alias='type')]
+    create_date_time: Annotated[str, Field(alias='createdDateTime')]
+    time_interval: Annotated[PeriodInterval, Field(alias='period.timeInterval')]
+    timeseries: Annotated[List[TimeSeries], Field(alias='TimeSeries')]
