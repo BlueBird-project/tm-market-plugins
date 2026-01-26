@@ -11,5 +11,5 @@ class Market(BaseModel):
     market_description: Optional[str] = None
     market_location: Optional[str] = None
     subscribe: bool
-    update_ts: int
+    update_ts: Optional[int] = None
     ext: Optional[str] = None

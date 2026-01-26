@@ -7,7 +7,7 @@ app:
   logging_conf_path: "./resources/logging.ini"
   use_scheduler: false
   use_rest_api: true
-  use_ke_api: false
+  use_ke_api: true
 #db does not require env prefix
 #TODO: make db as prefix -> db_host = "DB_" + "HOST"
 db:
@@ -24,8 +24,11 @@ db:
   db_schema_name: "public"
   db_init: false
 ke:
-  #  knowledge_base_id: TODO:
+  knowledge_base_id: "https://entsoe.bluebird.com/ke"
   #  rest_endpoint:
   ki_config_path: ./resources/deployment/ke_config.yml
+  ki_vars:
+    DAY_DURATION: '"PT1440M"^^xsd:duration'
+    ISP_UNIT: '"PT15M"^^xsd:duration'
 entsoe:
   api_config_path: ./resources/deployment/entsoe.yml

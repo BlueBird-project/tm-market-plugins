@@ -1,5 +1,6 @@
 import logging
 import tm_entso_e
+from schemas.market import Market
 from tm_entso_e.utils import TimeSpan
 
 if __name__ == "__main__":
@@ -19,6 +20,21 @@ if __name__ == "__main__":
 
     setup_db()
 
+if app_settings.use_ke_api:
+    #   setup ke
+    # import ke_client
+    # ke_client.ENV_FILE = tm_entso_e.app_args.env_path
+    from tm_entso_e.modules.ke_interaction import set_bg_ke_client, set_sync_ke_client
+
+    if app_settings.use_scheduler or app_settings.use_rest_api:
+        logging.info("Running BG KE client")
+        market_prefix = set_bg_ke_client().kb_id
+
+    else:
+        set_sync_ke_client()
+        exit()
+else:
+    market_prefix = "https://entsoe.bluebird.com"
 if __name__ == "__main__" and app_settings:
     # configure entsoe
     from tm_entso_e.modules.entso_e_api.config import configure_api
@@ -28,27 +44,18 @@ if __name__ == "__main__" and app_settings:
 
     # init api client
     market_api = MarketAPI()
-    eic_area = api_settings.subscribed_eic[0]
-    result = market_api.get_energy_prices(eic=eic_area, ti=TimeSpan.last_48h())
+    for s_eic_area in api_settings.subscribed_eic:
+        market = Market(market_uri=f"{market_prefix}/{s_eic_area.code}", market_name=s_eic_area.code, subscribe=True)
+        from modules.entsoe_api.service import add_market
+
+        print(market)
+        add_market(market=market)
+        print(market)
+    s_eic_area = api_settings.subscribed_eic[1]
+
+    result = market_api.get_energy_prices(eic=s_eic_area, ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
+    # result = market_api.get_energy_prices(eic=eic_area, ti=TimeSpan.last_48h())
     print(result)
-if app_settings.use_ke_api:
-#     # setup ke
-     import ke_client
-#
-     ke_client.VERIFY_SERVER_CERT = False
-     ke_client.ENV_FILE = tm_entso_e.app_args.env_path
-#
-     if app_settings.use_scheduler or app_settings.use_rest_api:
-         from tm_entso_e.modules.ke_interaction import set_bg_ke_client
-#
-         logging.info("Running BG KE client")
-         set_bg_ke_client()
-     else:
-         from tm_entso_e.modules.ke_interaction import set_ke_client
-
-         set_ke_client()
-
-
 # if __name__ == "__main__" and app_settings:
 #     if app_settings.use_scheduler:
 #         from tm_entso_e.core import task_manager

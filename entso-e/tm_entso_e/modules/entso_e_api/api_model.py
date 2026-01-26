@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 
 from pydantic import Field
 
@@ -27,6 +27,8 @@ class TimeSeries(XMLBaseModel):
     business_type: Annotated[str, Field(alias='businessType')]
     currency_unit: Annotated[str, Field(alias='currency_Unit.name')]
     measurement_unit: Annotated[str, Field(alias='price_Measure_Unit.name')]
+    sequence: Annotated[
+        Optional[str], Field(alias='classificationSequence_AttributeInstanceComponent.position', default=None)]
     periods: Annotated[List[Period], Field(alias='Period')]
 
 

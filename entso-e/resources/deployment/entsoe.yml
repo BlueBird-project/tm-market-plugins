@@ -4,6 +4,10 @@ entsoe_api:
       market_types:
         - "day_ahead"
   #       - intraday
+    - code: 10YES-REE------0
+      market_types:
+        - "intraday"
+  #       - intraday
   eic_codes:
     10Y1001A1001A82H:
       code: "10Y1001A1001A82H"
