@@ -33,4 +33,3 @@ class MarketOffer(BaseModel):
     isp_len: int
     cost_mwh: int
     update_ts: Optional[int] = None
-    ext: Optional[str] = None

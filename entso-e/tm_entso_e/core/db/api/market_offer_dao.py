@@ -13,7 +13,11 @@ class MarketOfferDAO(DAO):
         super(MarketOfferDAO, self).__init__(table_prefix=table_prefix)
 
     @abstractmethod
-    def log_day_offer(self, offer: MarketOfferDetails) -> MarketOfferDetails:
+    def register_day_offer(self, offer_details: MarketOfferDetails) -> MarketOfferDetails:
+        pass
+
+    @abstractmethod
+    def log_day_offer(self, market_offers: List[MarketOffer]) -> List[Dict[str, Any]]:
         pass
 
     @abstractmethod
