@@ -136,6 +136,7 @@ celerybeat.pid
 
 # Environments
 .env
+.entso-e/resources/.env.tomekc
 .envrc
 .venv
 env/
