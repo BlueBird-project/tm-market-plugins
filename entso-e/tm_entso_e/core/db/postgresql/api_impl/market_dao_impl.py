@@ -6,7 +6,7 @@ from effi_onto_tools.db import Pagination, TimeSpan
 from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 from effi_onto_tools.utils import time_utils
 
-from core.db.api.market_dao import MarketDAO
+from tm_entso_e.core.db.api.market_dao import MarketDAO
 from schemas.market import Market
 
 
@@ -31,7 +31,7 @@ class MarketQueries:
       "update_ts", "ext") 
     VALUES (:market_uri,:market_name,:market_type, :market_description, :market_location, :subscribe ,
        extract(epoch from now()) * 1000,:ext)
-   
+ 
         """
     # ON CONFLICT ("market_uri" ) DO UPDATE  todo:
 

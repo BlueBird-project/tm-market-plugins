@@ -1,7 +1,10 @@
 # __DATE_FORMAT__ = """%d-%m-%y"""
 # __DATE_WRITE_FORMAT__ = """%d-%m-%y"""
+import logging
 
-#ENTSOE date format: "yyyyMMddHHmm"
+from schemas.market import Market
+
+# ENTSOE date format: "yyyyMMddHHmm"
 DATE_FORMAT = "%Y%m%d%H%M"
 
 
@@ -12,9 +15,9 @@ class ApiKeys:
     period_end = "periodEnd"
     out_domain = "out_Domain"
     in_domain = "in_Domain"
-    market_contract_type="contract_MarketAgreement.type"
+    market_contract_type = "contract_MarketAgreement.type"
     # classification_sequence_position="classificationSequence_AttributeInstanceComponent.position"
-    offset="offset"
+    offset = "offset"
 
 
 class EICAreaType:
@@ -34,4 +37,28 @@ class EICAreaType:
 # REG 	Region
 # SCA 	Scheduling Area 	The Bidding Zone except if there is more than one Responsibility Area within this Bidding Zone. In the latter case, the Scheduling Area equals Responsibility Area or a group of Responsibility Areas
 # SNA 	Synchronous Area 	Synchronous Area means an area covered by interconnected Transmission System Operators (TSOs) with a common System Frequency in a steady state
-    # https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC
+# https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC
+
+def add_market(market: Market, save_add: bool = True) -> Market:
+    from tm_entso_e.core.db.postgresql import dao_manager
+    # TODO: update on duplicate?
+    if save_add:
+        db_market = dao_manager.market_dao.get_market_uri(market_uri=market.market_uri)
+        if db_market is not None:
+            return db_market
+    return dao_manager.market_dao.add_market(market=market)
+
+
+def init_db(market_prefix: str):
+    from tm_entso_e.modules.entso_e_web_api.config import api_settings
+    # TODO: list all markets in the db and set subscribe to false
+    # or delete all of them >
+    for s_eic_area in api_settings.subscribed_eic:
+        for market_code in s_eic_area.market_codes:
+            market = Market(market_uri=f"{market_prefix}/{s_eic_area.code}/{market_code}",
+                            market_name=s_eic_area.code + "_" + market_code,
+                            market_type=s_eic_area.get_market_type_name(code=market_code),
+                            subscribe=True)
+            add_market(market=market)
+            logging.info(f"Setting market: {market}")
+            print(market)

@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 
 from requests import Response
 
-from tm_entso_e.modules.entso_e_api import DATE_FORMAT, ApiKeys
+from tm_entso_e.modules.entso_e_web_api import DATE_FORMAT, ApiKeys
 from tm_entso_e.utils import time_utils
 
 
@@ -35,7 +35,7 @@ class RESTClient(BaseModel):
 
     def __init__(self, logger: Optional[Logger] = None, **kwargs):
         # self._verify_cert_ = verify_cert
-        from tm_entso_e.modules.entso_e_api.config import service_settings
+        from tm_entso_e.modules.entso_e_web_api.config import service_settings
         self._logger_ = logging.getLogger() if logger is None else logger
         super().__init__(**kwargs)
         self._token_ = service_settings.token

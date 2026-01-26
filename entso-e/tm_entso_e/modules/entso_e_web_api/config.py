@@ -4,7 +4,7 @@ from pydantic import Field, Extra
 from pydantic_settings import SettingsConfigDict, BaseSettings
 
 from tm_entso_e import app_variables
-from tm_entso_e.modules.entso_e_api.model import SubscribedEIC, EICArea
+from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC, EICArea
 from tm_entso_e.utils import DictBaseSettings, load_yml_obj
 
 __CONFIG_SECTION__ = "ENTSOE"

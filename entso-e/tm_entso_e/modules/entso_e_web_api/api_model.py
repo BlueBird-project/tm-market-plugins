@@ -2,7 +2,7 @@ from typing import Annotated, List, Optional
 
 from pydantic import Field
 
-from tm_entso_e.modules.entso_e_api.utils import XMLBaseModel
+from tm_entso_e.modules.entso_e_web_api.utils import XMLBaseModel
 
 
 class PeriodInterval(XMLBaseModel):

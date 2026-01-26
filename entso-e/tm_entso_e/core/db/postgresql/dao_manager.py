@@ -2,8 +2,8 @@
 from effi_onto_tools.db.postgresql.init_db import DBMeta
 
 
-from core.db.api.market_dao import MarketDAO
-from core.db.postgresql.api_impl import market_dao_impl  # ,market_offer_dao_impl
+from tm_entso_e.core.db.api.market_dao import MarketDAO
+from tm_entso_e.core.db.postgresql.api_impl import market_dao_impl  # ,market_offer_dao_impl
 
 market_dao: MarketDAO
 

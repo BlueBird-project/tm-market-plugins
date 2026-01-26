@@ -7,10 +7,10 @@ from xml.etree.ElementTree import Element, ElementTree, parse as parse_xml
 
 from pydantic import BaseModel
 
-from tm_entso_e.modules.entso_e_api import ApiKeys
-from tm_entso_e.modules.entso_e_api.api_model import MarketDocument
-from tm_entso_e.modules.entso_e_api.model import SubscribedEIC
-from tm_entso_e.modules.entso_e_api.rest import RESTClient, _get_ns
+from tm_entso_e.modules.entso_e_web_api import ApiKeys
+from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument
+from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC
+from tm_entso_e.modules.entso_e_web_api.rest import RESTClient, _get_ns
 from tm_entso_e.utils import TimeSpan
 
 
@@ -76,6 +76,11 @@ class MarketAPI(RESTClient):
             ns = _get_ns(resp_content)
             md: MarketDocument = MarketDocument.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
                                                          skip_fields=True)
-            # TODO: xml nod
+            print(f"market: {md.m_rid}, {md.time_interval.start}-{md.time_interval.end}, ts:{len(md.timeseries)}")
+            for t_s in md.timeseries:
+                print(f"\t ts: {t_s.m_rid},  periods:{len(t_s.periods)}")
+                for p in t_s.periods:
+                    print(
+                        f"\t\t period: {p.resolution},{p.time_interval.start}-{p.time_interval.end}, points:{len(p.points)}")
             res[market_code] = md
         return res

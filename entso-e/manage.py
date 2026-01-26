@@ -37,25 +37,22 @@ else:
     market_prefix = "https://entsoe.bluebird.com"
 if __name__ == "__main__" and app_settings:
     # configure entsoe
-    from tm_entso_e.modules.entso_e_api.config import configure_api
+    from tm_entso_e.modules.entso_e_web_api.config import configure_api
 
     api_settings = configure_api()
-    from tm_entso_e.modules.entso_e_api.energy_api import MarketAPI
+    from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
 
-    # init api client
+    # init entsoe
+    from modules.entso_e_web_api import init_db
+    init_db(market_prefix=market_prefix)
+    # init entsoe api client
     market_api = MarketAPI()
-    for s_eic_area in api_settings.subscribed_eic:
-        market = Market(market_uri=f"{market_prefix}/{s_eic_area.code}", market_name=s_eic_area.code, subscribe=True)
-        from modules.entsoe_api.service import add_market
-
-        print(market)
-        add_market(market=market)
-        print(market)
     s_eic_area = api_settings.subscribed_eic[1]
 
     result = market_api.get_energy_prices(eic=s_eic_area, ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
     # result = market_api.get_energy_prices(eic=eic_area, ti=TimeSpan.last_48h())
     print(result)
+
 # if __name__ == "__main__" and app_settings:
 #     if app_settings.use_scheduler:
 #         from tm_entso_e.core import task_manager
