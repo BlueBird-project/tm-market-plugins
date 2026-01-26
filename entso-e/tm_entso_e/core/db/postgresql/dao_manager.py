@@ -1,7 +1,7 @@
 # from effi_onto_tools.db.app_settings_dao import AppSettingsDAO
 from effi_onto_tools.db.postgresql.init_db import DBMeta
 
-from core.db.api.intraday_market import MarketOfferDAO
+
 from core.db.api.market_dao import MarketDAO
 from core.db.postgresql.api_impl import market_dao_impl  # ,market_offer_dao_impl
 

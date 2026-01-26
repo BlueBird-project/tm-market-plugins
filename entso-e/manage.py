@@ -15,9 +15,9 @@ if __name__ == "__main__":
     ###
     # setup DB
     ###
-    # from tm_entso_e.core.db import setup_db
-    #
-    # setup_db()
+    from tm_entso_e.core.db import setup_db
+
+    setup_db()
 
 if __name__ == "__main__" and app_settings:
     # configure entsoe
@@ -31,23 +31,22 @@ if __name__ == "__main__" and app_settings:
     eic_area = api_settings.subscribed_eic[0]
     result = market_api.get_energy_prices(eic=eic_area, ti=TimeSpan.last_48h())
     print(result)
-# if app_settings.use_ke_api:
+if app_settings.use_ke_api:
 #     # setup ke
-#     import ke_client
+     import ke_client
 #
-#     ke_client.VERIFY_SERVER_CERT = False
-#     ke_client.ENV_FILE = tm_entso_e.app_args.env_path
-#     # from ke_client.ke_properties import configure_ke_client
+     ke_client.VERIFY_SERVER_CERT = False
+     ke_client.ENV_FILE = tm_entso_e.app_args.env_path
 #
-#     if app_settings.use_scheduler or app_settings.use_rest_api:
-#         from tm_entso_e.modules.ke_interaction import set_bg_ke_client
+     if app_settings.use_scheduler or app_settings.use_rest_api:
+         from tm_entso_e.modules.ke_interaction import set_bg_ke_client
 #
-#         logging.info("Running BG KE client")
-#         set_bg_ke_client()
-#     else:
-#         from tm_entso_e.modules.ke_interaction import set_ke_client
-#
-#         set_ke_client()
+         logging.info("Running BG KE client")
+         set_bg_ke_client()
+     else:
+         from tm_entso_e.modules.ke_interaction import set_ke_client
+
+         set_ke_client()
 
 
 # if __name__ == "__main__" and app_settings:
