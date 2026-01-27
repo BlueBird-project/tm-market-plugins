@@ -18,10 +18,12 @@ class Market(BaseModel):
 class MarketOfferDetails(BaseModel):
     offer_id: Optional[int] = None
     market_id: int
-    sequence: int
+    sequence: Optional[int]
+    currency_unit: str
+    volume_unit: str
     ts_start: int
     ts_end: int
-    isp_unit: str
+    isp_unit: int
     update_ts: Optional[int] = None
     ext: Optional[str] = None
 
@@ -31,5 +33,5 @@ class MarketOffer(BaseModel):
     offer_id: int
     isp_start: int
     isp_len: int
-    cost_mwh: int
+    cost :float
     update_ts: Optional[int] = None

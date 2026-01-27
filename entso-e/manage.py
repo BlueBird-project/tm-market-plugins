@@ -1,5 +1,6 @@
 import logging
 import tm_entso_e
+
 from schemas.market import Market
 from tm_entso_e.utils import TimeSpan
 
@@ -40,19 +41,23 @@ if __name__ == "__main__" and app_settings:
     from tm_entso_e.modules.entso_e_web_api.config import configure_api
 
     api_settings = configure_api()
-    from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
-
-    # init entsoe
-    from modules.entso_e_web_api import init_db
-    init_db(market_prefix=market_prefix)
-    # init entsoe api client
-    market_api = MarketAPI()
-    s_eic_area = api_settings.subscribed_eic[1]
-
-    result = market_api.get_energy_prices(eic=s_eic_area, ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
-    # result = market_api.get_energy_prices(eic=eic_area, ti=TimeSpan.last_48h())
-    print(result)
-
+    from tm_entso_e.modules.entso_e_web_api.service import init_service,subscribe_data
+    init_service(market_prefix=market_prefix)
+    subscribe_data()
+    ########################################################
+    # from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
+    # market_api = MarketAPI(market_uri_prefix=market_prefix)
+    # s_eic_area = api_settings.subscribed_eic[1]
+    # result = market_api.get_energy_prices(eic=s_eic_area, ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
+    # # market_api.get_market_uri
+    # for market_code, market_offer in result.items():
+    #     market_uri = market_api.get_market_uri(eic_area_code=s_eic_area.code, market_code=market_code)
+    #     # result = market_api.get_energy_prices(eic=eic_area, ti=TimeSpan.last_48h())
+    #     from modules.entso_e_web_api.service import store_offers
+    #
+    #     store_offers(market_uri=market_uri, market_offer=market_offer)
+    # print(result)
+    ##########################################################33
 # if __name__ == "__main__" and app_settings:
 #     if app_settings.use_scheduler:
 #         from tm_entso_e.core import task_manager

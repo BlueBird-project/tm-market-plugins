@@ -36,6 +36,8 @@ CREATE TABLE "public"."${table_prefix}market_offer_details" (
     "offer_id" bigint DEFAULT nextval('${table_prefix}market_offer_details_offer_id_seq') NOT NULL,
     "market_id" bigint NOT NULL,
     "sequence" int  ,
+    "currency_unit" character varying(10) NOT NULL,
+    "volume_unit" character varying(10) NOT NULL,
     "ts_start" bigint NOT NULL,
     "ts_end" bigint NOT NULL,
     "isp_unit" int NOT NULL,
@@ -45,7 +47,7 @@ CREATE TABLE "public"."${table_prefix}market_offer_details" (
 )
 WITH (oids = false);
 
-CREATE INDEX ${table_prefix}market_offer_details_market ON public.${table_prefix}market_offer_details USING btree (market_id,ts_start);
+CREATE UNIQUE  INDEX ${table_prefix}market_offer_details_market ON public.${table_prefix}market_offer_details USING btree (market_id,ts_start,sequence);
 
 ALTER TABLE ONLY "public"."${table_prefix}market_offer_details"
 ADD CONSTRAINT "${table_prefix}market_offer_details_market_id_fkey" FOREIGN KEY (market_id)
@@ -59,7 +61,7 @@ CREATE TABLE "public"."${table_prefix}market_offer" (
 	"update_ts" bigint NOT NULL ,
 	"isp_start" INT NOT NULL,
 	"isp_len" INT NOT NULL,
-	"cost_mwh"  double precision,
+	"cost"  double precision,
     CONSTRAINT "${table_prefix}market_offer_key" PRIMARY KEY ("offer_id","ts","isp_start" )
 )
 WITH (oids = false);

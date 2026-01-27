@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from tm_entso_e.modules.entso_e_web_api import ApiKeys
 from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument
-from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC
+from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC, MarketAgreementTypeCode
 from tm_entso_e.modules.entso_e_web_api.rest import RESTClient, _get_ns
 from tm_entso_e.utils import TimeSpan
 
@@ -58,9 +58,18 @@ class MarketRequest(BaseModel):
 #
 # [O] Integer (allows downloading more than 100 documents. The offset ∈ [0,4800] so that pagging is restricted to query for 4900 documents max., offset=n returns files in sequence between n+1 and n+100)
 class MarketAPI(RESTClient):
+    _market_uri_prefix: str
 
-    def __init__(self, logger: Optional[Logger] = None, **kwargs):
+    def __init__(self, market_uri_prefix: str, logger: Optional[Logger] = None, **kwargs):
         super().__init__(logger=logger, **kwargs)
+        self._market_uri_prefix = market_uri_prefix
+
+    def get_market_uri(self, eic_area_code: str, market_code: str):
+        return f"{self._market_uri_prefix}/{eic_area_code}/{market_code}"
+
+    def get_market_uri_by_market_type(self, eic_area_code: str, market_type: str):
+        market_code = MarketAgreementTypeCode.parse(market_type).code
+        return self.get_market_uri(eic_area_code=eic_area_code,market_code=market_code)
 
     def get_energy_prices(self, eic: SubscribedEIC, ti: TimeSpan):
         # TODO: move 'A44' to some constant object
@@ -76,11 +85,11 @@ class MarketAPI(RESTClient):
             ns = _get_ns(resp_content)
             md: MarketDocument = MarketDocument.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
                                                          skip_fields=True)
-            print(f"market: {md.m_rid}, {md.time_interval.start}-{md.time_interval.end}, ts:{len(md.timeseries)}")
-            for t_s in md.timeseries:
-                print(f"\t ts: {t_s.m_rid},  periods:{len(t_s.periods)}")
-                for p in t_s.periods:
-                    print(
-                        f"\t\t period: {p.resolution},{p.time_interval.start}-{p.time_interval.end}, points:{len(p.points)}")
+            # print(f"market: {md.m_rid}, {md.time_interval.start}-{md.time_interval.end}, ts:{len(md.timeseries)}")
+            # for t_s in md.timeseries:
+            #     print(f"\t ts: {t_s.m_rid},  periods:{len(t_s.periods)}")
+            #     for p in t_s.periods:
+            #         print(
+            #             f"\t\t period: {p.resolution},{p.time_interval.start}-{p.time_interval.end}, points:{len(p.points)}")
             res[market_code] = md
         return res

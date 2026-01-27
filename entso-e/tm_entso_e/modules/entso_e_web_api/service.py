@@ -1,81 +1,61 @@
-# import logging
-# import os
-# from datetime import datetime, timedelta
-# from typing import List
-# from zoneinfo import ZoneInfo
-#
-# from effi_onto_tools.utils import time_utils
-#
-# __MAX_DAYS__ = 60
-# __DAY_MS__ = 24 * 3600 * 1000
-# __TIME_ZONE__ = ZoneInfo("Europe/Warsaw")
-#
-# __LAST_UPDATE_HOUR__ = 20
-# __LAST_UPDATE_DAY_OFFSET__ = __LAST_UPDATE_HOUR__ / 24
-# __LAST_UPDATE_DAY_OFFSET_MS__ = (1 - __LAST_UPDATE_HOUR__ / 24) * __DAY_MS__
-#
-#
-# # region utils
-# def _check_last_date(date_str: str) -> int:
-#     if date_str is None:
-#         return 60
-#     last_dt = time_utils.parse_date(date_str, dformat=time_utils.DATE_FORMAT, tz=__TIME_ZONE__)
-#     current_ts = time_utils.current_timestamp()
-#     df_days = int((current_ts - last_dt + __LAST_UPDATE_DAY_OFFSET_MS__) / __DAY_MS__ + __LAST_UPDATE_DAY_OFFSET__)
-#     return min(df_days, __MAX_DAYS__)
-#
-#
-# def check_last_primary_date() -> int:
-#     from main.core.db.postgresql import dao_manager
-#     last_date = dao_manager.tge_dao.last_date_primary_offer()
-#     return _check_last_date(date_str=last_date)
-#
-#
-# def check_last_date() -> int:
-#     from main.core.db.postgresql import dao_manager
-#     last_date = dao_manager.tge_dao.last_date_offer()
-#     return _check_last_date(date_str=last_date)
-#
-#
-# def _get_day_ahead_standard_offer(data: List[dict]):
-#     def process_row(r: dict):
-#         day_offer = {"ts": r["ts"], "date_str": r["date_str"], "cost_mwh": r["rdn_fixing_pln_mwh"],
-#                      "isp_unit": r["granularity"],
-#                      "isp_len": 1, "isp_start": r["day_offset"] / int(r["granularity"])}
-#         return day_offer
-#
-#     return [process_row(row) for row in data]
-#
-#
-# # endregion
-#
-# def check_data() -> int:
-#     logging.info("Check day offer")
-#     from main.modules.tge import webscrap_api
-#     from effi_onto_tools.utils.time_utils import to_timestamp
-#     from main.core.db.postgresql import dao_manager
-#     days_behind = check_last_date()
-#     days_behind = max(0, days_behind)
-#     repeat_last_day = 1
-#     for i in range(1, days_behind + 1 + repeat_last_day):
-#         d = datetime.today() - timedelta(days=(days_behind - i - 1))
-#         ts = to_timestamp(d)
-#         # 1759269600 = 1 OCTOBER 2025
-#         if ts >= 1759269600000:
-#             date_str = time_utils.datetime_to_str(d)
-#             try:
-#                 logging.info(f"Get offer for {date_str}")
-#                 market_data, headers = webscrap_api.get_data(ts)
-#
-#                 market_dict = [{k: v for k, v in zip(headers, row)} for row in market_data]
-#                 day_offer = _get_day_ahead_standard_offer(market_dict)
-#                 inserted = dao_manager.tge_dao.log_day_offer(offer=market_dict)
-#                 dayhead_inserted = dao_manager.day_ahead_dao.log_day_offer(offer=day_offer)
-#                 logging.info(f"Successfully acquired offer for: {date_str}.")
-#
-#             # tge_dao.log_day_offer(offer=tge_data_mapped)
-#             except Exception as ex:
-#                 print(f"error for {date_str}({i}): {ex}")
-#     logging.info("TGE offers acquired")
-#     return days_behind
-#
+import logging
+
+from isodate import parse_duration
+
+from modules.entso_e_web_api.api_model import MarketDocument
+from schemas.market import Market, MarketOfferDetails, MarketOffer
+from utils import time_utils, TimeSpan
+from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
+
+market_api :MarketAPI
+
+def init_service(market_prefix:str):
+    global market_api
+    from  tm_entso_e.modules.entso_e_web_api import init_db
+
+    init_db(market_prefix=market_prefix)
+    market_api=   MarketAPI(market_uri_prefix=market_prefix)
+def subscribe_data():
+    global market_api
+    from tm_entso_e.modules.entso_e_web_api.config import api_settings
+    # TODO: change timespan
+    for s_eic_area in api_settings.subscribed_eic:
+# try except each market in case dats is missing todo:
+        result = market_api.get_energy_prices(eic=s_eic_area, ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
+
+        for market_code, market_offer in result.items():
+            market_uri = market_api.get_market_uri(eic_area_code=s_eic_area.code, market_code=market_code)
+            store_offers(market_uri=market_uri, market_offer=market_offer)
+
+def store_offers(market_uri: str, market_offer: MarketDocument):
+    from tm_entso_e.core.db.postgresql import dao_manager
+    logging.info(f"Store offers for: {market_uri}")
+    market = dao_manager.market_dao.get_market_uri(market_uri=market_uri)
+    # if market is none log  error todo:
+    for ts in market_offer.timeseries:
+        for period in ts.periods:
+            period_minutes = int(parse_duration(period.resolution, as_timedelta_if_possible=True).total_seconds() / 60)
+            period_ms = period_minutes * 60 * 1000
+            ts_start = time_utils.xsd_to_ts(period.time_interval.start)
+            logging.info(f"Store offers for: {market_uri},{ts_start}:{ts.sequence}")
+            sequence = int(ts.sequence) if ts.sequence is not None else None
+            offer_details = dao_manager.offer_dao.get_offer_details(market_id=market.market_id,
+                                                                    ts_start=ts_start, sequence=sequence)
+
+            if offer_details is None:
+                offer_details = MarketOfferDetails(market_id=market.market_id, sequence=sequence,
+                                                   currency_unit=ts.currency_unit,
+                                                   volume_unit=ts.measurement_unit, ts_start=ts_start,
+                                                   ts_end=time_utils.xsd_to_ts(period.time_interval.end),
+                                                   isp_unit=period_minutes)
+                offer_details = dao_manager.offer_dao.register_day_offer(offer_details=offer_details)
+            else:
+                # todo: if override previous
+                dao_manager.offer_dao.clear_offer(offer_id=offer_details.offer_id)
+                # else log something and return
+            market_offers = [MarketOffer(
+                ts=ts_start + p.position * period_ms, offer_id=offer_details.offer_id, isp_start=p.position,
+                isp_len=(period.points[i + 1].position - p.position if i < (len(period.points) - 1) else 1),
+                cost=p.price
+            ) for i, p in enumerate(period.points)]
+            db_resp = dao_manager.offer_dao.log_day_offer(market_offers=market_offers)

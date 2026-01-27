@@ -21,6 +21,10 @@ class MarketOfferDAO(DAO):
         pass
 
     @abstractmethod
+    def clear_offer(self, offer_id: int) -> Any:
+        pass
+
+    @abstractmethod
     def get_recent_dayahead_details(self, market_id: Optional[int] = None) -> List[MarketOfferDetails]:
         pass
 
@@ -38,7 +42,11 @@ class MarketOfferDAO(DAO):
         pass
 
     @abstractmethod
-    def get_offer_details(self, offer_id: int) -> Optional[MarketOfferDetails]:
+    def get_offer_details_by_id(self, offer_id: int) -> Optional[MarketOfferDetails]:
+        pass
+
+    @abstractmethod
+    def get_offer_details(self, market_id: int, ts_start: int, sequence: Optional[int]) -> Optional[MarketOfferDetails]:
         pass
 
     @abstractmethod
