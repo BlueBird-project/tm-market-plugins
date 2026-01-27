@@ -5,10 +5,10 @@ from typing import Optional, Dict
 import requests
 from xml.etree.ElementTree import Element, ElementTree, parse as parse_xml
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from tm_entso_e.modules.entso_e_web_api import ApiKeys
-from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument
+from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument, MarketDocumentError, APIError
 from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC, MarketAgreementTypeCode
 from tm_entso_e.modules.entso_e_web_api.rest import RESTClient, _get_ns
 from tm_entso_e.utils import TimeSpan
@@ -29,6 +29,10 @@ class MarketRequest(BaseModel):
     @property
     def api_args(self) -> Dict[str, str]:
         return {ApiKeys.__dict__[k]: v for k, v in self.__dict__.items()}
+
+    def __str__(self):
+        return (f"MarketRequest: {self.document_type}/{self.market_contract_type},{self.in_domain}/{self.out_domain},"
+                + f"{self.period_start} - {self.period_end}")
 
 
 # [M] Pattern yyyyMMddHHmm e.g. 201601010000
@@ -69,7 +73,7 @@ class MarketAPI(RESTClient):
 
     def get_market_uri_by_market_type(self, eic_area_code: str, market_type: str):
         market_code = MarketAgreementTypeCode.parse(market_type).code
-        return self.get_market_uri(eic_area_code=eic_area_code,market_code=market_code)
+        return self.get_market_uri(eic_area_code=eic_area_code, market_code=market_code)
 
     def get_energy_prices(self, eic: SubscribedEIC, ti: TimeSpan):
         # TODO: move 'A44' to some constant object
@@ -83,13 +87,13 @@ class MarketAPI(RESTClient):
 
             resp_content = self.send_request(parameters=mr.api_args)
             ns = _get_ns(resp_content)
-            md: MarketDocument = MarketDocument.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
-                                                         skip_fields=True)
-            # print(f"market: {md.m_rid}, {md.time_interval.start}-{md.time_interval.end}, ts:{len(md.timeseries)}")
-            # for t_s in md.timeseries:
-            #     print(f"\t ts: {t_s.m_rid},  periods:{len(t_s.periods)}")
-            #     for p in t_s.periods:
-            #         print(
-            #             f"\t\t period: {p.resolution},{p.time_interval.start}-{p.time_interval.end}, points:{len(p.points)}")
+            try:
+                md: MarketDocument = MarketDocument.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
+                                                             skip_fields=True)
+            except ValidationError as err:
+                logging.error(f"ValidationError {err} occurred while  processing data for {mr.api_args} in {ti}")
+                err_document = MarketDocumentError.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
+                                                            skip_fields=True)
+                raise APIError(code=err_document.reason.code, text=err_document.reason.text, ctx=str(mr))
             res[market_code] = md
         return res

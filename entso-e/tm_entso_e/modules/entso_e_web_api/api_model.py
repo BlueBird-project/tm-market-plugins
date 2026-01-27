@@ -1,6 +1,7 @@
 from typing import Annotated, List, Optional
 
 from pydantic import Field
+from setuptools.errors import BaseError
 
 from tm_entso_e.modules.entso_e_web_api.utils import XMLBaseModel
 
@@ -46,3 +47,32 @@ class MarketDocument(XMLBaseModel):
     create_date_time: Annotated[str, Field(alias='createdDateTime')]
     time_interval: Annotated[PeriodInterval, Field(alias='period.timeInterval')]
     timeseries: Annotated[List[TimeSeries], Field(alias='TimeSeries')]
+
+
+class MarketDocumentErrorReason(XMLBaseModel):
+    code: int
+    text: str
+
+
+class MarketDocumentError(XMLBaseModel):
+    m_rid: Annotated[str, Field(alias='mRID')]
+    create_date_time: Annotated[str, Field(alias='createdDateTime')]
+    reason: Annotated[MarketDocumentErrorReason, Field(alias='Reason')]
+
+
+class APIBaseError(BaseError):
+    __ctx__: Optional[str]
+    __message__: Optional[str]
+
+    def __init__(self, message: str, *args, ctx: str, **kwargs):
+        super().__init__(message, *args)
+        self.__ctx__ = ctx
+        self.__message__ = message
+
+    def __str__(self):
+        return f"{self.__ctx__} - {self.__message__}"
+
+
+class APIError(APIBaseError, TypeError):
+    def __init__(self, code: str, text: str, *args, ctx: str, **kwargs):
+        super().__init__(f"code: {code}, details: '{text}'", *args, ctx=ctx, **kwargs)
