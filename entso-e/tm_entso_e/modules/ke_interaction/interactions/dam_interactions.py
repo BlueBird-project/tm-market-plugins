@@ -7,7 +7,7 @@ from rdflib import URIRef, Literal
 
 from tm_entso_e.modules.ke_interaction.interactions._interactions import ke_client
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindingsQuery, EnergyMarketBindings
-from tm_entso_e.modules.ke_interaction.service import list_markets
+from tm_entso_e.modules.ke_interaction.service import list_markets, find_markets
 
 
 #
@@ -58,9 +58,13 @@ from tm_entso_e.modules.ke_interaction.service import list_markets
 #     return res
 
 
-# @ke_client.answer("market")
-# def market_information(ki_id, market_query: List[EnergyMarketBindingsQuery]):
-#     return [get_market_info().n3()]
+@ke_client.answer("market")
+def market_information(ki_id, bindings: List[EnergyMarketBindingsQuery]):
+    print("on market query")
+    print(bindings)
+    res = find_markets(queries=bindings)
+    print(res)
+    return res
 
 
 @ke_client.post("market")

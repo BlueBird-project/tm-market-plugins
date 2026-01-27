@@ -1,7 +1,8 @@
 import logging
+from time import sleep
+
 import tm_entso_e
 
-from schemas.market import Market
 from tm_entso_e.utils import TimeSpan
 
 if __name__ == "__main__":
@@ -44,12 +45,23 @@ if __name__ == "__main__" and app_settings:
     from tm_entso_e.modules.entso_e_web_api.service import init_service, subscribe_data
 
     init_service(market_prefix=market_prefix)
-    subscribe_data(ti=TimeSpan.last_day())
+    # subscribe_data(ti=TimeSpan.last_day())
     subscribe_data(ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
     ########################################################
+    from tm_entso_e.modules.ke_interaction.interactions import publish_market_information
+    success=False
+    # while not success:
+    #     try:
+    #         print("publish")
+    #         publish_market_information()
+    #         success=True
+    #         sleep(5)
+    #     except Exception as ex:
+    #         print(ex)
     # from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
     # market_api = MarketAPI(market_uri_prefix=market_prefix)
     # s_eic_area = api_settings.subscribed_eic[1]
+    # result = market_api.get_energy_prices(eic=s_eic_area, ti=TimeSpan.last_day())
     # result = market_api.get_energy_prices(eic=s_eic_area, ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
     # # market_api.get_market_uri
     # for market_code, market_offer in result.items():

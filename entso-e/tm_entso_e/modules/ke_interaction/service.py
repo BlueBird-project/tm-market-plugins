@@ -1,9 +1,11 @@
-from typing import List
+from typing import List, Dict
 
 from rdflib import Literal, URIRef
 
+from tm_entso_e.core.db.postgresql import dao_manager
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
-from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindings, CountryURI
+from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindings, CountryURI, \
+    EnergyMarketBindingsQuery
 from tm_entso_e.schemas.market import Market
 
 
@@ -96,3 +98,24 @@ def list_markets() -> List[EnergyMarketBindings]:
                                  country_name=Literal(m.market_location),
                                  market_type=MarketAgreementTypeCode.parse(m.market_type).uri_ref)
             for m in markets]
+
+
+def find_markets(queries: List[EnergyMarketBindingsQuery]) -> List[EnergyMarketBindings]:
+    res: Dict[str, Market] = {}
+    for q in queries:
+        if q.market_uri is not None:
+            m = dao_manager.market_dao.get_market_uri(market_uri=q.market_uri)
+            if m is not None:
+                res[m.market_uri] = m
+        else:
+            # todo add filtering method to dao by market_type and country
+            filtered = [m for m in dao_manager.market_dao.list_market() if
+                        m.market_location.lower() == q.country_name.lower()]
+            for m in filtered:
+                res[m.market_uri] = m
+
+    return [EnergyMarketBindings(market_uri=URIRef(m.market_uri),
+                                 country_uri=CountryURI(country_name=m.market_location).uri_ref,
+                                 country_name=Literal(m.market_location),
+                                 market_type=MarketAgreementTypeCode.parse(m.market_type).uri_ref)
+            for m in res.values()]
