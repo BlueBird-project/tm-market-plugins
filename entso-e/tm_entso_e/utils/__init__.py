@@ -136,6 +136,19 @@ class TimeSpan:
         if self.ts_to < self.ts_from:
             raise ValueError("Time from cannot be after time to")
 
+    def __str__(self):
+        if self.ts_from is None:
+            ts_from_str = "..."
+        else:
+            from utils import time_utils
+            ts_from_str = time_utils.ts_to_str(self.ts_from)
+        if self.ts_to is None:
+            ts_to_str = "..."
+        else:
+            from utils import time_utils
+            ts_to_str = time_utils.ts_to_str(self.ts_to)
+        return f" {ts_from_str} - {ts_to_str} "
+
     @staticmethod
     def last_week():
         from effi_onto_tools.utils import time_utils

@@ -5,8 +5,8 @@ service:
   name: "entsoe-service"
 app:
   logging_conf_path: "./resources/logging.ini"
-  use_scheduler: false
-  use_rest_api: true
+  use_scheduler: true
+  use_rest_api: false
   use_ke_api: true
 #db does not require env prefix
 #TODO: make db as prefix -> db_host = "DB_" + "HOST"

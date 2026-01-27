@@ -41,9 +41,11 @@ if __name__ == "__main__" and app_settings:
     from tm_entso_e.modules.entso_e_web_api.config import configure_api
 
     api_settings = configure_api()
-    from tm_entso_e.modules.entso_e_web_api.service import init_service,subscribe_data
+    from tm_entso_e.modules.entso_e_web_api.service import init_service, subscribe_data
+
     init_service(market_prefix=market_prefix)
-    subscribe_data()
+    subscribe_data(ti=TimeSpan.last_day())
+    subscribe_data(ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
     ########################################################
     # from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
     # market_api = MarketAPI(market_uri_prefix=market_prefix)
@@ -58,11 +60,11 @@ if __name__ == "__main__" and app_settings:
     #     store_offers(market_uri=market_uri, market_offer=market_offer)
     # print(result)
     ##########################################################33
-# if __name__ == "__main__" and app_settings:
-#     if app_settings.use_scheduler:
-#         from tm_entso_e.core import task_manager
-#
-#         task_manager.setup_scheduler()
+if __name__ == "__main__" and app_settings:
+    if app_settings.use_scheduler:
+        from tm_entso_e.core import task_manager
+
+        task_manager.setup_scheduler()
 
 # if __name__ == "__main__":
 #     if app_settings.use_rest_api:
