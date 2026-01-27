@@ -3,9 +3,9 @@ from typing import List, Optional, Dict, Any
 from effi_onto_tools.db import TimeSpan
 from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 
-from core.db.api.market_offer_dao import MarketOfferDAO
-from modules.entso_e_web_api.model import MarketAgreementTypeCode
-from schemas.market import MarketOffer, MarketOfferDetails
+from tm_entso_e.core.db.api.market_offer_dao import MarketOfferDAO
+from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
+from tm_entso_e.schemas.market import MarketOffer, MarketOfferDetails
 
 
 class MarketOfferQueries:

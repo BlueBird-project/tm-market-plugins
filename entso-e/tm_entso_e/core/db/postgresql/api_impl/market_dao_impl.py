@@ -7,7 +7,7 @@ from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 from effi_onto_tools.utils import time_utils
 
 from tm_entso_e.core.db.api.market_dao import MarketDAO
-from schemas.market import Market
+from tm_entso_e.schemas.market import Market
 
 
 class MarketQueries:

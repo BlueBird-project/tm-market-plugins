@@ -5,7 +5,7 @@ from typing import List, Union, Optional, Dict, Any, Tuple
 from effi_onto_tools.db import TimeSpan
 from effi_onto_tools.db.dao import DAO
 
-from schemas.market import Market
+from tm_entso_e.schemas.market import Market
 
 
 class MarketDAO(DAO):

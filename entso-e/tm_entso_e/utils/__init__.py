@@ -129,7 +129,7 @@ class TimeSpan:
 
     def __init__(self, ts_from: Optional[int] = None, ts_to: Optional[int] = None):
         if ts_from is None and ts_to is None:
-            from effi_onto_tools.utils import time_utils
+            from tm_entso_e.utils import time_utils
             ts_to = time_utils.current_timestamp()
         self.ts_from = ts_from if ts_from is not None else ts_to - DAY_MS
         self.ts_to = ts_to if ts_to is not None else ts_from + DAY_MS
@@ -140,32 +140,32 @@ class TimeSpan:
         if self.ts_from is None:
             ts_from_str = "..."
         else:
-            from utils import time_utils
+            from tm_entso_e.utils import time_utils
             ts_from_str = time_utils.ts_to_str(self.ts_from)
         if self.ts_to is None:
             ts_to_str = "..."
         else:
-            from utils import time_utils
+            from tm_entso_e.utils import time_utils
             ts_to_str = time_utils.ts_to_str(self.ts_to)
         return f" {ts_from_str} - {ts_to_str} "
 
     @staticmethod
     def last_week():
-        from effi_onto_tools.utils import time_utils
+        from tm_entso_e.utils import time_utils
         ts_to = time_utils.current_timestamp()
         ts_from = ts_to - WEEK_MS
         return TimeSpan(ts_from=ts_from, ts_to=ts_to)
 
     @staticmethod
     def last_day():
-        from effi_onto_tools.utils import time_utils
+        from tm_entso_e.utils import time_utils
         ts_to = time_utils.current_timestamp()
         ts_from = ts_to - DAY_MS
         return TimeSpan(ts_from=ts_from, ts_to=ts_to)
 
     @staticmethod
     def last_48h():
-        from effi_onto_tools.utils import time_utils
+        from tm_entso_e.utils import time_utils
         ts_to = time_utils.current_timestamp()
         ts_from = ts_to - 2 * DAY_MS
         return TimeSpan(ts_from=ts_from, ts_to=ts_to)

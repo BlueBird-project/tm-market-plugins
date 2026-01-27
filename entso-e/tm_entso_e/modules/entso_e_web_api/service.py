@@ -2,9 +2,9 @@ import logging
 
 from isodate import parse_duration
 
-from modules.entso_e_web_api.api_model import MarketDocument
-from schemas.market import Market, MarketOfferDetails, MarketOffer
-from utils import time_utils, TimeSpan
+from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument
+from tm_entso_e.schemas.market import Market, MarketOfferDetails, MarketOffer
+from tm_entso_e.utils import time_utils, TimeSpan
 from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
 
 market_api: MarketAPI

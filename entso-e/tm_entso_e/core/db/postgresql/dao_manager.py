@@ -26,7 +26,7 @@ def init_postgresql(db_meta: DBMeta):
 
 # TODO: make in configurable
 def init() -> DBMeta:
-    from core.db.postgresql import api_impl
+    from tm_entso_e.core.db.postgresql import api_impl
     db_meta = DBMeta(
         db_version=api_impl.__DB_VERSION__,
         db_version_hashmap=api_impl.__DB_HASH__,

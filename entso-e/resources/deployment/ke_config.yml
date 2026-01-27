@@ -16,34 +16,36 @@ knowledge_engine:
         s4city: "https://saref.etsi.org/s4city/"
         foaf: "http://xmlns.com/foaf/0.1/"
       pattern:
-        - ' kb:market rdf:type ubmarket:DayAheadMarket ;  rdf:type foaf:Agent ;'
-        - '      s4city:hasAdministrativeArea ?country .'
-        - ' ?country rdf:type s4city:Country ; ubmarket:hasISO3166Name "Poland" .'
+        - ' ?market_uri rdf:type ?market_type ;  rdf:type foaf:Agent ;'
+        - '      s4city:hasAdministrativeArea ?country_uri .'
+        - ' ?country_uri rdf:type s4city:Country ; ubmarket:hasISO3166Name ?country_name .'
     market-offer-info-query:
       name: "market-offer-info-query"
       description: "Information about new offer"
       prefixes:
         time: "http://www.w3.org/2006/time#"
       pattern:
-        - ' kb:market rdf:type ubmarket:DayAheadMarket .'
+        - ' ?market_uri rdf:type ?market_type  ; ubmarket:hasMarketSequence ?sequence .'
         - ' ?ts_interval_uri rdf:type time:Interval; time:hasBeginning ?ts_date_from; time:hasEnd ?ts_date_to .'
       result_pattern:
         - ' ?offer_uri rdf:type s4ener:TimeSeries .'
-        - ' ?offer_uri s4ener:producedBy kb:market .'
-        - ' ?offer_uri s4ener:hasUpdateRate "PT60M"^^xsd:duration .'
+        - ' ?offer_uri s4ener:producedBy ?market_uri .'
+        - ' ?market_uri ubmarket:hasMarketSequence ?sequence .'
+        - ' ?offer_uri s4ener:hasUpdateRate ?update_rate .'
         - ' ?offer_uri s4ener:hasCreationTime ?time_create .'
-        - ' ?offer_uri s4ener:hasEffectivePeriod  "PT1440M"^^xsd:duration .'
+        - ' ?offer_uri s4ener:hasEffectivePeriod ?duration .'
+
     market-offer-info:
       name: "market-offer-info"
       description: "Information about new offer"
       prefixes:
       pattern:
-        - ' kb:market rdf:type ubmarket:DayAheadMarket .'
+        - ' ?market_uri rdf:type ?market_type .'
         - ' ?offer_uri rdf:type s4ener:TimeSeries .'
-        - ' ?offer_uri s4ener:producedBy kb:market .'
-        - ' ?offer_uri s4ener:hasUpdateRate "PT60M"^^xsd:duration .'
+        - ' ?offer_uri s4ener:producedBy ?market_uri .'
+        - ' ?offer_uri s4ener:hasUpdateRate  ?update_rate.'
         - ' ?offer_uri s4ener:hasCreationTime ?time_create .'
-        - ' ?offer_uri s4ener:hasEffectivePeriod  "PT1440M"^^xsd:duration .'
+        - ' ?offer_uri s4ener:hasEffectivePeriod  ?duration .'
     market-offer:
       name: "market-offer"
       description: "Daily offer of the market"
@@ -56,25 +58,6 @@ knowledge_engine:
         - '?dp saref:hasTimestamp ?ts .'
         - '?dp saref:hasResult ?dpr .'
         - '?dpr saref:hasValue ?value .'
-        - '?dpr saref:isMeasuredIn "PLNPerMegawattHour" .'
-        - '?dp s4ener:hasEffectivePeriod  "PT60M"^^xsd:duration .'
-
-#    tou-price:
-#      name: "tou-price"
-#      description: "tou-price"
-#      prefixes:
-#        xsd: "http://www.w3.org/2001/XMLSchema#"
-#        saref: "https://saref.etsi.org/core/"
-#        s4ener: "https://saref.etsi.org/saref4ener/"
-#        kbmarket: "${KB_ID}/market/"
-#      pattern:
-#        - 'kbmarket:tou rdf:type s4ener:TimeSeries .'
-#        - 'kbmarket:tou s4ener:hasCreationTime ?offerCreationTime .'
-#        - 'kbmarket:tou s4ener:hasUpdateRate "PT60M"^^xsd:duration .'
-#        - '?dp s4ener:belongsToTimeSeries kbmarket:tou .'
-#        - '?dp rdf:type s4ener:DataPoint .'
-#        - '?dp saref:hasTimestamp ?timestamp .'
-#        - '?dp saref:hasResult ?dpr .'
-#        - '?dpr saref:hasValue ?value .'
-#        - '?dpr saref:isMeasuredIn "PLNPerMegawattHour" .'
+        - '?dpr saref:isMeasuredIn ?is_measured_id .'
+        - '?dp s4ener:hasEffectivePeriod ?duration .'
 

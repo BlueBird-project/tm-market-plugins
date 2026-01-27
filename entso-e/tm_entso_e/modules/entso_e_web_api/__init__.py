@@ -2,7 +2,7 @@
 # __DATE_WRITE_FORMAT__ = """%d-%m-%y"""
 import logging
 
-from schemas.market import Market
+from tm_entso_e.schemas.market import Market
 
 # ENTSOE date format: "yyyyMMddHHmm"
 DATE_FORMAT = "%Y%m%d%H%M"
@@ -55,9 +55,13 @@ def init_db(market_prefix: str):
     # or delete all of them >
     for s_eic_area in api_settings.subscribed_eic:
         for market_code in s_eic_area.market_codes:
+            # TODO: support more than one country code/location
+
+            market_location=api_settings.eic_codes[s_eic_area.code].country_codes[0]
             market = Market(market_uri=f"{market_prefix}/{s_eic_area.code}/{market_code}",
                             market_name=s_eic_area.code + "_" + market_code,
                             market_type=s_eic_area.get_market_type_name(code=market_code),
+                            market_location=market_location,
                             subscribe=True)
             add_market(market=market)
             logging.info(f"Setting market: {market}")

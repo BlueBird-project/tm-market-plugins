@@ -17,7 +17,7 @@ def setup_ke():
 
     from ke_client import ke_settings
     ki_vars = ke_settings.get_ki_vars()
-    from modules.ke_interaction import KIVars
+    from tm_entso_e.modules.ke_interaction import KIVars
     for k in KIVars.names():
         if k not in ki_vars:
             raise KeyError(f"{k} isn't defined in ki_vars")
@@ -25,4 +25,4 @@ def setup_ke():
 
 
 setup_ke()
-ki_client = KEClient.build(logger=logging.getLogger())
+ke_client = KEClient.build(logger=logging.getLogger())
