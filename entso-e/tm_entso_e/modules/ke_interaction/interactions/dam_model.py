@@ -87,7 +87,7 @@ class MarketOfferInfoBindings(BindingsBase):
 
     @property
     def update_rate_min(self) -> int:
-        return int(parse_duration(self.update_rate, as_timedelta_if_possible=True).total_seconds() * 60)
+        return int(parse_duration(self.update_rate, as_timedelta_if_possible=True).total_seconds() /60)
 
 
 #

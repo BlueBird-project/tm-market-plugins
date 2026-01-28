@@ -65,6 +65,7 @@ def _publish_market_offer_information(offer_details: List[MarketOfferInfoBinding
 def market_offer_information(ki_id, bindings: List[MarketOfferInfoRequest]) -> List[MarketOfferInfoBindings]:
     # logging.info(f"Ask arrived {ki_id}")
     logging.debug(f"Ask arrived {ki_id}, {bindings}")
+    print( f"Ask arrived {ki_id}, {bindings}")
     if len(bindings) > 1:
         logging.warning("Supported only one query binding")
     if len(bindings) == 0:

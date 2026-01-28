@@ -62,9 +62,9 @@ if __name__ == "__main__" and app_settings:
     #         print(ex)
     while not success:
         try:
-            print("publish details")
-            res=publish_market_offer_information()
-            print(res)
+            # print("publish details")
+            # res=publish_market_offer_information()
+            # print(res)
             success=True
             sleep(5)
         except Exception as ex:
