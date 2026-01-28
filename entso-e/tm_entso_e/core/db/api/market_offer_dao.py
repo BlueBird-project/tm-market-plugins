@@ -33,8 +33,8 @@ class MarketOfferDAO(DAO):
         pass
 
     @abstractmethod
-    def get_recent_market_details(self, market_id: Optional[int] = None, sequence: Optional[str] = None) \
-            -> List[MarketOfferDetails]:
+    def get_recent_market_details(self, market_id: Optional[int] = None, sequence: Optional[str] = None,
+                                  market_type: Optional[str] = None) -> List[MarketOfferDetails]:
         pass
 
     @abstractmethod
@@ -51,7 +51,8 @@ class MarketOfferDAO(DAO):
         pass
 
     @abstractmethod
-    def get_offer_details_by_id(self, offer_id: int) -> Optional[MarketOfferDetails]:
+    def find_offer_details(self, ti: TimeSpan, market_id: Optional[int] = None, sequence: Optional[str] = None,
+                           market_type: Optional[str] = None) -> List[MarketOfferDetails]:
         pass
 
     @abstractmethod

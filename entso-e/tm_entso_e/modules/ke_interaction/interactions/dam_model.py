@@ -1,9 +1,10 @@
-from typing import Optional, Union
+from typing import Optional, Union, Type
 
 from effi_onto_tools.utils import time_utils
 from isodate import parse_duration
 from ke_client import ki_object, is_nil, ki_split_uri, SplitURIBase
 from ke_client import BindingsBase
+from ke_client.client._split_uri import U
 from rdflib import URIRef, Literal
 
 
@@ -96,6 +97,14 @@ class MarketOfferInfoFilteredBindings(MarketOfferInfoBindings):
     ts_date_from: Literal
     ts_date_to: Literal
 
+    @property
+    def ts_from(self):
+        return time_utils.xsd_to_ts(self.ts_date_from)
+
+    @property
+    def ts_to(self):
+        return time_utils.xsd_to_ts(self.ts_date_to)
+
 
 #
 @ki_object("market-offer-info", allow_partial=True)
@@ -107,36 +116,44 @@ class MarketOfferInfoRequest(BindingsBase):
 
 @ki_object("market-offer-info-filtered", allow_partial=True)
 class MarketOfferInfoFilteredRequest(MarketOfferInfoRequest):
-    ts_interval_uri: URIRef
-    ts_date_from: Literal
-    ts_date_to: Literal
+    ts_interval_uri: Optional[URIRef] = None
+    ts_date_from: Optional[Literal] = None
+    ts_date_to: Optional[Literal] = None
+
+    @property
+    def ts_from(self):
+        return time_utils.xsd_to_ts(self.ts_date_from)
+
+    @property
+    def ts_to(self):
+        return time_utils.xsd_to_ts(self.ts_date_to)
 
 
-#
-# @ki_object("market-offer")
-# class MarketOfferBindings(BindingsBase):
-#     offer_uri: URIRef
-#     dp: URIRef
-#     ts: Literal
-#     dpr: URIRef
-#     value: Union[URIRef, Literal, None]
-#
-#     def __init__(self, **kwargs):
-#         super().__init__(bindings=kwargs)
-#
-#     @property
-#     def ts_ms(self) -> int:
-#         return time_utils.xsd_to_ts(self.ts)
-#
-#     def get_value(self) -> Optional[float]:
-#         return self.convert_value(self.value,float)
-#
-#
-# @ki_object("market-offer",allow_partial=True)
-# class MarketOfferRequest(BindingsBase):
-#     offer_uri: URIRef
-#
-#
+@ki_object("market-offer")
+class MarketOfferBindings(BindingsBase):
+    offer_uri: URIRef
+    dp: URIRef
+    ts: Literal
+    dpr: URIRef
+    is_measured_id: Literal
+    duration: Literal
+    value: Union[URIRef, Literal, None]
+
+    def __init__(self, **kwargs):
+        super().__init__(bindings=kwargs)
+
+    @property
+    def ts_ms(self) -> int:
+        return time_utils.xsd_to_ts(self.ts)
+
+    def get_value(self) -> Optional[float]:
+        return self.convert_value(self.value, float)
+
+
+@ki_object("market-offer", allow_partial=True)
+class MarketOfferRequest(BindingsBase):
+    offer_uri: URIRef
+
 
 @ki_split_uri(uri_template="https://ubeflex.bluebird.eu/country/${country_name}")
 class CountryURI(SplitURIBase):
@@ -146,10 +163,21 @@ class CountryURI(SplitURIBase):
 
 @ki_split_uri(uri_template="offer/${sequence}/${ts_start}/${ts_len}")
 class OfferUri(SplitURIBase):
+    __EMPTY__ = "_"
     # TODO use different country uri prefix
     sequence: str
     ts_start: int
     ts_len: int
+
+    @property
+    def processed_sequence(self) -> Optional[str]:
+        if self.sequence == OfferUri.__EMPTY__:
+            return None
+        return self.sequence
+
+    @staticmethod
+    def get_prefix(uri: [str, URIRef]) -> str:
+        return str(uri).split("offer/")[0]
 
 
 @ki_split_uri(uri_template="http://${dt_uri}/${ts_start}/${ts_end}")

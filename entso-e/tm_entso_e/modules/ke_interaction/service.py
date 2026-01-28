@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from isodate import duration_isoformat
 from rdflib import Literal, URIRef
@@ -8,7 +8,7 @@ from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindings, CountryURI, \
     EnergyMarketBindingsQuery, MarketOfferInfoBindings, OfferUri, MarketOfferInfoRequest
 from tm_entso_e.schemas.market import Market, MarketOfferDetails
-from tm_entso_e.utils import time_utils
+from tm_entso_e.utils import time_utils, TimeSpan
 
 
 #
@@ -127,7 +127,7 @@ def find_markets(queries: List[EnergyMarketBindingsQuery]) -> List[EnergyMarketB
 def _get_offer_details_bindings(markets: Dict[int, Market], offer_details: List[MarketOfferDetails]) -> \
         List[MarketOfferInfoBindings]:
     def offer_uri_helper(market: Market, o: MarketOfferDetails) -> OfferUri:
-        sequence = "_" if o.sequence is None else o.sequence
+        sequence = OfferUri.__EMPTY__ if o.sequence is None else o.sequence
         return OfferUri(prefix=market.market_uri, sequence=sequence, ts_start=o.ts_start,
                         ts_len=o.ts_end - o.ts_start)
 
@@ -144,29 +144,56 @@ def _get_offer_details_bindings(markets: Dict[int, Market], offer_details: List[
     return offer_bindings
 
 
-def get_offer_details(q: MarketOfferInfoRequest):
-    from tm_entso_e.core.db.postgresql import dao_manager
+# def get_offer_details(q: MarketOfferInfoRequest):
+#     from tm_entso_e.core.db.postgresql import dao_manager
+#     if q.market_uri is not None:
+#         market = dao_manager.market_dao.get_market_uri(market_uri=q.market_uri)
+#         if market is None:
+#             return []
+#         offer_details = dao_manager.offer_dao.get_recent_market_details(market_id=market.market_id, sequence=q.sequence)
+#         return _get_offer_details_bindings(markets={market.market_id: market}, offer_details=offer_details)
+#     elif q.market_type is not None:
+#         market_type = MarketAgreementTypeCode.parse(q.market_type, nullable=True)
+#         if market_type is None:
+#             # log invalid market_type todo:
+#             return []
+#         if market_type == MarketAgreementTypeCode.DAY_AHEAD:
+#             offer_details = dao_manager.offer_dao.get_recent_dayahead_details(sequence=q.sequence)
+#         elif market_type == MarketAgreementTypeCode.INTRADAY:
+#             offer_details = dao_manager.offer_dao.get_recent_intraday_details(sequence=q.sequence)
+#         else:
+#             raise NotImplementedError
+#         markets: Dict[int, Market] = {}
+#         for od in offer_details:
+#             if od.market_id not in markets:
+#                 markets[od.market_id] = dao_manager.market_dao.get_market(market_id=od.market_id)
+#         return _get_offer_details_bindings(markets=markets, offer_details=offer_details)
+#     else:
+#         return get_all_offer_details()
+
+
+def get_offer_details(q: MarketOfferInfoRequest, ti: Optional[TimeSpan] = None):
+    from tm_entso_e.core.db.postgresql.dao_manager import offer_dao, market_dao
+
     if q.market_uri is not None:
-        market = dao_manager.market_dao.get_market_uri(market_uri=q.market_uri)
+        market = market_dao.get_market_uri(market_uri=q.market_uri)
         if market is None:
             return []
-        offer_details=dao_manager.offer_dao.get_recent_market_details(market_id=market.market_id, sequence=q.sequence)
-        return _get_offer_details_bindings(markets={market.market_id:market}, offer_details=offer_details)
+        offer_details = offer_dao.get_recent_market_details(market_id=market.market_id, sequence=q.sequence) \
+            if ti is None else offer_dao.find_offer_details(ti=ti, market_id=market.market_id, sequence=q.sequence)
+        return _get_offer_details_bindings(markets={market.market_id: market}, offer_details=offer_details)
     elif q.market_type is not None:
         market_type = MarketAgreementTypeCode.parse(q.market_type, nullable=True)
         if market_type is None:
             # log invalid market_type todo:
             return []
-        if market_type == MarketAgreementTypeCode.DAY_AHEAD:
-            offer_details = dao_manager.offer_dao.get_recent_dayahead_details(sequence=q.sequence)
-        elif market_type == MarketAgreementTypeCode.INTRADAY:
-            offer_details = dao_manager.offer_dao.get_recent_intraday_details(sequence=q.sequence)
-        else:
-            raise NotImplementedError
+        offer_details = offer_dao.get_recent_market_details(sequence=q.sequence, market_type=market_type.name) \
+            if ti is None else offer_dao.find_offer_details(ti=ti, sequence=q.sequence, market_type=market_type.name)
+
         markets: Dict[int, Market] = {}
         for od in offer_details:
             if od.market_id not in markets:
-                markets[od.market_id] = dao_manager.market_dao.get_market(market_id=od.market_id)
+                markets[od.market_id] = market_dao.get_market(market_id=od.market_id)
         return _get_offer_details_bindings(markets=markets, offer_details=offer_details)
     else:
         return get_all_offer_details()
@@ -186,3 +213,7 @@ def get_all_offer_details() -> List[MarketOfferInfoBindings]:
             markets[od.market_id] = dao_manager.market_dao.get_market(market_id=od.market_id)
     offer_bindings += _get_offer_details_bindings(markets=markets, offer_details=offer_details)
     return offer_bindings
+
+
+def get_market_offer(offer_uri:URIRef):
+    OfferUri.parse()
