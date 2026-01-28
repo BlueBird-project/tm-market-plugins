@@ -21,7 +21,7 @@ class Market(BaseModel):
 class MarketOfferDetails(BaseModel):
     offer_id: Optional[int] = None
     market_id: int
-    sequence: Optional[int]
+    sequence: Optional[str]
     currency_unit: str
     volume_unit: str
     ts_start: int

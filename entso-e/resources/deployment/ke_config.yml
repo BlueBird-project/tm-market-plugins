@@ -26,12 +26,13 @@ knowledge_engine:
       prefixes:
         time: "http://www.w3.org/2006/time#"
       pattern:
-        - ' ?market_uri rdf:type ?market_type  ; ubmarket:hasMarketSequence ?sequence .'
+        - ' ?market_uri rdf:type ?ubmarket:MarketType .'
+#        - ' ?offer_uri ubmarket:hasMarketSequence ?sequence .'
         - ' ?ts_interval_uri rdf:type time:Interval; time:hasBeginning ?ts_date_from; time:hasEnd ?ts_date_to .'
       result_pattern:
-        - ' ?offer_uri rdf:type s4ener:TimeSeries .'
+        - ' ?offer_uri rdf:type ubmarket:MarketTimeSeries .'
         - ' ?offer_uri s4ener:producedBy ?market_uri .'
-        - ' ?market_uri ubmarket:hasMarketSequence ?sequence .'
+        - ' ?offer_uri ubmarket:hasMarketSequence ?sequence .'
         - ' ?offer_uri s4ener:hasUpdateRate ?update_rate .'
         - ' ?offer_uri s4ener:hasCreationTime ?time_create .'
         - ' ?offer_uri s4ener:hasEffectivePeriod ?duration .'
@@ -42,7 +43,8 @@ knowledge_engine:
       prefixes:
       pattern:
         - ' ?market_uri rdf:type ?market_type .'
-        - ' ?offer_uri rdf:type s4ener:TimeSeries .'
+        - ' ?offer_uri rdf:type ubmarket:MarketTimeSeries .'
+        - ' ?offer_uri ubmarket:hasMarketSequence ?sequence .'
         - ' ?offer_uri s4ener:producedBy ?market_uri .'
         - ' ?offer_uri s4ener:hasUpdateRate  ?update_rate.'
         - ' ?offer_uri s4ener:hasCreationTime ?time_create .'
@@ -53,7 +55,7 @@ knowledge_engine:
       prefixes:
         saref: "https://saref.etsi.org/core/"
       pattern:
-        - '?offer_uri rdf:type s4ener:TimeSeries .'
+#        - '?offer_uri rdf:type ubmarket:MarketTimeSeries .'
         - '?dp s4ener:belongsToTimeSeries ?offer_uri .'
         - '?dp rdf:type s4ener:DataPoint .'
         - '?dp saref:hasTimestamp ?ts .'

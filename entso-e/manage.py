@@ -45,10 +45,12 @@ if __name__ == "__main__" and app_settings:
     from tm_entso_e.modules.entso_e_web_api.service import init_service, subscribe_data
 
     init_service(market_prefix=market_prefix)
-    # subscribe_data(ti=TimeSpan.last_day())
+    subscribe_data(ti=TimeSpan.last_day())
     subscribe_data(ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
     ########################################################
-    from tm_entso_e.modules.ke_interaction.interactions import publish_market_information
+    from tm_entso_e.modules.ke_interaction.interactions import publish_market_information, \
+        publish_market_offer_information
+
     success=False
     # while not success:
     #     try:
@@ -58,6 +60,16 @@ if __name__ == "__main__" and app_settings:
     #         sleep(5)
     #     except Exception as ex:
     #         print(ex)
+    while not success:
+        try:
+            print("publish details")
+            res=publish_market_offer_information()
+            print(res)
+            success=True
+            sleep(5)
+        except Exception as ex:
+            sleep(5)
+            print(ex)
     # from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
     # market_api = MarketAPI(market_uri_prefix=market_prefix)
     # s_eic_area = api_settings.subscribed_eic[1]

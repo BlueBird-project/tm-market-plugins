@@ -1,12 +1,14 @@
+from datetime import timedelta
 from typing import List, Dict
 
+from isodate import duration_isoformat
 from rdflib import Literal, URIRef
 
-from tm_entso_e.core.db.postgresql import dao_manager
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindings, CountryURI, \
-    EnergyMarketBindingsQuery
-from tm_entso_e.schemas.market import Market
+    EnergyMarketBindingsQuery, MarketOfferInfoBindings, OfferUri, MarketOfferInfoRequest
+from tm_entso_e.schemas.market import Market, MarketOfferDetails
+from tm_entso_e.utils import time_utils
 
 
 #
@@ -101,6 +103,7 @@ def list_markets() -> List[EnergyMarketBindings]:
 
 
 def find_markets(queries: List[EnergyMarketBindingsQuery]) -> List[EnergyMarketBindings]:
+    from tm_entso_e.core.db.postgresql import dao_manager
     res: Dict[str, Market] = {}
     for q in queries:
         if q.market_uri is not None:
@@ -119,3 +122,44 @@ def find_markets(queries: List[EnergyMarketBindingsQuery]) -> List[EnergyMarketB
                                  country_name=Literal(m.market_location),
                                  market_type=MarketAgreementTypeCode.parse(m.market_type).uri_ref)
             for m in res.values()]
+
+
+def _get_offer_details_bindings(markets: Dict[int, Market], offer_details: List[MarketOfferDetails]) -> \
+        List[MarketOfferInfoBindings]:
+    def offer_uri_helper(market: Market, o: MarketOfferDetails) -> OfferUri:
+        sequence = "_" if o.sequence is None else o.sequence
+        return OfferUri(prefix=market.market_uri, sequence=sequence, ts_start=o.ts_start,
+                        ts_len=o.ts_end - o.ts_start)
+
+    offer_bindings = [
+        MarketOfferInfoBindings(market_uri=URIRef(markets[o.market_id].market_uri),
+                                market_type=MarketAgreementTypeCode.parse(markets[o.market_id].market_type).uri_ref,
+                                offer_uri=offer_uri_helper(market=markets[o.market_id], o=o).uri_ref,
+                                sequence=Literal(o.sequence),
+                                update_rate=Literal(duration_isoformat(timedelta(minutes=o.isp_unit))),
+                                time_create=Literal(time_utils.xsd_from_ts(ts=o.ts_start)),
+                                duration=Literal(duration_isoformat(timedelta(milliseconds=(o.ts_end - o.ts_start))))
+                                )
+        for o in offer_details]
+    return offer_bindings
+
+
+def get_offer_details(q: MarketOfferInfoRequest):
+    from tm_entso_e.core.db.postgresql import dao_manager
+    if q.market_uri is not None:
+        dao_manager.offer_dao.get_offer_details()
+
+def get_all_offer_details() -> List[MarketOfferInfoBindings]:
+    from tm_entso_e.core.db.postgresql import dao_manager
+    markets: Dict[int, Market] = {}
+    offer_details: List[MarketOfferDetails] = dao_manager.offer_dao.get_recent_intraday_details()
+    for od in offer_details:
+        if od.market_id not in markets:
+            markets[od.market_id] = dao_manager.market_dao.get_market(market_id=od.market_id)
+    offer_bindings = _get_offer_details_bindings(markets=markets, offer_details=offer_details)
+    offer_details: List[MarketOfferDetails] = dao_manager.offer_dao.get_recent_dayahead_details()
+    for od in offer_details:
+        if od.market_id not in markets:
+            markets[od.market_id] = dao_manager.market_dao.get_market(market_id=od.market_id)
+    offer_bindings += _get_offer_details_bindings(markets=markets, offer_details=offer_details)
+    return offer_bindings

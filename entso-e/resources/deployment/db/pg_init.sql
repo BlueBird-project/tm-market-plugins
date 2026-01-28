@@ -35,7 +35,7 @@ CREATE SEQUENCE ${table_prefix}market_offer_details_offer_id_seq INCREMENT 1 MIN
 CREATE TABLE "public"."${table_prefix}market_offer_details" (
     "offer_id" bigint DEFAULT nextval('${table_prefix}market_offer_details_offer_id_seq') NOT NULL,
     "market_id" bigint NOT NULL,
-    "sequence" int  ,
+    "sequence" character varying(10)  ,
     "currency_unit" character varying(10) NOT NULL,
     "volume_unit" character varying(10) NOT NULL,
     "ts_start" bigint NOT NULL,

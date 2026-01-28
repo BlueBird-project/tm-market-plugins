@@ -6,6 +6,7 @@ from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 from tm_entso_e.core.db.api.market_offer_dao import MarketOfferDAO
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
 from tm_entso_e.schemas.market import MarketOffer, MarketOfferDetails
+from tm_entso_e.utils import time_utils
 
 
 class MarketOfferQueries:
@@ -21,14 +22,14 @@ class MarketOfferQueries:
      offer_details."currency_unit", offer_details."volume_unit", offer_details."ts_start", offer_details."ts_end",
       offer_details."isp_unit", offer_details."update_ts", offer_details."ext" 
       FROM "${table_prefix}market_offer_details" as offer_details
-    JOIN "${table_prefix}market_details as md ON md.market_id = offer_details.market_id 
+    JOIN "${table_prefix}market_details" as md ON md.market_id = offer_details.market_id 
      WHERE COALESCE(:market_id = md.market_id,TRUE) AND COALESCE(:market_type = md.market_type,TRUE)
       AND ( :sequence is NULL OR  :sequence = offer_details.sequence )  
       AND coalesce (:max_ts=offer_details."ts_end") """
 
-    GET_MARKET_OFFER_DETAILS_LAST_TS = """SELECT  max(offer_details."ts_end") as ts_end
+    GET_MARKET_OFFER_DETAILS_LAST_TS = """SELECT  max(offer_details."ts_end") as max_ts
     FROM "${table_prefix}market_offer_details" as offer_details
-    JOIN "${table_prefix}market_details as md ON md.market_id = offer_details.market_id 
+    JOIN "${table_prefix}market_details" as md ON md.market_id = offer_details.market_id 
      WHERE COALESCE(:market_id = md.market_id,TRUE) AND COALESCE(:market_type = md.market_type,TRUE)
       AND ( :sequence is NULL OR  :sequence = offer_details.sequence )  """
 
@@ -51,27 +52,43 @@ class MarketOfferDAOImpl(MarketOfferDAO):
         super(MarketOfferDAO, self).__init__(table_prefix=table_prefix)
         self.queries: MarketOfferQueries = self.build_queries(MarketOfferQueries)
 
-    def get_recent_dayahead_details(self, market_id: Optional[int] = None) -> List[MarketOfferDetails]:
+    def get_recent_dayahead_details(self, sequence: Optional[str] = None) \
+            -> List[MarketOfferDetails]:
         with ConnectionWrapper() as conn:
-            args = {"market_id": market_id, "sequence": None, "market_type": None}
+            args = {"market_id": None, "sequence": sequence, "market_type": MarketAgreementTypeCode.DAY_AHEAD.name}
             max_ts = conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_LAST_TS, args=args)
-            max_ts = max_ts[0] if max_ts is not None else None
+            max_ts = max_ts.max_ts if max_ts is not None else None
+            if max_ts is None or max_ts < time_utils.current_timestamp():
+                return []
             args["max_ts"] = max_ts
             offers = conn.select(q=self.queries.LIST_MARKET_OFFER_DETAILS, args=args, obj_type=MarketOfferDetails)
             return offers
 
-    def get_recent_intraday_details(self, market_id: Optional[int] = None, sequence: Optional[int] = None) -> \
+    def get_recent_intraday_details(self, sequence: Optional[str] = None) -> List[MarketOfferDetails]:
+        with ConnectionWrapper() as conn:
+            args = {"market_id": None, "sequence": None, "market_type": MarketAgreementTypeCode.INTRADAY.name}
+            max_ts = conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_LAST_TS, args=args)
+            max_ts = max_ts.max_ts if max_ts is not None else None
+            if max_ts is None or max_ts < time_utils.current_timestamp():
+                return []
+            args["max_ts"] = max_ts
+            offers = conn.select(q=self.queries.LIST_MARKET_OFFER_DETAILS, args=args, obj_type=MarketOfferDetails)
+            return offers
+
+    def get_recent_market_details(self, market_id: Optional[int] = None, sequence: Optional[str] = None) -> \
             List[MarketOfferDetails]:
         with ConnectionWrapper() as conn:
-            args = {"market_id": market_id, "sequence": None, "market_type": MarketAgreementTypeCode.INTRADAY}
+            args = {"market_id": market_id, "sequence": sequence, "market_type": None}
             max_ts = conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_LAST_TS, args=args)
-            max_ts = max_ts[0] if max_ts is not None else None
+            max_ts = max_ts.max_ts if max_ts is not None else None
+            if max_ts is None or max_ts < time_utils.current_timestamp():
+                return []
             args["max_ts"] = max_ts
             offers = conn.select(q=self.queries.LIST_MARKET_OFFER_DETAILS, args=args, obj_type=MarketOfferDetails)
             return offers
 
-    def get_recent_dayahead(self, market_id: Optional[int] = None) -> List[MarketOffer]:
-        offers_details = self.get_recent_dayahead_details(market_id=market_id)
+    def get_recent_dayahead(self, sequence: Optional[str] = None) -> List[MarketOffer]:
+        offers_details = self.get_recent_dayahead_details(sequence=sequence)
         res = []
         with ConnectionWrapper() as conn:
             for od in offers_details:
@@ -80,8 +97,19 @@ class MarketOfferDAOImpl(MarketOfferDAO):
 
         return res
 
-    def get_recent_intraday(self, market_id: Optional[int] = None, sequence: Optional[int] = None) -> List[MarketOffer]:
-        offers_details = self.get_recent_intraday_details(market_id=market_id, sequence=sequence)
+    def get_recent_intraday(self, sequence: Optional[str] = None) -> List[MarketOffer]:
+        offers_details = self.get_recent_intraday_details(sequence=sequence)
+        res = []
+        with ConnectionWrapper() as conn:
+            for od in offers_details:
+                res += conn.select(q=self.queries.SELECT_MARKET_OFFER_BY_ID, args={"offer_id": od.offer_id},
+                                   obj_type=MarketOffer)
+
+        return res
+
+    def get_recent_market_offer(self, market_id: Optional[int] = None, sequence: Optional[str] = None) \
+            -> List[MarketOffer]:
+        offers_details = self.get_recent_market_details(market_id=market_id, sequence=sequence)
         res = []
         with ConnectionWrapper() as conn:
             for od in offers_details:
@@ -95,7 +123,7 @@ class MarketOfferDAOImpl(MarketOfferDAO):
             return conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_ID, args={"offer_id": offer_id},
                             obj_type=MarketOfferDetails)
 
-    def get_offer_details(self, market_id: int, ts_start: int, sequence: Optional[int]) -> Optional[MarketOfferDetails]:
+    def get_offer_details(self, market_id: int, ts_start: int, sequence: Optional[str]) -> Optional[MarketOfferDetails]:
         with ConnectionWrapper() as conn:
             return conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS,
                             args={"market_id": market_id, "ts_start": ts_start, "sequence": sequence},
@@ -106,7 +134,7 @@ class MarketOfferDAOImpl(MarketOfferDAO):
             return conn.select(q=self.queries.SELECT_MARKET_OFFER_BY_ID, args={"offer_id": offer_id},
                                obj_type=MarketOffer)
 
-    def list_offers(self, ts: TimeSpan, market_id: Optional[int] = None, sequence: Optional[int] = None) \
+    def list_offers(self, ts: TimeSpan, market_id: Optional[int] = None, sequence: Optional[str] = None) \
             -> List[MarketOffer]:
         # TODO: impelements
         pass
@@ -130,5 +158,5 @@ class MarketOfferDAOImpl(MarketOfferDAO):
     def clear_offer(self, offer_id: int) -> int:
         with ConnectionWrapper() as conn:
             deleted = conn.update(q=self.queries.DELETE_MARKET_OFFER,
-                                         args={"offer_id":offer_id},  )
+                                  args={"offer_id": offer_id}, )
             return deleted

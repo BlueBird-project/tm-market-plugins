@@ -44,7 +44,7 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
             period_ms = period_minutes * 60 * 1000
             ts_start = time_utils.xsd_to_ts(period.time_interval.start)
             logging.info(f"Store offers for: {market_uri},{ts_start}:{ts.sequence}")
-            sequence = int(ts.sequence) if ts.sequence is not None else None
+            sequence =  ts.sequence # if ts.sequence is not None else None
             offer_details = dao_manager.offer_dao.get_offer_details(market_id=market.market_id,
                                                                     ts_start=ts_start, sequence=sequence)
 

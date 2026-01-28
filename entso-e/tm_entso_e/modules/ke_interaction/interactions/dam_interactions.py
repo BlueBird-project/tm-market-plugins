@@ -6,8 +6,10 @@ from ke_client.ki_model import KIAskResponse, KIPostResponse
 from rdflib import URIRef, Literal
 
 from tm_entso_e.modules.ke_interaction.interactions._interactions import ke_client
-from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindingsQuery, EnergyMarketBindings
-from tm_entso_e.modules.ke_interaction.service import list_markets, find_markets
+from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindingsQuery, EnergyMarketBindings, \
+    MarketOfferInfoBindings, MarketOfferInfoRequest
+from tm_entso_e.modules.ke_interaction.service import list_markets, find_markets, get_all_offer_details, \
+    get_offer_details
 
 
 #
@@ -52,12 +54,34 @@ from tm_entso_e.modules.ke_interaction.service import list_markets, find_markets
 #     return res
 #
 #
-# @ke_client.post("market-offer-info")
-# def publish_market_offer_information():
-#     res = [get_offer_info_by_ts(ts=None).n3()]
-#     return res
+
+# region offer details
+@ke_client.post("market-offer-info")
+def _publish_market_offer_information(offer_details: List[MarketOfferInfoBindings]):
+    return offer_details
 
 
+@ke_client.answer("market-offer-info")
+def market_offer_information(ki_id, bindings: List[MarketOfferInfoRequest]) -> List[MarketOfferInfoBindings]:
+    # logging.info(f"Ask arrived {ki_id}")
+    logging.debug(f"Ask arrived {ki_id}, {bindings}")
+    if len(bindings) > 1:
+        logging.warning("Supported only one query binding")
+    if len(bindings) == 0:
+        return get_all_offer_details()
+    return get_offer_details(bindings[0])
+
+
+def publish_market_offer_information():
+    logging.info("Publish market offer details")
+    offer_details = get_all_offer_details()
+    resp: KIPostResponse = _publish_market_offer_information(offer_details=offer_details)
+    return
+
+
+# endregion
+
+# region market ki
 @ke_client.answer("market")
 def market_information(ki_id, bindings: List[EnergyMarketBindingsQuery]):
     print("on market query")
@@ -76,3 +100,5 @@ def publish_market_information():
     logging.info("Publish market information")
     resp: KIPostResponse = _publish_market_information(markets=list_markets())
     return
+
+# endregion

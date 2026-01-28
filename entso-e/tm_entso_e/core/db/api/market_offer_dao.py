@@ -25,20 +25,29 @@ class MarketOfferDAO(DAO):
         pass
 
     @abstractmethod
-    def get_recent_dayahead_details(self, market_id: Optional[int] = None) -> List[MarketOfferDetails]:
+    def get_recent_dayahead_details(self, sequence: Optional[str] = None) -> List[MarketOfferDetails]:
         pass
 
     @abstractmethod
-    def get_recent_intraday_details(self, market_id: Optional[int] = None, sequence: Optional[int] = None) -> \
-            List[MarketOfferDetails]:
+    def get_recent_intraday_details(self, sequence: Optional[str] = None) -> List[MarketOfferDetails]:
         pass
 
     @abstractmethod
-    def get_recent_dayahead(self, market_id: Optional[int] = None) -> List[MarketOffer]:
+    def get_recent_market_details(self, market_id: Optional[int] = None, sequence: Optional[str] = None) \
+            -> List[MarketOfferDetails]:
         pass
 
     @abstractmethod
-    def get_recent_intraday(self, market_id: Optional[int] = None, sequence: Optional[int] = None) -> List[MarketOffer]:
+    def get_recent_dayahead(self, sequence: Optional[str] = None) -> List[MarketOffer]:
+        pass
+
+    @abstractmethod
+    def get_recent_intraday(self, sequence: Optional[str] = None) -> List[MarketOffer]:
+        pass
+
+    @abstractmethod
+    def get_recent_market_offer(self, market_id: Optional[int] = None, sequence: Optional[str] = None) \
+            -> List[MarketOffer]:
         pass
 
     @abstractmethod
@@ -46,7 +55,7 @@ class MarketOfferDAO(DAO):
         pass
 
     @abstractmethod
-    def get_offer_details(self, market_id: int, ts_start: int, sequence: Optional[int]) -> Optional[MarketOfferDetails]:
+    def get_offer_details(self, market_id: int, ts_start: int, sequence: Optional[str]) -> Optional[MarketOfferDetails]:
         pass
 
     @abstractmethod
@@ -54,6 +63,6 @@ class MarketOfferDAO(DAO):
         pass
 
     @abstractmethod
-    def list_offers(self, ts: TimeSpan, market_id: Optional[int] = None, sequence: Optional[int] = None) \
+    def list_offers(self, ts: TimeSpan, market_id: Optional[int] = None, sequence: Optional[str] = None) \
             -> List[MarketOffer]:
         pass
