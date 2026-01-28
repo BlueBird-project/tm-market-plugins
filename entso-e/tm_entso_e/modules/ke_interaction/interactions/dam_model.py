@@ -87,7 +87,14 @@ class MarketOfferInfoBindings(BindingsBase):
 
     @property
     def update_rate_min(self) -> int:
-        return int(parse_duration(self.update_rate, as_timedelta_if_possible=True).total_seconds() /60)
+        return int(parse_duration(self.update_rate, as_timedelta_if_possible=True).total_seconds() / 60)
+
+
+@ki_object("market-offer-info-filtered")
+class MarketOfferInfoFilteredBindings(MarketOfferInfoBindings):
+    ts_interval_uri: URIRef
+    ts_date_from: Literal
+    ts_date_to: Literal
 
 
 #
@@ -96,6 +103,13 @@ class MarketOfferInfoRequest(BindingsBase):
     market_uri: Optional[URIRef] = None
     market_type: Optional[URIRef] = None
     sequence: Optional[Literal] = None
+
+
+@ki_object("market-offer-info-filtered", allow_partial=True)
+class MarketOfferInfoFilteredRequest(MarketOfferInfoRequest):
+    ts_interval_uri: URIRef
+    ts_date_from: Literal
+    ts_date_to: Literal
 
 
 #
@@ -136,6 +150,17 @@ class OfferUri(SplitURIBase):
     sequence: str
     ts_start: int
     ts_len: int
+
+
+@ki_split_uri(uri_template="http://${dt_uri}/${ts_start}/${ts_end}")
+class DTTSUri(SplitURIBase):
+    dt_uri: str
+    ts_start: int
+    ts_end: int
+
+    def __init__(self, dt_uri: str, **kwargs):
+        dt_uri = self.normalize_kb_id(kb_id=dt_uri)
+        super().__init__(dt_uri=dt_uri, **kwargs)
 
 # @ki_split_uri(uri_template="http://bluebird.com/interval/${ts_from}/${ts_to}")
 # class TimeIntervalUri(SplitURIBase):
