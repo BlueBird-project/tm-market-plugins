@@ -126,15 +126,16 @@ def find_markets(queries: List[EnergyMarketBindingsQuery]) -> List[EnergyMarketB
 
 def _get_offer_details_bindings(markets: Dict[int, Market], offer_details: List[MarketOfferDetails]) -> \
         List[MarketOfferInfoBindings]:
-    def offer_uri_helper(market: Market, o: MarketOfferDetails) -> OfferUri:
-        sequence = OfferUri.__EMPTY__ if o.sequence is None else o.sequence
-        return OfferUri(prefix=market.market_uri, sequence=sequence, ts_start=o.ts_start,
-                        ts_len=o.ts_end - o.ts_start)
+    # def offer_uri_helper(market: Market, o: MarketOfferDetails) -> OfferUri:
+    #     sequence = OfferUri.__EMPTY__ if o.sequence is None else o.sequence
+    #     return OfferUri(prefix=market.market_uri, sequence=sequence, ts_start=o.ts_start,
+    #                     ts_len=o.ts_end - o.ts_start)
 
     offer_bindings = [
         MarketOfferInfoBindings(market_uri=URIRef(markets[o.market_id].market_uri),
                                 market_type=MarketAgreementTypeCode.parse(markets[o.market_id].market_type).uri_ref,
-                                offer_uri=offer_uri_helper(market=markets[o.market_id], o=o).uri_ref,
+                                offer_uri=URIRef(o.offer_uri),
+                                # offer_uri=offer_uri_helper(market=markets[o.market_id], o=o).uri_ref,
                                 sequence=Literal(o.sequence),
                                 update_rate=Literal(duration_isoformat(timedelta(minutes=o.isp_unit))),
                                 time_create=Literal(time_utils.xsd_from_ts(ts=o.ts_start)),
@@ -215,28 +216,29 @@ def get_all_offer_details() -> List[MarketOfferInfoBindings]:
     return offer_bindings
 
 
-# todo: db unique key market_uri,sequence ,ts_start
 def get_market_offer(offer_uri: URIRef):
     from tm_entso_e.core.db.postgresql import dao_manager
-    market_uri = OfferUri.get_prefix(uri=offer_uri)
-    offer_uri = OfferUri.parse(uri=offer_uri, prefix=market_uri + "/")
-    market = dao_manager.market_dao.get_market_uri(market_uri=market_uri)
-    if market is None:
-        print("no market")
-        # todo log error /warning ?
-        return []
-    offer_details = dao_manager.offer_dao.get_offer_details(market_id=market.market_id, sequence=offer_uri.sequence,
-                                                            ts_start=offer_uri.ts_start)
+    # market_uri = OfferUri.get_prefix(uri=offer_uri)
+    # offer_uri = OfferUri.parse(uri=offer_uri, prefix=market_uri + "/")
+    # market = dao_manager.market_dao.get_market_uri(market_uri=market_uri)
+    # if market is None:
+    #     print("no market")
+    #     #   log error /warning ?
+    #     return []
+    # offer_details = dao_manager.offer_dao.get_offer_details(market_id=market.market_id, sequence=offer_uri.sequence,
+    #                                                         ts_start=offer_uri.ts_start)
+    offer_details = dao_manager.offer_dao.get_offer_details_by_uri(offer_uri=offer_uri)
     if offer_details is None:
         print("no offer")
         # todo log error /warning ?
         return []
+    offer_uri = offer_details.offer_uri
     market_offer: List[MarketOffer] = dao_manager.offer_dao.get_offer(offer_id=offer_details.offer_id)
     offer_bindings = [
-        MarketOfferBindings(offer_uri=offer_uri.uri_ref, dp=URIRef(offer_uri.append("/dp")), ts=Literal(mo.ts),
-                            dpr=URIRef(offer_uri.append("/dp")),
+        MarketOfferBindings(offer_uri=URIRef(offer_uri), dp=OfferUri.uri_append_ref(offer_uri, "/dp"),
+                            ts=Literal(time_utils.xsd_from_ts(mo.ts)), dpr=OfferUri.uri_append_ref(offer_uri, "/dpr"),
                             is_measured_id=Literal(offer_details.is_measured_in),
-                            duration=Literal(mo.isp_len * offer_details.isp_unit),
+                            duration=Literal(duration_isoformat(mo.isp_len * offer_details.isp_unit)),
                             value=Literal(mo.cost))
         for mo in market_offer]
     return offer_bindings

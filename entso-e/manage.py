@@ -63,8 +63,8 @@ if __name__ == "__main__" and app_settings:
     while not success:
         try:
             # print("publish details")
-            # res=publish_market_offer_information()
-            # print(res)
+            res=publish_market_offer_information()
+            print(res)
             publish_market_offer()
             success=True
             sleep(5)

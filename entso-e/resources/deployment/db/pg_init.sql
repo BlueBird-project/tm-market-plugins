@@ -48,8 +48,8 @@ CREATE TABLE "public"."${table_prefix}market_offer_details" (
 )
 WITH (oids = false);
 
-CREATE UNIQUE  INDEX ${table_prefix}market_offer_details_market ON public.${table_prefix}market_offer_details USING btree (market_id,ts_start,sequence);
-CREATE UNIQUE  INDEX ${table_prefix}market_offer_details_market ON public.${table_prefix}market_offer_details USING btree (offer_uri);
+CREATE UNIQUE  INDEX ${table_prefix}market_offer_details_unique_key ON public.${table_prefix}market_offer_details USING btree (market_id,ts_start,sequence);
+CREATE UNIQUE  INDEX ${table_prefix}market_offer_details_offer_uri_key ON public.${table_prefix}market_offer_details USING btree (offer_uri);
 
 ALTER TABLE ONLY "public"."${table_prefix}market_offer_details"
 ADD CONSTRAINT "${table_prefix}market_offer_details_market_id_fkey" FOREIGN KEY (market_id)

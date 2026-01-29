@@ -4,7 +4,6 @@ from effi_onto_tools.utils import time_utils
 from isodate import parse_duration
 from ke_client import ki_object, is_nil, ki_split_uri, SplitURIBase
 from ke_client import BindingsBase
-from ke_client.client._split_uri import U
 from rdflib import URIRef, Literal
 
 
@@ -139,8 +138,8 @@ class MarketOfferBindings(BindingsBase):
     duration: Literal
     value: Union[URIRef, Literal, None]
 
-    def __init__(self, **kwargs):
-        super().__init__(bindings=kwargs)
+    # def __init__(self, **kwargs):
+    #     super().__init__(bindings=kwargs)
 
     @property
     def ts_ms(self) -> int:
@@ -169,6 +168,11 @@ class OfferUri(SplitURIBase):
     ts_start: int
     ts_len: int
 
+    def __init__(self, sequence: Optional[str], **kwargs):
+        if sequence is None:
+            sequence = OfferUri.__EMPTY__
+        super().__init__(sequence=sequence, **kwargs)
+
     @property
     def processed_sequence(self) -> Optional[str]:
         if self.sequence == OfferUri.__EMPTY__:
@@ -177,18 +181,17 @@ class OfferUri(SplitURIBase):
 
     @staticmethod
     def get_prefix(uri: [str, URIRef]) -> str:
-        return str(uri).split("offer/")[0]
+        return str(uri).split("/offer/")[0]
 
-
-@ki_split_uri(uri_template="http://${dt_uri}/${ts_start}/${ts_end}")
-class DTTSUri(SplitURIBase):
-    dt_uri: str
-    ts_start: int
-    ts_end: int
-
-    def __init__(self, dt_uri: str, **kwargs):
-        dt_uri = self.normalize_kb_id(kb_id=dt_uri)
-        super().__init__(dt_uri=dt_uri, **kwargs)
+# @ki_split_uri(uri_template="http://${dt_uri}/${ts_start}/${ts_end}")
+# class DTTSUri(SplitURIBase):
+#     dt_uri: str
+#     ts_start: int
+#     ts_end: int
+#
+#     def __init__(self, dt_uri: str, **kwargs):
+#         dt_uri = self.normalize_kb_id(kb_id=dt_uri)
+#         super().__init__(dt_uri=dt_uri, **kwargs)
 
 # @ki_split_uri(uri_template="http://bluebird.com/interval/${ts_from}/${ts_to}")
 # class TimeIntervalUri(SplitURIBase):

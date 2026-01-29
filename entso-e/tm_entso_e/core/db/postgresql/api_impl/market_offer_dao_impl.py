@@ -49,7 +49,7 @@ class MarketOfferQueries:
     FROM "${table_prefix}market_offer" WHERE offer_id = :offer_id   """
 
     INSERT_MARKET_OFFER_DETAILS = """  INSERT INTO "${table_prefix}market_offer_details" 
-    ("market_id", "sequence","offer_uri", "currency_unit",  "volume_unit", "ts_start", "ts_end", "isp_unit",
+    ("market_id", "offer_uri","sequence", "currency_unit",  "volume_unit", "ts_start", "ts_end", "isp_unit",
      "update_ts", "ext")
     VALUES (:market_id,:offer_uri, :sequence,:currency_unit,:volume_unit, :ts_start, :ts_end, :isp_unit,
        extract(epoch from now()) * 1000, :ext)   """

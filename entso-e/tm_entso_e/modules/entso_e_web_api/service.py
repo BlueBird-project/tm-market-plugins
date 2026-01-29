@@ -43,17 +43,20 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
             period_minutes = int(parse_duration(period.resolution, as_timedelta_if_possible=True).total_seconds() / 60)
             period_ms = period_minutes * 60 * 1000
             ts_start = time_utils.xsd_to_ts(period.time_interval.start)
+            ts_end = time_utils.xsd_to_ts(period.time_interval.end)
             logging.info(f"Store offers for: {market_uri},{ts_start}:{ts.sequence}")
-            sequence =  ts.sequence # if ts.sequence is not None else None
+            sequence = ts.sequence  # if ts.sequence is not None else None
             offer_details = dao_manager.offer_dao.get_offer_details(market_id=market.market_id,
                                                                     ts_start=ts_start, sequence=sequence)
 
             if offer_details is None:
-                offer_details = MarketOfferDetails(market_id=market.market_id, sequence=sequence,
-                                                   currency_unit=ts.currency_unit,
-                                                   volume_unit=ts.measurement_unit, ts_start=ts_start,
-                                                   ts_end=time_utils.xsd_to_ts(period.time_interval.end),
-                                                   isp_unit=period_minutes)
+                from tm_entso_e.modules.ke_interaction.interactions import OfferUri
+                offer_uri_str = OfferUri(prefix=market.market_uri, sequence=sequence, ts_start=ts_start,
+                                         ts_len=ts_end - ts_start).uri
+                offer_details = MarketOfferDetails(market_id=market.market_id, offer_uri=offer_uri_str,
+                                                   sequence=sequence, currency_unit=ts.currency_unit,
+                                                   volume_unit=ts.measurement_unit,
+                                                   ts_start=ts_start, ts_end=ts_end, isp_unit=period_minutes)
                 offer_details = dao_manager.offer_dao.register_day_offer(offer_details=offer_details)
             else:
                 # todo: if override previous
