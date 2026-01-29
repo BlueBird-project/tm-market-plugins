@@ -21,6 +21,14 @@ class MarketOfferDAO(DAO):
         pass
 
     @abstractmethod
+    def get_offer_details_by_id(self, offer_id: int) -> Optional[MarketOfferDetails]:
+        pass
+
+    @abstractmethod
+    def get_offer_details_by_uri(self, offer_uri: str) -> Optional[MarketOfferDetails]:
+        pass
+
+    @abstractmethod
     def clear_offer(self, offer_id: int) -> Any:
         pass
 

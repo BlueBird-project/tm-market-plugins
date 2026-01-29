@@ -10,27 +10,30 @@ from tm_entso_e.utils import time_utils
 
 
 class MarketOfferQueries:
-    GET_MARKET_OFFER_DETAILS_ID = """SELECT  "offer_id",  "market_id", "sequence", "currency_unit",
+    GET_MARKET_OFFER_DETAILS_ID = """SELECT  "offer_id",  "market_id", "offer_uri", "sequence", "currency_unit",
         "volume_unit",  "ts_start", "ts_end", "isp_unit",  "update_ts", "ext"
          FROM "${table_prefix}market_offer_details" WHERE offer_id = :offer_id """
-    FIND_MARKET_OFFER_DETAILS = """SELECT offer_details."offer_id", offer_details."market_id",offer_details."sequence",
-    offer_details."currency_unit", offer_details."volume_unit", offer_details."ts_start", offer_details."ts_end",
-    offer_details."isp_unit", offer_details."update_ts", offer_details."ext" 
+    GET_MARKET_OFFER_DETAILS_URI = """SELECT  "offer_id",  "market_id", "offer_uri", "sequence", "currency_unit",
+        "volume_unit",  "ts_start", "ts_end", "isp_unit",  "update_ts", "ext"
+         FROM "${table_prefix}market_offer_details" WHERE "offer_uri" = :offer_uri """
+    FIND_MARKET_OFFER_DETAILS = """SELECT offer_details."offer_id",offer_details."market_id",offer_details."offer_uri",
+     offer_details."sequence",offer_details."currency_unit", offer_details."volume_unit", offer_details."ts_start", 
+     offer_details."ts_end", offer_details."isp_unit", offer_details."update_ts", offer_details."ext" 
     FROM "${table_prefix}market_offer_details" as offer_details
     JOIN "${table_prefix}market_details" as md ON md.market_id = offer_details.market_id 
     WHERE COALESCE(:market_id =  md.market_id,TRUE) AND COALESCE(:market_type = md.market_type,TRUE)
         AND ( :sequence is NULL OR  :sequence =  offer_details.sequence )  
         AND ( coalesce(:ts_from<=offer_details."ts_end",TRUE) and  coalesce(:ts_to>=offer_details."ts_start",TRUE))
        """
-    GET_MARKET_OFFER_DETAILS = """SELECT  "offer_id",  "market_id", "sequence", "currency_unit",
+    GET_MARKET_OFFER_DETAILS = """SELECT  "offer_id",  "market_id","offer_uri", "sequence", "currency_unit",
         "volume_unit",  "ts_start", "ts_end", "isp_unit",  "update_ts", "ext"
          FROM "${table_prefix}market_offer_details" 
          WHERE market_id = :market_id AND ts_start=:ts_start and (sequence is null or sequence=:sequence) """
 
-    LIST_MARKET_OFFER_DETAILS = """SELECT offer_details."offer_id", offer_details."market_id",offer_details."sequence",
-     offer_details."currency_unit", offer_details."volume_unit", offer_details."ts_start", offer_details."ts_end",
-      offer_details."isp_unit", offer_details."update_ts", offer_details."ext" 
-      FROM "${table_prefix}market_offer_details" as offer_details
+    LIST_MARKET_OFFER_DETAILS = """SELECT offer_details."offer_id",offer_details."market_id",offer_details."offer_uri",
+     offer_details."sequence",offer_details."currency_unit", offer_details."volume_unit", offer_details."ts_start", 
+     offer_details."ts_end", offer_details."isp_unit", offer_details."update_ts", offer_details."ext" 
+    FROM "${table_prefix}market_offer_details" as offer_details
     JOIN "${table_prefix}market_details" as md ON md.market_id = offer_details.market_id 
      WHERE COALESCE(:market_id = md.market_id,TRUE) AND COALESCE(:market_type = md.market_type,TRUE)
       AND ( :sequence is NULL OR  :sequence = offer_details.sequence )  
@@ -46,8 +49,10 @@ class MarketOfferQueries:
     FROM "${table_prefix}market_offer" WHERE offer_id = :offer_id   """
 
     INSERT_MARKET_OFFER_DETAILS = """  INSERT INTO "${table_prefix}market_offer_details" 
-    ("market_id", "sequence", "currency_unit",  "volume_unit", "ts_start", "ts_end", "isp_unit",  "update_ts", "ext")
-    VALUES (:market_id, :sequence,:currency_unit,:volume_unit, :ts_start, :ts_end, :isp_unit,   extract(epoch from now()) * 1000, :ext)   """
+    ("market_id", "sequence","offer_uri", "currency_unit",  "volume_unit", "ts_start", "ts_end", "isp_unit",
+     "update_ts", "ext")
+    VALUES (:market_id,:offer_uri, :sequence,:currency_unit,:volume_unit, :ts_start, :ts_end, :isp_unit,
+       extract(epoch from now()) * 1000, :ext)   """
     #     TODO: on conflict
 
     INSERT_MARKET_OFFER = """  INSERT INTO "${table_prefix}market_offer" 
@@ -116,6 +121,11 @@ class MarketOfferDAOImpl(MarketOfferDAO):
     def get_offer_details_by_id(self, offer_id: int) -> Optional[MarketOfferDetails]:
         with ConnectionWrapper() as conn:
             return conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_ID, args={"offer_id": offer_id},
+                            obj_type=MarketOfferDetails)
+
+    def get_offer_details_by_uri(self, offer_uri: str) -> Optional[MarketOfferDetails]:
+        with ConnectionWrapper() as conn:
+            return conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_URI, args={"offer_uri": offer_uri},
                             obj_type=MarketOfferDetails)
 
     def find_offer_details(self, ti: TimeSpan, market_id: Optional[int] = None, sequence: Optional[str] = None,

@@ -35,6 +35,7 @@ CREATE SEQUENCE ${table_prefix}market_offer_details_offer_id_seq INCREMENT 1 MIN
 CREATE TABLE "public"."${table_prefix}market_offer_details" (
     "offer_id" bigint DEFAULT nextval('${table_prefix}market_offer_details_offer_id_seq') NOT NULL,
     "market_id" bigint NOT NULL,
+    "offer_uri" character varying(150)  ,
     "sequence" character varying(10)  ,
     "currency_unit" character varying(10) NOT NULL,
     "volume_unit" character varying(10) NOT NULL,
@@ -48,6 +49,7 @@ CREATE TABLE "public"."${table_prefix}market_offer_details" (
 WITH (oids = false);
 
 CREATE UNIQUE  INDEX ${table_prefix}market_offer_details_market ON public.${table_prefix}market_offer_details USING btree (market_id,ts_start,sequence);
+CREATE UNIQUE  INDEX ${table_prefix}market_offer_details_market ON public.${table_prefix}market_offer_details USING btree (offer_uri);
 
 ALTER TABLE ONLY "public"."${table_prefix}market_offer_details"
 ADD CONSTRAINT "${table_prefix}market_offer_details_market_id_fkey" FOREIGN KEY (market_id)

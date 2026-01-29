@@ -49,7 +49,7 @@ if __name__ == "__main__" and app_settings:
     subscribe_data(ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
     ########################################################
     from tm_entso_e.modules.ke_interaction.interactions import publish_market_information, \
-        publish_market_offer_information
+    publish_market_offer_information, publish_market_offer
 
     success=False
     # while not success:
@@ -65,6 +65,7 @@ if __name__ == "__main__" and app_settings:
             # print("publish details")
             # res=publish_market_offer_information()
             # print(res)
+            publish_market_offer()
             success=True
             sleep(5)
         except Exception as ex:

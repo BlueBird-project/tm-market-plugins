@@ -6,8 +6,8 @@ from rdflib import Literal, URIRef
 
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindings, CountryURI, \
-    EnergyMarketBindingsQuery, MarketOfferInfoBindings, OfferUri, MarketOfferInfoRequest
-from tm_entso_e.schemas.market import Market, MarketOfferDetails
+    EnergyMarketBindingsQuery, MarketOfferInfoBindings, OfferUri, MarketOfferInfoRequest, MarketOfferBindings
+from tm_entso_e.schemas.market import Market, MarketOfferDetails, MarketOffer
 from tm_entso_e.utils import time_utils, TimeSpan
 
 
@@ -215,5 +215,28 @@ def get_all_offer_details() -> List[MarketOfferInfoBindings]:
     return offer_bindings
 
 
-def get_market_offer(offer_uri:URIRef):
-    OfferUri.parse()
+# todo: db unique key market_uri,sequence ,ts_start
+def get_market_offer(offer_uri: URIRef):
+    from tm_entso_e.core.db.postgresql import dao_manager
+    market_uri = OfferUri.get_prefix(uri=offer_uri)
+    offer_uri = OfferUri.parse(uri=offer_uri, prefix=market_uri + "/")
+    market = dao_manager.market_dao.get_market_uri(market_uri=market_uri)
+    if market is None:
+        print("no market")
+        # todo log error /warning ?
+        return []
+    offer_details = dao_manager.offer_dao.get_offer_details(market_id=market.market_id, sequence=offer_uri.sequence,
+                                                            ts_start=offer_uri.ts_start)
+    if offer_details is None:
+        print("no offer")
+        # todo log error /warning ?
+        return []
+    market_offer: List[MarketOffer] = dao_manager.offer_dao.get_offer(offer_id=offer_details.offer_id)
+    offer_bindings = [
+        MarketOfferBindings(offer_uri=offer_uri.uri_ref, dp=URIRef(offer_uri.append("/dp")), ts=Literal(mo.ts),
+                            dpr=URIRef(offer_uri.append("/dp")),
+                            is_measured_id=Literal(offer_details.is_measured_in),
+                            duration=Literal(mo.isp_len * offer_details.isp_unit),
+                            value=Literal(mo.cost))
+        for mo in market_offer]
+    return offer_bindings
