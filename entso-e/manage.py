@@ -3,7 +3,7 @@ from time import sleep
 
 import tm_entso_e
 
-from tm_entso_e.utils import TimeSpan
+from tm_entso_e.utils import TimeSpan, time_utils
 
 if __name__ == "__main__":
     ###
@@ -44,32 +44,21 @@ if __name__ == "__main__" and app_settings:
     api_settings = configure_api()
     from tm_entso_e.modules.entso_e_web_api.service import init_service, subscribe_data
 
-    init_service(market_prefix=market_prefix)
-    subscribe_data(ti=TimeSpan.last_day())
-    subscribe_data(ti=TimeSpan(ts_from=1768957200000, ts_to=1769130000000))
+    init_service(market_prefix=market_prefix, load_data=True)
     ########################################################
     from tm_entso_e.modules.ke_interaction.interactions import publish_market_information, \
-    publish_market_offer_information, publish_market_offer
-
-    success=False
-    # while not success:
-    #     try:
-    #         print("publish")
-    #         publish_market_information()
-    #         success=True
-    #         sleep(5)
-    #     except Exception as ex:
-    #         print(ex)
-    while not success:
+        publish_market_offer_information, publish_market_offer
+    # TODO: move to scheduler
+    while True:
         try:
-            # print("publish details")
-            res=publish_market_offer_information()
-            print(res)
+            print("publish sample data")
+            publish_market_information()
+            publish_market_offer_information()
             publish_market_offer()
-            success=True
-            sleep(5)
+            success = True
+            sleep(60)
         except Exception as ex:
-            sleep(5)
+            sleep(15)
             print(ex)
     # from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
     # market_api = MarketAPI(market_uri_prefix=market_prefix)

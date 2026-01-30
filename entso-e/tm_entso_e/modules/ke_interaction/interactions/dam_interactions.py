@@ -32,7 +32,7 @@ def answer_offer_values(ki_id, bindings: List[MarketOfferRequest]) -> List[Marke
         #     accu += [pnt.n3() for pnt in get_offer(r.offer_uri)]
         dp_bindings = get_market_offer(offer_uri=b.offer_uri)
         accu += dp_bindings
-    print("publish: "+str(len(accu)))
+    print("answer publish: "+str(len(accu)))
     return accu
 
 
