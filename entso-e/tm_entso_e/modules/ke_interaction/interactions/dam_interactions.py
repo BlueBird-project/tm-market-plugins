@@ -32,7 +32,7 @@ def answer_offer_values(ki_id, bindings: List[MarketOfferRequest]) -> List[Marke
         #     accu += [pnt.n3() for pnt in get_offer(r.offer_uri)]
         dp_bindings = get_market_offer(offer_uri=b.offer_uri)
         accu += dp_bindings
-    print("answer publish: "+str(len(accu)))
+    print("answer publish: " + str(len(accu)))
     return accu
 
 
@@ -43,10 +43,8 @@ def _publish_market_offer() -> List[MarketOffer]:
     for oi in offer_infos:
         dp_bindings = get_market_offer(offer_uri=oi.offer_uri)
         accu += dp_bindings
-    print("publish: "+str(len(accu)))
+    print("publish: " + str(len(accu)))
     return accu
-
-
 
 
 def publish_market_offer():
@@ -54,6 +52,8 @@ def publish_market_offer():
     # offer_details = get_all_offer_details()
     resp: KIPostResponse = _publish_market_offer()
     return
+
+
 # endregion
 
 
@@ -63,7 +63,7 @@ def _publish_market_offer_information(offer_details: List[MarketOfferInfoBinding
     return offer_details
 
 
-@ke_client.answer("market-offer-info")
+@ke_client.react("market-offer-info")
 def market_offer_information(ki_id, bindings: List[MarketOfferInfoRequest]) -> List[MarketOfferInfoBindings]:
     # logging.info(f"Ask arrived {ki_id}")
     logging.debug(f"Ask arrived {ki_id}, {bindings}")
@@ -79,7 +79,6 @@ def market_offer_information(ki_id, bindings: List[MarketOfferInfoRequest]) -> L
 def market_offer_information(ki_id, bindings: List[MarketOfferInfoFilteredRequest]) -> \
         List[MarketOfferInfoFilteredBindings]:
     # logging.info(f"Ask arrived {ki_id}")
-    # todo poprawic i po stronie TM rowniez sprawdzic
     logging.debug(f"Ask arrived {ki_id}, {bindings}")
     print(f"Ask arrived {ki_id}, {bindings}")
     if len(bindings) > 1:
@@ -90,12 +89,14 @@ def market_offer_information(ki_id, bindings: List[MarketOfferInfoFilteredReques
     q: MarketOfferInfoFilteredRequest = bindings[0]
     if q.ts_interval_uri is not None:
         offer_details = get_offer_details(bindings[0], ti=TimeSpan(ts_from=q.ts_from, ts_to=q.ts_to))
+        resp_bindings = [MarketOfferInfoFilteredBindings(ts_interval_uri=q.ts_interval_uri, ts_date_from=q.ts_date_from,
+                                                         ts_date_to=q.ts_date_to, **b.__dict__) for b in offer_details]
     else:
-        offer_details = get_offer_details(bindings[0], ti=TimeSpan(ts_from=q.ts_from, ts_to=q.ts_to))
+        offer_details = get_offer_details(bindings[0], ti=None)
+        resp_bindings = [MarketOfferInfoFilteredBindings(ts_interval_uri=None, ts_date_from=None,
+                                                         ts_date_to=None,**b.__dict__) for b in offer_details]
     # todo: not very effient to reinialize this object
-    bindings = [MarketOfferInfoFilteredBindings(ts_interval_uri=q.ts_interval_uri, ts_date_from=q.ts_date_from,
-                                                ts_date_to=q.ts_date_to, **b.__dict__) for b in offer_details]
-    return bindings
+    return resp_bindings
 
 
 def publish_market_offer_information():
@@ -103,6 +104,7 @@ def publish_market_offer_information():
     offer_details = get_all_offer_details()
     resp: KIPostResponse = _publish_market_offer_information(offer_details=offer_details)
     return
+
 
 # @ke_client.react("market-offer-info-query")
 # def market_offer_information(ki_id, bindings):

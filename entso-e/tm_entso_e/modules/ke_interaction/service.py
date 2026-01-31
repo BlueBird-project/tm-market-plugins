@@ -136,7 +136,7 @@ def _get_offer_details_bindings(markets: Dict[int, Market], offer_details: List[
                                 market_type=MarketAgreementTypeCode.parse(markets[o.market_id].market_type).uri_ref,
                                 offer_uri=URIRef(o.offer_uri),
                                 # offer_uri=offer_uri_helper(market=markets[o.market_id], o=o).uri_ref,
-                                sequence=Literal(o.sequence),
+                                sequence=o.sequence,
                                 update_rate=Literal(duration_isoformat(timedelta(minutes=o.isp_unit))),
                                 time_create=Literal(time_utils.xsd_from_ts(ts=o.ts_start)),
                                 duration=Literal(duration_isoformat(timedelta(milliseconds=(o.ts_end - o.ts_start))))
@@ -238,7 +238,7 @@ def get_market_offer(offer_uri: URIRef):
         MarketOfferBindings(offer_uri=URIRef(offer_uri), dp=OfferUri.uri_append_ref(offer_uri, "/dp"),
                             ts=Literal(time_utils.xsd_from_ts(mo.ts)), dpr=OfferUri.uri_append_ref(offer_uri, "/dpr"),
                             is_measured_id=Literal(offer_details.is_measured_in),
-                            duration=Literal(duration_isoformat(mo.isp_len * offer_details.isp_unit)),
+                            duration=Literal(duration_isoformat(timedelta(mo.isp_len * offer_details.isp_unit))),
                             value=Literal(mo.cost))
         for mo in market_offer]
     return offer_bindings

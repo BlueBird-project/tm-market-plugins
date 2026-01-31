@@ -63,6 +63,14 @@ knowledge_engine:
         - ' ?offer_uri s4ener:hasUpdateRate  ?update_rate.'
         - ' ?offer_uri s4ener:hasCreationTime ?time_create .'
         - ' ?offer_uri s4ener:hasEffectivePeriod  ?duration .'
+      result_pattern:
+        - ' ?market_uri rdf:type ?market_type .'
+        - ' ?offer_uri rdf:type ubmarket:MarketTimeSeries .'
+        - ' ?offer_uri ubmarket:hasMarketSequence ?sequence .'
+        - ' ?offer_uri s4ener:producedBy ?market_uri .'
+        - ' ?offer_uri s4ener:hasUpdateRate  ?update_rate.'
+        - ' ?offer_uri s4ener:hasCreationTime ?time_create .'
+        - ' ?offer_uri s4ener:hasEffectivePeriod  ?duration .'
     market-offer:
       name: "market-offer"
       description: "Daily offer of the market"

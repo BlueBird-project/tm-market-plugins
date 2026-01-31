@@ -2,7 +2,7 @@ from typing import Optional, Union, Type
 
 from effi_onto_tools.utils import time_utils
 from isodate import parse_duration
-from ke_client import ki_object, is_nil, ki_split_uri, SplitURIBase
+from ke_client import ki_object, is_nil, ki_split_uri, SplitURIBase,  OptionalLiteral
 from ke_client import BindingsBase
 from rdflib import URIRef, Literal
 
@@ -69,7 +69,7 @@ class MarketOfferInfoBindings(BindingsBase):
     market_uri: URIRef
     market_type: URIRef
     offer_uri: URIRef
-    sequence: Optional[Literal] = None
+    sequence: Union[Literal,URIRef,None] = None
     update_rate: Literal
     time_create: Literal
     duration: Literal
@@ -92,9 +92,9 @@ class MarketOfferInfoBindings(BindingsBase):
 
 @ki_object("market-offer-info-filtered")
 class MarketOfferInfoFilteredBindings(MarketOfferInfoBindings):
-    ts_interval_uri: URIRef
-    ts_date_from: Literal
-    ts_date_to: Literal
+    ts_interval_uri: Optional[URIRef]
+    ts_date_from: OptionalLiteral
+    ts_date_to: OptionalLiteral
 
     @property
     def ts_from(self):
@@ -115,9 +115,9 @@ class MarketOfferInfoRequest(BindingsBase):
 
 @ki_object("market-offer-info-filtered", allow_partial=True)
 class MarketOfferInfoFilteredRequest(MarketOfferInfoRequest):
-    ts_interval_uri: Optional[URIRef] = None
-    ts_date_from: Optional[Literal] = None
-    ts_date_to: Optional[Literal] = None
+    ts_interval_uri: Optional[URIRef]
+    ts_date_from: OptionalLiteral
+    ts_date_to: OptionalLiteral
 
     @property
     def ts_from(self):
