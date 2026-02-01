@@ -33,6 +33,7 @@ def setup_scheduler():
     if app_settings.use_rest_api:
         init(bg=True)
     else:
+        print("Start sync scheduler")
         init(bg=False)
     #    TODO: set KE publish jobs
     # if app_settings.use_ke_api:

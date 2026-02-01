@@ -22,7 +22,7 @@ def init_service(market_prefix: str,load_data:bool):
             subscribe_data(ti=TimeSpan.last_day())
             current_ts = time_utils.current_timestamp()
             day_ts = 24 * 3600 * 1000
-            for i in range(0, 10):
+            for i in range(0, 31):
                 subscribe_data(ti=TimeSpan(ts_from=current_ts - (day_ts * (1 + i)), ts_to=current_ts - (day_ts * i)))
         except Exception as ex:
             logging.error(f"Failed to load data on start: {ex}")

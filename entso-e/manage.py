@@ -48,18 +48,17 @@ if __name__ == "__main__" and app_settings:
     ########################################################
     from tm_entso_e.modules.ke_interaction.interactions import publish_market_information, \
         publish_market_offer_information, publish_market_offer
-    # TODO: move to scheduler
-    while True:
-        try:
-            print("publish sample data")
-            publish_market_information()
-            publish_market_offer_information()
-            publish_market_offer()
-            success = True
-            sleep(60)
-        except Exception as ex:
-            sleep(15)
-            print(ex)
+    # while True:
+    #     try:
+    #         print("publish sample data")
+    #         publish_market_information()
+    #         publish_market_offer_information()
+    #         publish_market_offer()
+    #         success = True
+    #         sleep(60)
+    #     except Exception as ex:
+    #         sleep(15)
+    #         print(ex)
     # from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
     # market_api = MarketAPI(market_uri_prefix=market_prefix)
     # s_eic_area = api_settings.subscribed_eic[1]
