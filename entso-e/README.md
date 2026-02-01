@@ -1,8 +1,11 @@
-## Build
+## Build docker
 ```
 
 docker-compose -f .\compose\local.yml --env-file .\resources\.env build entsoe-service
 
+docker save -o d:/tmp/tm-entsoe-service-app_latest.tar tm-entsoe-service-app:latest
+
+docker load -i d:/tmp/tm-entsoe-service-app_latest.tar
 ```
 ## Configuration
 
