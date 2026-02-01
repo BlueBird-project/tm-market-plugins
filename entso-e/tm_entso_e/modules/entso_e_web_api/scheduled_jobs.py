@@ -11,7 +11,7 @@ def add_jobs(service_job_scheduler: BaseScheduler):
     logging.info("Add ENTSO-E jobs")
 
     @service_job_scheduler.scheduled_job(trigger='cron', id="entso_e_check_offer_job", day_of_week='*',
-                                         hour='0/8,13,17',
+                                         hour='0/8,10,13,17',
                                          minute='0', month='*', year='*', day='*', max_instances=1, coalesce=True)
     def check_offer_job():
         from tm_entso_e.modules.entso_e_web_api.service import subscribe_data

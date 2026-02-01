@@ -1,3 +1,9 @@
+## Build
+```
+
+docker-compose -f .\compose\local.yml --env-file .\resources\.env build entsoe-service
+
+```
 ## Configuration
 
 describe configuration

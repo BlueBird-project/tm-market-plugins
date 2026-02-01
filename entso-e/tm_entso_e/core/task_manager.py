@@ -42,6 +42,8 @@ def setup_scheduler():
     #     ke_jobs.add_jobs(service_job_scheduler)
 
     from tm_entso_e.modules.entso_e_web_api import scheduled_jobs as entsoe_e_jobs
+    from tm_entso_e.modules.ke_interaction import scheduled_jobs as ke_jobs
     entsoe_e_jobs.add_jobs(service_job_scheduler)
+    ke_jobs.add_jobs(service_job_scheduler)
     service_job_scheduler.start()
     service_job_scheduler.get_jobs()

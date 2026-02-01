@@ -15,7 +15,7 @@ RUN apt-get update \
 # RUN apt-get update; apt-get install -y gcc libc-dev git
 RUN mkdir app
 RUN mkdir app/resources
-RUN mkdir app/tm
+RUN mkdir app/tm_entso_e
 RUN mkdir config
 RUN mkdir logs
 WORKDIR /app
@@ -26,7 +26,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY /requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
-COPY /tm /app/tm
+COPY /tm_entso_e /app/tm_entso_e
 COPY /manage.py /app/manage.py
 COPY /resources/deployment /app/resources/deployment
 COPY /docker/app/config.yml /config/config.yml
