@@ -65,4 +65,4 @@ def init_db(market_prefix: str):
                             subscribe=True)
             add_market(market=market)
             logging.info(f"Setting market: {market}")
-            print(market)
+            # print(market)

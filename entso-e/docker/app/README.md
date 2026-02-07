@@ -16,6 +16,6 @@ TODO (deprecated):
 
 ### Graph patterns location:
 
-`/app/resources/ke_config.yml` - app config file
+`/app/resources/ke_config.yaml` - app config file
 
  

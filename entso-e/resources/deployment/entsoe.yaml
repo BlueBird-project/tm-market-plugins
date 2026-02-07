@@ -3,10 +3,19 @@ entsoe_api:
     - code: 10YPL-AREA-----S
       market_types:
         - "day_ahead"
-  #       - intraday
+#    - code: 10Y1001A1001A82H
+#      market_types:
+#        - "day_ahead"
+#    - code: 10YAT-APG------L
+#      market_types:
+#        - "day_ahead"
+#    - code: 10YBE----------2
+#      market_types:
+#        - "day_ahead"
     - code: 10YES-REE------0
       market_types:
         - "intraday"
+        - "day_ahead"
   #       - intraday
   eic_codes:
     10Y1001A1001A82H:
@@ -14,8 +23,8 @@ entsoe_api:
       area_names:
         - "BZN|DE-LU"
       country_codes:
-        - "DE"
         - "Germany"
+        - "DE"
     10YPL-AREA-----S:
       code: "10YPL-AREA-----S"
       area_names:
@@ -38,7 +47,7 @@ entsoe_api:
         - "Spain"
         - "ES"
     10YBE----------2:
-      code: "10YBE----------2:"
+      code: "10YBE----------2"
       area_names:
         - "BZN|BE"
       country_codes:

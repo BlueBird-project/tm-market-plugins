@@ -29,9 +29,9 @@ RUN pip install -r /tmp/requirements.txt
 COPY /tm_entso_e /app/tm_entso_e
 COPY /manage.py /app/manage.py
 COPY /resources/deployment /app/resources/deployment
-COPY /docker/app/config.yml /config/config.yml
+COPY /docker/app/config.yaml /config/config.yaml
 
-ENV KE_KI_CONFIG_PATH="/app/resources/deployment/ke_config.yml"
+ENV KE_KI_CONFIG_PATH="/app/resources/deployment/ke_config.yaml"
 ENV DB_INIT_SCRIPT_LOCATION="/app/resources/deployment/db/pg_init.sql"
 ENV APP_LOGGING_CONF_PATH="/app/resources/deployment/logging.ini"
 #ENV APP_USE_SCHEDULER=True
@@ -39,4 +39,4 @@ ENV APP_LOGGING_CONF_PATH="/app/resources/deployment/logging.ini"
 #ENV APP_USE_KE_API=True
 ENV SERVICE_LOG_DIR=/var/log/
 EXPOSE 8080
-CMD ["python", "manage.py","-c" ,"/config/config.yml"  ]
+CMD ["python", "manage.py","-c" ,"/config/config.yaml"  ]

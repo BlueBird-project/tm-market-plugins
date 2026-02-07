@@ -44,7 +44,8 @@ if __name__ == "__main__" and app_settings:
     api_settings = configure_api()
     from tm_entso_e.modules.entso_e_web_api.service import init_service, subscribe_data
 
-    init_service(market_prefix=market_prefix, load_data=True)
+    init_service(market_prefix=market_prefix, load_data=True,days_to_load=5)
+    # init_service(market_prefix=market_prefix, load_data=True)
     ########################################################
     from tm_entso_e.modules.ke_interaction.interactions import publish_market_information, \
         publish_market_offer_information, publish_market_offer

@@ -26,9 +26,9 @@ db:
 ke:
   knowledge_base_id: "https://entsoe.bluebird.com/ke"
   #  rest_endpoint:
-  ki_config_path: ./resources/deployment/ke_config.yml
+  ki_config_path: ./resources/deployment/ke_config.yaml
   ki_vars:
     DAY_DURATION: '"PT1440M"^^xsd:duration'
     ISP_UNIT: '"PT15M"^^xsd:duration'
 entsoe:
-  api_config_path: ./resources/deployment/entsoe.yml
+  api_config_path: ./resources/deployment/entsoe.yaml

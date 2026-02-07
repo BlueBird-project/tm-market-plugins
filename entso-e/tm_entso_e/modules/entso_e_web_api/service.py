@@ -10,7 +10,7 @@ from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
 market_api: MarketAPI
 
 
-def init_service(market_prefix: str,load_data:bool):
+def init_service(market_prefix: str,load_data:bool,days_to_load :int = 31):
     global market_api
     from tm_entso_e.modules.entso_e_web_api import init_db
 
@@ -22,7 +22,7 @@ def init_service(market_prefix: str,load_data:bool):
             subscribe_data(ti=TimeSpan.last_day())
             current_ts = time_utils.current_timestamp()
             day_ts = 24 * 3600 * 1000
-            for i in range(0, 31):
+            for i in range(-1, days_to_load):
                 subscribe_data(ti=TimeSpan(ts_from=current_ts - (day_ts * (1 + i)), ts_to=current_ts - (day_ts * i)))
         except Exception as ex:
             logging.error(f"Failed to load data on start: {ex}")

@@ -1,12 +1,12 @@
 services:
   entsoe-service:
-    image: "${REGISTRY_APPLICATION}-app:${IMAGE_TAG}"
+    image: "${REGISTRY_DOMAIN}/${REGISTRY_PROJECT}/${REGISTRY_APPLICATION}:${IMAGE_TAG}"
     build:
       dockerfile: ./docker/app/Dockerfile
       context: ..
       tags:
-        - "${REGISTRY_APPLICATION}-app:latest"
-        - "${REGISTRY_APPLICATION}-app:${IMAGE_TAG}"
+        - "${REGISTRY_DOMAIN}/${REGISTRY_PROJECT}/${REGISTRY_APPLICATION}:latest"
+        - "${REGISTRY_DOMAIN}/${REGISTRY_PROJECT}/${REGISTRY_APPLICATION}:${IMAGE_TAG}"
     ports:
       - "9090:8080"
     depends_on:
@@ -15,20 +15,25 @@ services:
     env_file:
       - path: "./../resources/.env"
         required: true # default
-      - path: "./../resources/env/.env.tm"
+      - path: "./../resources/env/.env.demo"
         required: true # default
     environment:
       #      - KE_REST_ENDPOINT=https://bluebird:WVOvwb3glJIFy0@ke-test-bluebird.apps.bst2.paas.psnc.pl/ke-test-runtime/rest/
       - KE_REST_ENDPOINT=http://entsoe-ke-service:8280/rest/
-  #      - DB_HOST="${PROJECT_NAME}-${DB_HOST}"
+    #      - DB_HOST="${PROJECT_NAME}-${DB_HOST}"
     networks:
       - entsoe-net
   entsoe-db:
-    image: ${REGISTRY_DOMAIN}/base/bitnami/postgresql:17.4.0-debian-12-r13
+    image: postgres:alpine3.23
     environment:
       - POSTGRESQL_USERNAME=${DB_USER}
+      - POSTGRES_USER=${DB_USER}
       - POSTGRESQL_PASSWORD=${DB_PASS}
+      - POSTGRES_PASSWORD=${DB_PASS}
       - POSTGRESQL_DATABASE=${DB_NAME}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - 5432:5432
     networks:
       - entsoe-net
   entsoe-db-adminer:
@@ -43,10 +48,6 @@ services:
       - 9199:8080
     networks:
       - entsoe-net
-#    networks:
-#      - gnet
-#    environment:
-#      DOCKER_DEFAULT_PLATFORM: linux/amd64
   entsoe-ke-service:
     image: ghcr.io/tno/knowledge-engine/smart-connector:1.4.0
     environment:
