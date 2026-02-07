@@ -70,24 +70,24 @@ class DictBaseSettings(MergeConfigMixin, BaseSettings):
         )
 
     @classmethod
-    def load(cls, yml_path: Optional[str] = None, section_name: Optional[str] = None):
+    def load(cls, yaml_path: Optional[str] = None, section_name: Optional[str] = None):
         # regex = re.compile(r'^__?.+_?_?$')
-        if yml_path:
-            app_config = load_yml_obj(yml_path, section=section_name, settings_constructor=dict)
+        if yaml_path:
+            app_config = load_yaml_obj(yaml_path, section=section_name, settings_constructor=dict)
             keys = [k for k in vars(cls)["__pydantic_fields__"].keys()]
             fields = {k: f for k, f in app_config.items() if k in keys}
             return cls(dict_settings=fields)
         return cls(dict_settings={})
 
 
-def load_yml_obj(config_path: str, section: Optional[str] = None,
+def load_yaml_obj(config_path: str, section: Optional[str] = None,
                  settings_constructor: Optional[Union[Callable, dict]] = None) -> Union[dict, object]:
     class YAML:
         def __init__(self, **entries):
             self.__dict__.update(entries)
 
     try:
-        _config = _load_yml(config_path, section)
+        _config = _load_yaml(config_path, section)
         if settings_constructor is not None:
             if settings_constructor is dict:
                 if type(_config) is not dict:
@@ -97,13 +97,11 @@ def load_yml_obj(config_path: str, section: Optional[str] = None,
         else:
             return YAML(**_config)
     except FileNotFoundError as error:
-        message = "Error: yml config file not found."
-        # TODO: log/handle error
-        print(error)
+        message = "Error: yaml config file not found."
         raise FileNotFoundError(error, message) from error
 
 
-def _load_yml(config_path, section):
+def _load_yaml(config_path, section):
     with open(config_path) as stream:
         try:
             _config = yaml.safe_load(stream, )

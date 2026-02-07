@@ -27,7 +27,7 @@ class AppArgs(BaseModel):
 def get_args() -> AppArgs:
     parser = argparse.ArgumentParser()
     # parser.add_argument('-d', '--debug', help='enable debug logs', action='store_true')
-    parser.add_argument('-c', '--config-path', help='config path', default='./resources/config.yml')
+    parser.add_argument('-c', '--config-path', help='config path', default='./resources/config.yaml')
     parser.add_argument('--env', help='env path', default='.env')
     # parser.add_argument('--hash-pg-schema', help='generate db hash', default=False, action='store_true')
     parsed_args = parser.parse_args()
