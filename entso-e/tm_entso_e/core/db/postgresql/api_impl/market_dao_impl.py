@@ -34,6 +34,8 @@ class MarketQueries:
  
         """
     # ON CONFLICT ("market_uri" ) DO UPDATE  todo:
+    SET_MARKET_SUBSCRIBE = """UPDATE "${table_prefix}market_details"  set "subscribe" = :subscribe
+     WHERE "market_id" = :market_id"""
 
 
 class MarketDAOImpl(MarketDAO):
@@ -68,3 +70,8 @@ class MarketDAOImpl(MarketDAO):
             args = {}
             markets = conn.select(q=self.queries.LIST_MARKET, args=args, obj_type=Market)
             return markets
+
+    @abstractmethod
+    def set_subscribe(self, market_id: int, subscribe: bool) -> bool:
+        with ConnectionWrapper() as conn:
+            return conn.update(self.queries.SET_MARKET_SUBSCRIBE, {'market_id': market_id, "subscribe": subscribe}) == 1

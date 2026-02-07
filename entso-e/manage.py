@@ -47,8 +47,6 @@ if __name__ == "__main__" and app_settings:
     init_service(market_prefix=market_prefix, load_data=True,days_to_load=5)
     # init_service(market_prefix=market_prefix, load_data=True)
     ########################################################
-    from tm_entso_e.modules.ke_interaction.interactions import publish_market_information, \
-        publish_market_offer_information, publish_market_offer
     # while True:
     #     try:
     #         print("publish sample data")

@@ -60,7 +60,7 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
                                                                     ts_start=ts_start, sequence=sequence)
 
             if offer_details is None:
-                from tm_entso_e.modules.ke_interaction.interactions import OfferUri
+                from tm_entso_e.modules.ke_interaction.interactions.dam_model import OfferUri
                 offer_uri_str = OfferUri(prefix=market.market_uri, sequence=sequence, ts_start=ts_start,
                                          ts_len=ts_end - ts_start).uri
                 offer_details = MarketOfferDetails(market_id=market.market_id, offer_uri=offer_uri_str,
@@ -78,3 +78,8 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
                 cost=p.price
             ) for i, p in enumerate(period.points)]
             db_resp = dao_manager.offer_dao.log_day_offer(market_offers=market_offers)
+
+def unsubscribe_all_markets():
+    from tm_entso_e.core.db.postgresql import dao_manager
+    for m in dao_manager.market_dao.list_market():
+        dao_manager.market_dao.set_subscribe(market_id=m.market_id,subscribe=False)

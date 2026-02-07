@@ -35,7 +35,6 @@ def setup_scheduler():
     else:
         print("Start sync scheduler")
         init(bg=False)
-    #    TODO: set KE publish jobs
     # if app_settings.use_ke_api:
     #     from main.modules.ke_interaction import scheduled_jobs as ke_jobs
 

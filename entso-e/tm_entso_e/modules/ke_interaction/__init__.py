@@ -13,8 +13,9 @@ class KIVars(BaseEnum):
 
 
 def _set_ke_client(bg_mode=False) -> KEClient:
-    from tm_entso_e.modules.ke_interaction.interactions import ke_client as ke_ki_client
-
+    from tm_entso_e.modules.ke_interaction.interactions import setup_ke
+    from tm_entso_e.modules.ke_interaction.interactions import ki_client as ke_ki_client
+    setup_ke()
     # ke_client.KE_CONFIG_PATH = ke_config_path
     MAX_ATTEMPTS = 20
 

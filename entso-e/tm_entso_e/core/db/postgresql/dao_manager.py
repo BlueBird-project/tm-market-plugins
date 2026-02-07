@@ -19,12 +19,9 @@ def init_postgresql(db_meta: DBMeta):
     global market_dao, offer_dao
     market_dao = market_dao_impl.MarketDAOImpl(db_meta.db_table_prefix)
     offer_dao = market_offer_dao_impl.MarketOfferDAOImpl(db_meta.db_table_prefix)
-    # todo: settings table in db
-    # from effi_onto_tools.db.postgresql.app_settings_dao_impl import AppSettingsImpl
-    # app_settings_dao = AppSettingsImpl(db_meta.db_table_prefix, init_db=False)
 
 
-# TODO: make in configurable
+
 def init() -> DBMeta:
     from tm_entso_e.core.db.postgresql import api_impl
     db_meta = DBMeta(

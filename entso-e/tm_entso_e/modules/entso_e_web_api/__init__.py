@@ -51,13 +51,15 @@ def add_market(market: Market, save_add: bool = True) -> Market:
 
 def init_db(market_prefix: str):
     from tm_entso_e.modules.entso_e_web_api.config import api_settings
-    # TODO: list all markets in the db and set subscribe to false
+    from tm_entso_e.modules.entso_e_web_api.service import unsubscribe_all_markets
+
+    unsubscribe_all_markets()
+
     # or delete all of them >
     for s_eic_area in api_settings.subscribed_eic:
         for market_code in s_eic_area.market_codes:
             # TODO: support more than one country code/location
-
-            market_location=api_settings.eic_codes[s_eic_area.code].country_codes[0]
+            market_location = api_settings.eic_codes[s_eic_area.code].country_codes[0]
             market = Market(market_uri=f"{market_prefix}/{s_eic_area.code}/{market_code}",
                             market_name=s_eic_area.code + "_" + market_code,
                             market_type=s_eic_area.get_market_type_name(code=market_code),

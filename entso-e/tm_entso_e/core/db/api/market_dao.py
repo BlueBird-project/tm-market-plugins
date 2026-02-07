@@ -27,3 +27,7 @@ class MarketDAO(DAO):
     @abstractmethod
     def add_market(self, market: Market) -> Market:
         pass
+
+    @abstractmethod
+    def set_subscribe(self, market_id: int, subscribe: bool) -> bool:
+        pass
