@@ -8,7 +8,38 @@ knowledge_engine:
     rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     s4ener: "https://saref.etsi.org/saref4ener/"
     xsd: "http://www.w3.org/2001/XMLSchema#"
+    rdfs: "http://www.w3.org/2000/01/rdf-schema#"
   graph_patterns:
+    service:
+      name: "service"
+      description: "Information about service"
+      pattern:
+        - ' kb:service rdf:type saref:Device  ; saref:hasFunctionOfInterest kb:service_function . '
+        - ' kb:service_function rdf:type saref:FunctionOfInterest; saref:hasCommandOfInterest kb:get_data_command . '
+        - ' kb:get_data_command rdf:type saref:CommandOfInterest;  saref:hasCommandKind ubmarket:get_data_command ; '
+        - ' saref:observes ?market .'
+        - ' market ?market  rdf:type ?market_type .'
+        - ' ?market_type rdf:type ubmarket:MarketType .'
+        - ' ubmarket:get_data_command rdfs:label "get_data" . '
+    start-command:
+      name: "start-command"
+      description: "Start service-command"
+      prefixes:
+        time: "http://www.w3.org/2006/time#"
+      pattern:
+        - ' kb:get_data_command  saref:observes ?market . '
+        - ' ?ts_interval_uri rdf:type time:Interval; time:hasBeginning ?ts_date_from; time:hasEnd ?ts_date_to .'
+      result_pattern:
+        - ' ?procedure_execution rdf:type saref:ProcedureExecution; saref:isExecutionOf kb:get_data_command;'
+        - '    saref:hasStartTime ?time_start. '
+    state-command:
+      name: "state-command"
+      description: "State service-command"
+      prefixes:
+        time: "http://www.w3.org/2006/time#"
+      pattern:
+        - ' ?procedure_execution rdf:type saref:ProcedureExecution; saref:isExecutionOf kb:get_data_command;'
+        - '    saref:hasStartTime ?time_start; saref:hasEndTime ?end_time .'
     market:
       name: "market"
       description: "Basic information about the market"
@@ -20,6 +51,7 @@ knowledge_engine:
         - ' ?market_uri rdf:type ?market_type ; rdfs:subClassOf foaf:Agent ;'
         - '      s4city:hasAdministrativeArea ?country_uri .'
         - ' ?country_uri rdf:type s4city:Country ; ubmarket:hasISO3166Name ?country_name .'
+        - ' ?market_type rdf:type ubmarket:MarketType .'
     market-offer-info-filtered:
       name: "market-offer-info-filtered"
       description: "Information about new offer with time filter"

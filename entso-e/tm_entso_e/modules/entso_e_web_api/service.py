@@ -1,5 +1,6 @@
 import logging
 
+from effi_onto_tools.db.dao_exception import DAOException
 from isodate import parse_duration
 
 from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument
@@ -61,6 +62,7 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
 
             if offer_details is None:
                 from tm_entso_e.modules.ke_interaction.interactions.dam_model import OfferUri
+                print("New offer details ")
                 offer_uri_str = OfferUri(prefix=market.market_uri, sequence=sequence, ts_start=ts_start,
                                          ts_len=ts_end - ts_start).uri
                 offer_details = MarketOfferDetailsDAO(market_id=market.market_id, offer_uri=offer_uri_str,
@@ -70,6 +72,7 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
                 offer_details = dao_manager.offer_api.register_day_offer(offer_details=offer_details)
             else:
                 # todo: if override previous
+                print("clear"+str(offer_details.offer_id))
                 dao_manager.offer_api.clear_offer(offer_id=offer_details.offer_id)
                 # else log something and return
             market_offers = [MarketOfferDAO(
@@ -77,7 +80,8 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
                 isp_len=(period.points[i + 1].position - p.position if i < (len(period.points) - 1) else 1),
                 cost=p.price
             ) for i, p in enumerate(period.points)]
-            db_resp = dao_manager.offer_api.log_day_offer(market_offers=market_offers)
+            print("store:"+str(offer_details.offer_id))
+            dao_manager.offer_api.log_day_offer(market_offers=market_offers)
 
 def unsubscribe_all_markets():
     from tm_entso_e.core.db.postgresql import dao_manager
