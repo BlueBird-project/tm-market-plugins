@@ -10,14 +10,14 @@ from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarke
     MarketOfferInfoFilteredBindings, MarketOfferRequest, OfferUri
 from tm_entso_e.modules.ke_interaction.service import list_markets, find_markets, get_all_offer_details, \
     get_offer_details, get_market_offer
-from tm_entso_e.schemas.market import MarketOffer
+from tm_entso_e.schemas.market_dao import MarketOfferDAO
 
 ki = KIHolder()
 
 
 # region datapoints
 @ki.answer("market-offer")
-def answer_offer_values(ki_id, bindings: List[MarketOfferRequest]) -> List[MarketOffer]:
+def answer_offer_values(ki_id, bindings: List[MarketOfferRequest]) -> List[MarketOfferDAO]:
     logging.info(f"Ask offer arrived {ki_id}")
     logging.debug(f"Ask offer arrived {ki_id}, {bindings}")
     accu = []
@@ -38,7 +38,7 @@ def answer_offer_values(ki_id, bindings: List[MarketOfferRequest]) -> List[Marke
 
 
 @ki.post("market-offer")
-def _publish_market_offer() -> List[MarketOffer]:
+def _publish_market_offer() -> List[MarketOfferDAO]:
     accu = []
     offer_infos = get_all_offer_details()
     for oi in offer_infos:

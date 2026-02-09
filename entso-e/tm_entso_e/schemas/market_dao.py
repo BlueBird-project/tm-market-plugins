@@ -1,16 +1,9 @@
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
-from rdflib import URIRef
-
-DAYAHEAD_MARKET_TYPE=URIRef(value="DayAheadMarket", base="https://ubeflex.bluebird.eu/market/")
-INTRADAY_MARKET_TYPE=URIRef(value="IntradayMarket", base="https://ubeflex.bluebird.eu/market/")
-
-class _BaseModel(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+from pydantic import BaseModel
 
 
-class Market(_BaseModel):
+class MarketDAO(BaseModel):
     market_id: Optional[int] = None
     market_uri: str
     market_name: str
@@ -18,9 +11,11 @@ class Market(_BaseModel):
     market_description: Optional[str] = None
     market_location: Optional[str] = None
     subscribe: bool
+    update_ts: Optional[int] = None
+    ext: Optional[str] = None
 
 
-class MarketOfferDetails(_BaseModel):
+class MarketOfferDetailsDAO(BaseModel):
     offer_id: Optional[int] = None
     market_id: int
     offer_uri: str
@@ -30,15 +25,18 @@ class MarketOfferDetails(_BaseModel):
     ts_start: int
     ts_end: int
     isp_unit: int
+    update_ts: Optional[int] = None
+    ext: Optional[str] = None
 
     @property
     def is_measured_in(self) -> str:
         return f"{self.currency_unit}Per{self.volume_unit}"
 
 
-class MarketOffer(_BaseModel):
+class MarketOfferDAO(BaseModel):
     ts: int
     offer_id: int
     isp_start: int
     isp_len: int
     cost: float
+    update_ts: Optional[int] = None

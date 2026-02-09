@@ -49,7 +49,7 @@ def scheduler_state() -> bool:
 def check_db(report: Dict) -> Dict:
     from tm_entso_e.core.db.postgresql import dao_manager
     try:
-        prev, current = dao_manager.app_settings_dao.set("app_healthcheck", time_utils.current_timestamp())
+        prev, current = dao_manager.settings_api.set("app_healthcheck", time_utils.current_timestamp())
     except Exception as ex:
         prev = None
         current = None
@@ -63,7 +63,7 @@ def check_db(report: Dict) -> Dict:
 def db_state() -> Dict:
     from tm_entso_e.core.db.postgresql import dao_manager
     try:
-        prev, current = dao_manager.app_settings_dao.set("app_healthcheck", time_utils.current_timestamp())
+        prev, current = dao_manager.settings_api.set("app_healthcheck", time_utils.current_timestamp())
 
     except Exception as ex:
         prev = None
@@ -75,7 +75,7 @@ def db_state() -> Dict:
 def check_market(report: Dict) -> Dict:
     from tm_entso_e.core.db.postgresql import dao_manager
     try:
-        recent_offers = dao_manager.offer_dao.get_recent_market_details()
+        recent_offers = dao_manager.offer_api.get_recent_market_details()
         if len(recent_offers) == 0:
             raise ValueError("No recent offers")
         last_ts = recent_offers[0].ts_start
@@ -94,7 +94,7 @@ def check_market(report: Dict) -> Dict:
 def market_state() -> bool:
     from tm_entso_e.core.db.postgresql import dao_manager
     try:
-        recent_offers = dao_manager.offer_dao.get_recent_market_details()
+        recent_offers = dao_manager.offer_api.get_recent_market_details()
         if len(recent_offers) == 0:
             raise ValueError("No recent offers")
         last_ts = recent_offers[0].ts_start

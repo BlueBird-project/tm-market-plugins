@@ -1,5 +1,4 @@
 from typing import Optional
-from zoneinfo import ZoneInfo
 
 from effi_onto_tools.utils import DictBaseSettings
 from pydantic import Field

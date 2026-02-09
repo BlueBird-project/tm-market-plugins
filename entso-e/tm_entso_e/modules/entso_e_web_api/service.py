@@ -3,11 +3,11 @@ import logging
 from isodate import parse_duration
 
 from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument
-from tm_entso_e.schemas.market import Market, MarketOfferDetails, MarketOffer
+from tm_entso_e.schemas.market_dao import  MarketOfferDetailsDAO, MarketOfferDAO
 from tm_entso_e.utils import time_utils, TimeSpan
-from tm_entso_e.modules.entso_e_web_api.energy_api import MarketAPI
+from tm_entso_e.modules.entso_e_web_api.energy_api import EnergyMarketAPI
 
-market_api: MarketAPI
+market_api: EnergyMarketAPI
 
 
 def init_service(market_prefix: str,load_data:bool,days_to_load :int = 31):
@@ -15,7 +15,7 @@ def init_service(market_prefix: str,load_data:bool,days_to_load :int = 31):
     from tm_entso_e.modules.entso_e_web_api import init_db
 
     init_db(market_prefix=market_prefix)
-    market_api = MarketAPI(market_uri_prefix=market_prefix)
+    market_api = EnergyMarketAPI(market_uri_prefix=market_prefix)
     if load_data:
         logging.info(f"Load data on start")
         try:
@@ -46,7 +46,7 @@ def subscribe_data(ti: TimeSpan):
 def store_offers(market_uri: str, market_offer: MarketDocument):
     from tm_entso_e.core.db.postgresql import dao_manager
     logging.info(f"Store offers for: {market_uri}")
-    market = dao_manager.market_dao.get_market_uri(market_uri=market_uri)
+    market = dao_manager.market_api.get_market_uri(market_uri=market_uri)
     # if market is none log  error todo:
     for ts in market_offer.timeseries:
         for period in ts.periods:
@@ -56,30 +56,30 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
             ts_end = time_utils.xsd_to_ts(period.time_interval.end)
             logging.info(f"Store offers for: {market_uri},{ts_start}:{ts.sequence}")
             sequence = ts.sequence  # if ts.sequence is not None else None
-            offer_details = dao_manager.offer_dao.get_offer_details(market_id=market.market_id,
+            offer_details = dao_manager.offer_api.get_offer_details(market_id=market.market_id,
                                                                     ts_start=ts_start, sequence=sequence)
 
             if offer_details is None:
                 from tm_entso_e.modules.ke_interaction.interactions.dam_model import OfferUri
                 offer_uri_str = OfferUri(prefix=market.market_uri, sequence=sequence, ts_start=ts_start,
                                          ts_len=ts_end - ts_start).uri
-                offer_details = MarketOfferDetails(market_id=market.market_id, offer_uri=offer_uri_str,
-                                                   sequence=sequence, currency_unit=ts.currency_unit,
-                                                   volume_unit=ts.measurement_unit,
-                                                   ts_start=ts_start, ts_end=ts_end, isp_unit=period_minutes)
-                offer_details = dao_manager.offer_dao.register_day_offer(offer_details=offer_details)
+                offer_details = MarketOfferDetailsDAO(market_id=market.market_id, offer_uri=offer_uri_str,
+                                                      sequence=sequence, currency_unit=ts.currency_unit,
+                                                      volume_unit=ts.measurement_unit,
+                                                      ts_start=ts_start, ts_end=ts_end, isp_unit=period_minutes)
+                offer_details = dao_manager.offer_api.register_day_offer(offer_details=offer_details)
             else:
                 # todo: if override previous
-                dao_manager.offer_dao.clear_offer(offer_id=offer_details.offer_id)
+                dao_manager.offer_api.clear_offer(offer_id=offer_details.offer_id)
                 # else log something and return
-            market_offers = [MarketOffer(
+            market_offers = [MarketOfferDAO(
                 ts=ts_start + p.position * period_ms, offer_id=offer_details.offer_id, isp_start=p.position,
                 isp_len=(period.points[i + 1].position - p.position if i < (len(period.points) - 1) else 1),
                 cost=p.price
             ) for i, p in enumerate(period.points)]
-            db_resp = dao_manager.offer_dao.log_day_offer(market_offers=market_offers)
+            db_resp = dao_manager.offer_api.log_day_offer(market_offers=market_offers)
 
 def unsubscribe_all_markets():
     from tm_entso_e.core.db.postgresql import dao_manager
-    for m in dao_manager.market_dao.list_market():
-        dao_manager.market_dao.set_subscribe(market_id=m.market_id,subscribe=False)
+    for m in dao_manager.market_api.list_market():
+        dao_manager.market_api.set_subscribe(market_id=m.market_id, subscribe=False)

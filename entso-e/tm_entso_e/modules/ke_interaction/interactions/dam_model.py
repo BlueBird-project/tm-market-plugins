@@ -1,9 +1,9 @@
-from typing import Optional, Union, Type
+from typing import Optional, Union
 
 from effi_onto_tools.utils import time_utils
 from isodate import parse_duration
-from ke_client import ki_object, is_nil, ki_split_uri, SplitURIBase,  OptionalLiteral
 from ke_client import BindingsBase
+from ke_client import ki_object, ki_split_uri, SplitURIBase, OptionalLiteral
 from rdflib import URIRef, Literal
 
 

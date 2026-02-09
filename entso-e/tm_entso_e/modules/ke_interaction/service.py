@@ -7,7 +7,7 @@ from rdflib import Literal, URIRef
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindings, CountryURI, \
     EnergyMarketBindingsQuery, MarketOfferInfoBindings, OfferUri, MarketOfferInfoRequest, MarketOfferBindings
-from tm_entso_e.schemas.market import Market, MarketOfferDetails, MarketOffer
+from tm_entso_e.schemas.market_dao import MarketDAO, MarketOfferDetailsDAO, MarketOfferDAO
 from tm_entso_e.utils import time_utils, TimeSpan
 
 
@@ -91,8 +91,7 @@ from tm_entso_e.utils import time_utils, TimeSpan
 def list_markets() -> List[EnergyMarketBindings]:
     from tm_entso_e.core.db.postgresql import dao_manager
     # TODO: list only subscribed markets here
-    markets: List[Market] = dao_manager.market_dao.list_market()
-    from tm_entso_e.modules.entso_e_web_api.config import api_settings
+    markets: List[MarketDAO] = dao_manager.market_api.list_market()
     # TODO: publish all country codes not only one
 
     return [EnergyMarketBindings(market_uri=URIRef(m.market_uri),
@@ -104,15 +103,15 @@ def list_markets() -> List[EnergyMarketBindings]:
 
 def find_markets(queries: List[EnergyMarketBindingsQuery]) -> List[EnergyMarketBindings]:
     from tm_entso_e.core.db.postgresql import dao_manager
-    res: Dict[str, Market] = {}
+    res: Dict[str, MarketDAO] = {}
     for q in queries:
         if q.market_uri is not None:
-            m = dao_manager.market_dao.get_market_uri(market_uri=q.market_uri)
+            m = dao_manager.market_api.get_market_uri(market_uri=q.market_uri)
             if m is not None:
                 res[m.market_uri] = m
         else:
             # todo add filtering method to dao by market_type and country
-            filtered = [m for m in dao_manager.market_dao.list_market() if
+            filtered = [m for m in dao_manager.market_api.list_market() if
                         m.market_location.lower() == q.country_name.lower()]
             for m in filtered:
                 res[m.market_uri] = m
@@ -124,7 +123,7 @@ def find_markets(queries: List[EnergyMarketBindingsQuery]) -> List[EnergyMarketB
             for m in res.values()]
 
 
-def _get_offer_details_bindings(markets: Dict[int, Market], offer_details: List[MarketOfferDetails]) -> \
+def _get_offer_details_bindings(markets: Dict[int, MarketDAO], offer_details: List[MarketOfferDetailsDAO]) -> \
         List[MarketOfferInfoBindings]:
     # def offer_uri_helper(market: Market, o: MarketOfferDetails) -> OfferUri:
     #     sequence = OfferUri.__EMPTY__ if o.sequence is None else o.sequence
@@ -174,27 +173,27 @@ def _get_offer_details_bindings(markets: Dict[int, Market], offer_details: List[
 
 
 def get_offer_details(q: MarketOfferInfoRequest, ti: Optional[TimeSpan] = None):
-    from tm_entso_e.core.db.postgresql.dao_manager import offer_dao, market_dao
+    from tm_entso_e.core.db.postgresql.dao_manager import offer_api, market_api
 
     if q.market_uri is not None:
-        market = market_dao.get_market_uri(market_uri=q.market_uri)
+        market = market_api.get_market_uri(market_uri=q.market_uri)
         if market is None:
             return []
-        offer_details = offer_dao.get_recent_market_details(market_id=market.market_id, sequence=q.sequence) \
-            if ti is None else offer_dao.find_offer_details(ti=ti, market_id=market.market_id, sequence=q.sequence)
+        offer_details = offer_api.get_recent_market_details(market_id=market.market_id, sequence=q.sequence) \
+            if ti is None else offer_api.find_offer_details(ti=ti, market_id=market.market_id, sequence=q.sequence)
         return _get_offer_details_bindings(markets={market.market_id: market}, offer_details=offer_details)
     elif q.market_type is not None:
         market_type = MarketAgreementTypeCode.parse(q.market_type, nullable=True)
         if market_type is None:
             # log invalid market_type todo:
             return []
-        offer_details = offer_dao.get_recent_market_details(sequence=q.sequence, market_type=market_type.name) \
-            if ti is None else offer_dao.find_offer_details(ti=ti, sequence=q.sequence, market_type=market_type.name)
+        offer_details = offer_api.get_recent_market_details(sequence=q.sequence, market_type=market_type.name) \
+            if ti is None else offer_api.find_offer_details(ti=ti, sequence=q.sequence, market_type=market_type.name)
 
-        markets: Dict[int, Market] = {}
+        markets: Dict[int, MarketDAO] = {}
         for od in offer_details:
             if od.market_id not in markets:
-                markets[od.market_id] = market_dao.get_market(market_id=od.market_id)
+                markets[od.market_id] = market_api.get_market(market_id=od.market_id)
         return _get_offer_details_bindings(markets=markets, offer_details=offer_details)
     else:
         return get_all_offer_details()
@@ -202,16 +201,16 @@ def get_offer_details(q: MarketOfferInfoRequest, ti: Optional[TimeSpan] = None):
 
 def get_all_offer_details() -> List[MarketOfferInfoBindings]:
     from tm_entso_e.core.db.postgresql import dao_manager
-    markets: Dict[int, Market] = {}
-    offer_details: List[MarketOfferDetails] = dao_manager.offer_dao.get_recent_intraday_details()
+    markets: Dict[int, MarketDAO] = {}
+    offer_details: List[MarketOfferDetailsDAO] = dao_manager.offer_api.get_recent_intraday_details()
     for od in offer_details:
         if od.market_id not in markets:
-            markets[od.market_id] = dao_manager.market_dao.get_market(market_id=od.market_id)
+            markets[od.market_id] = dao_manager.market_api.get_market(market_id=od.market_id)
     offer_bindings = _get_offer_details_bindings(markets=markets, offer_details=offer_details)
-    offer_details: List[MarketOfferDetails] = dao_manager.offer_dao.get_recent_dayahead_details()
+    offer_details: List[MarketOfferDetailsDAO] = dao_manager.offer_api.get_recent_dayahead_details()
     for od in offer_details:
         if od.market_id not in markets:
-            markets[od.market_id] = dao_manager.market_dao.get_market(market_id=od.market_id)
+            markets[od.market_id] = dao_manager.market_api.get_market(market_id=od.market_id)
     offer_bindings += _get_offer_details_bindings(markets=markets, offer_details=offer_details)
     return offer_bindings
 
@@ -227,13 +226,13 @@ def get_market_offer(offer_uri: URIRef):
     #     return []
     # offer_details = dao_manager.offer_dao.get_offer_details(market_id=market.market_id, sequence=offer_uri.sequence,
     #                                                         ts_start=offer_uri.ts_start)
-    offer_details = dao_manager.offer_dao.get_offer_details_by_uri(offer_uri=offer_uri)
+    offer_details = dao_manager.offer_api.get_offer_details_by_uri(offer_uri=offer_uri)
     if offer_details is None:
         print("no offer")
         # todo log error /warning ?
         return []
     offer_uri = offer_details.offer_uri
-    market_offer: List[MarketOffer] = dao_manager.offer_dao.get_offer(offer_id=offer_details.offer_id)
+    market_offer: List[MarketOfferDAO] = dao_manager.offer_api.get_offer(offer_id=offer_details.offer_id)
     offer_bindings = [
         MarketOfferBindings(offer_uri=URIRef(offer_uri), dp=OfferUri.uri_append_ref(offer_uri, "/dp"),
                             ts=Literal(time_utils.xsd_from_ts(mo.ts)), dpr=OfferUri.uri_append_ref(offer_uri, "/dpr"),

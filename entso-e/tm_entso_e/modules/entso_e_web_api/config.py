@@ -1,4 +1,4 @@
-from typing import Optional, Any, Dict, List
+from typing import Optional, Dict, List
 
 from pydantic import Field, Extra
 from pydantic_settings import SettingsConfigDict, BaseSettings

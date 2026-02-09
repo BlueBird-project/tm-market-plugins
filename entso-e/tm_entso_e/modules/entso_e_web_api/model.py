@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict, Iterable, Type
 
 from pydantic import BaseModel, ConfigDict
-from rdflib import Literal, URIRef
+from rdflib import URIRef
 
 from tm_entso_e.schemas.market import DAYAHEAD_MARKET_TYPE, INTRADAY_MARKET_TYPE
 from tm_entso_e.utils.enum_utils import BaseEnum

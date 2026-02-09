@@ -1,13 +1,10 @@
-from abc import ABC, abstractmethod
-from datetime import tzinfo, timezone
-from typing import List, Union, Optional, Dict, Any, Tuple
+from abc import abstractmethod
+from typing import List, Optional
 
-from effi_onto_tools.db import Pagination, TimeSpan
 from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
-from effi_onto_tools.utils import time_utils
 
-from tm_entso_e.core.db.api.market_dao import MarketDAO
-from tm_entso_e.schemas.market import Market
+from tm_entso_e.core.db.api.market_dao import MarketAPI
+from tm_entso_e.schemas.market_dao import MarketDAO
 
 
 class MarketQueries:
@@ -38,25 +35,25 @@ class MarketQueries:
      WHERE "market_id" = :market_id"""
 
 
-class MarketDAOImpl(MarketDAO):
+class MarketAPIImpl(MarketAPI):
 
     def __init__(self, table_prefix: str):
-        super(MarketDAO, self).__init__(table_prefix=table_prefix)
+        super(MarketAPI, self).__init__(table_prefix=table_prefix)
         self.queries: MarketQueries = self.build_queries(MarketQueries)
 
-    def get_market(self, market_id: int) -> Optional[Market]:
+    def get_market(self, market_id: int) -> Optional[MarketDAO]:
         with ConnectionWrapper() as conn:
             args = {"market_id": market_id}
-            market = conn.get(q=self.queries.SELECT_MARKET_BY_ID, args=args, obj_type=Market)
+            market = conn.get(q=self.queries.SELECT_MARKET_BY_ID, args=args, obj_type=MarketDAO )
             return market
 
-    def get_market_uri(self, market_uri: str) -> Optional[Market]:
+    def get_market_uri(self, market_uri: str) -> Optional[MarketDAO]:
         with ConnectionWrapper() as conn:
             args = {"market_uri": market_uri}
-            market = conn.get(q=self.queries.SELECT_MARKET_BY_URI, args=args, obj_type=Market)
+            market = conn.get(q=self.queries.SELECT_MARKET_BY_URI, args=args, obj_type=MarketDAO)
             return market
 
-    def add_market(self, market: Market) -> Market:
+    def add_market(self, market: MarketDAO) -> MarketDAO:
         with ConnectionWrapper() as conn:
             inserted_id = conn.insert(q=self.queries.INSERT_MARKET, args=vars(market),
                                       return_id_col="market_id")
@@ -65,10 +62,10 @@ class MarketDAOImpl(MarketDAO):
             market.market_id = inserted_id
             return market
 
-    def list_market(self) -> List[Market]:
+    def list_market(self) -> List[MarketDAO]:
         with ConnectionWrapper() as conn:
             args = {}
-            markets = conn.select(q=self.queries.LIST_MARKET, args=args, obj_type=Market)
+            markets = conn.select(q=self.queries.LIST_MARKET, args=args, obj_type=MarketDAO)
             return markets
 
     @abstractmethod

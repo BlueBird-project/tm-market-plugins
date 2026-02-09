@@ -1,14 +1,12 @@
-import datetime
 import logging
 import re
+import xml.etree.ElementTree as ET
 from logging import Logger
 from typing import Optional, Dict
+from xml.etree.ElementTree import Element
 
 import requests
 from pydantic import BaseModel
-from xml.etree.ElementTree import Element, ElementTree
-import xml.etree.ElementTree as ET
-
 from requests import Response
 
 from tm_entso_e.modules.entso_e_web_api import DATE_FORMAT, ApiKeys

@@ -1,31 +1,29 @@
 from abc import abstractmethod
-from datetime import tzinfo, timezone
-from typing import List, Union, Optional, Dict, Any, Tuple
+from typing import List, Optional
 
-from effi_onto_tools.db import TimeSpan
 from effi_onto_tools.db.dao import DAO
 
-from tm_entso_e.schemas.market import Market
+from tm_entso_e.schemas.market_dao import MarketDAO
 
 
-class MarketDAO(DAO):
+class MarketAPI(DAO):
     def __init__(self, table_prefix: str):
-        super(MarketDAO, self).__init__(table_prefix=table_prefix)
+        super(MarketAPI, self).__init__(table_prefix=table_prefix)
 
     @abstractmethod
-    def list_market(self) -> List[Market]:
+    def list_market(self) -> List[MarketDAO]:
         pass
 
     @abstractmethod
-    def get_market(self, market_id: int) -> Optional[Market]:
+    def get_market(self, market_id: int) -> Optional[MarketDAO]:
         pass
 
     @abstractmethod
-    def get_market_uri(self, market_uri: str) -> Optional[Market]:
+    def get_market_uri(self, market_uri: str) -> Optional[MarketDAO]:
         pass
 
     @abstractmethod
-    def add_market(self, market: Market) -> Market:
+    def add_market(self, market: MarketDAO) -> MarketDAO:
         pass
 
     @abstractmethod

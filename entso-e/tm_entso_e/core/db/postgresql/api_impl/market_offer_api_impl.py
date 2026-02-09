@@ -3,9 +3,9 @@ from typing import List, Optional, Dict, Any
 from effi_onto_tools.db import TimeSpan
 from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 
-from tm_entso_e.core.db.api.market_offer_dao import MarketOfferDAO
+from tm_entso_e.core.db.api.market_offer_dao import MarketOfferAPI
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
-from tm_entso_e.schemas.market import MarketOffer, MarketOfferDetails
+from tm_entso_e.schemas.market_dao import MarketOfferDAO, MarketOfferDetailsDAO
 from tm_entso_e.utils import time_utils
 
 
@@ -61,98 +61,98 @@ class MarketOfferQueries:
     DELETE_MARKET_OFFER = """  DELETE FROM "${table_prefix}market_offer" WHERE offer_id=:offer_id   """
 
 
-class MarketOfferDAOImpl(MarketOfferDAO):
+class MarketOfferAPIImpl(MarketOfferAPI):
     def __init__(self, table_prefix: str):
-        super(MarketOfferDAO, self).__init__(table_prefix=table_prefix)
+        super(MarketOfferAPI, self).__init__(table_prefix=table_prefix)
         self.queries: MarketOfferQueries = self.build_queries(MarketOfferQueries)
 
     def get_recent_dayahead_details(self, sequence: Optional[str] = None) \
-            -> List[MarketOfferDetails]:
+            -> List[MarketOfferDetailsDAO]:
         return self.get_recent_market_details(market_id=None, sequence=sequence,
                                               market_type=MarketAgreementTypeCode.DAY_AHEAD.name)
 
-    def get_recent_intraday_details(self, sequence: Optional[str] = None) -> List[MarketOfferDetails]:
+    def get_recent_intraday_details(self, sequence: Optional[str] = None) -> List[MarketOfferDetailsDAO]:
         return self.get_recent_market_details(market_id=None, sequence=sequence,
                                               market_type=MarketAgreementTypeCode.INTRADAY.name)
 
     def get_recent_market_details(self, market_id: Optional[int] = None, sequence: Optional[str] = None,
-                                  market_type: Optional[str] = None) -> List[MarketOfferDetails]:
+                                  market_type: Optional[str] = None) -> List[MarketOfferDetailsDAO]:
         with ConnectionWrapper() as conn:
             args = {"market_id": market_id, "sequence": sequence, "market_type": None}
-            max_ts = conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_LAST_TS, args=args)
+            max_ts = conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_LAST_TS, args=args )
             max_ts = max_ts.max_ts if max_ts is not None else None
             if max_ts is None or max_ts < time_utils.current_timestamp():
                 return []
             args["max_ts"] = max_ts
-            offers = conn.select(q=self.queries.LIST_MARKET_OFFER_DETAILS, args=args, obj_type=MarketOfferDetails)
+            offers = conn.select(q=self.queries.LIST_MARKET_OFFER_DETAILS, args=args, obj_type=MarketOfferDetailsDAO)
             return offers
 
-    def get_recent_dayahead(self, sequence: Optional[str] = None) -> List[MarketOffer]:
+    def get_recent_dayahead(self, sequence: Optional[str] = None) -> List[MarketOfferDAO]:
         offers_details = self.get_recent_dayahead_details(sequence=sequence)
         res = []
         with ConnectionWrapper() as conn:
             for od in offers_details:
                 res += conn.select(q=self.queries.SELECT_MARKET_OFFER_BY_ID, args={"offer_id": od.offer_id},
-                                   obj_type=MarketOffer)
+                                   obj_type=MarketOfferDAO)
 
         return res
 
-    def get_recent_intraday(self, sequence: Optional[str] = None) -> List[MarketOffer]:
+    def get_recent_intraday(self, sequence: Optional[str] = None) -> List[MarketOfferDAO]:
         offers_details = self.get_recent_intraday_details(sequence=sequence)
         res = []
         with ConnectionWrapper() as conn:
             for od in offers_details:
                 res += conn.select(q=self.queries.SELECT_MARKET_OFFER_BY_ID, args={"offer_id": od.offer_id},
-                                   obj_type=MarketOffer)
+                                   obj_type=MarketOfferDAO)
 
         return res
 
     def get_recent_market_offer(self, market_id: Optional[int] = None, sequence: Optional[str] = None) \
-            -> List[MarketOffer]:
+            -> List[MarketOfferDAO]:
         offers_details = self.get_recent_market_details(market_id=market_id, sequence=sequence)
         res = []
         with ConnectionWrapper() as conn:
             for od in offers_details:
                 res += conn.select(q=self.queries.SELECT_MARKET_OFFER_BY_ID, args={"offer_id": od.offer_id},
-                                   obj_type=MarketOffer)
+                                   obj_type=MarketOfferDAO)
 
         return res
 
-    def get_offer_details_by_id(self, offer_id: int) -> Optional[MarketOfferDetails]:
+    def get_offer_details_by_id(self, offer_id: int) -> Optional[MarketOfferDetailsDAO]:
         with ConnectionWrapper() as conn:
             return conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_ID, args={"offer_id": offer_id},
-                            obj_type=MarketOfferDetails)
+                            obj_type=MarketOfferDetailsDAO)
 
-    def get_offer_details_by_uri(self, offer_uri: str) -> Optional[MarketOfferDetails]:
+    def get_offer_details_by_uri(self, offer_uri: str) -> Optional[MarketOfferDetailsDAO]:
         with ConnectionWrapper() as conn:
             return conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_URI, args={"offer_uri": offer_uri},
-                            obj_type=MarketOfferDetails)
+                            obj_type=MarketOfferDetailsDAO)
 
     def find_offer_details(self, ti: TimeSpan, market_id: Optional[int] = None, sequence: Optional[str] = None,
-                           market_type: Optional[str] = None) -> List[MarketOfferDetails]:
+                           market_type: Optional[str] = None) -> List[MarketOfferDetailsDAO]:
         with ConnectionWrapper() as conn:
             return conn.select(q=self.queries.FIND_MARKET_OFFER_DETAILS,
                                args={"market_id": market_id, "sequence": sequence, "market_type": market_type,
                                      "ts_from": ti.ts_from, "ts_to": ti.ts_to},
-                               obj_type=MarketOfferDetails)
+                               obj_type=MarketOfferDetailsDAO)
 
-    def get_offer_details(self, market_id: int, ts_start: int, sequence: Optional[str]) -> Optional[MarketOfferDetails]:
+    def get_offer_details(self, market_id: int, ts_start: int, sequence: Optional[str]) -> Optional[MarketOfferDetailsDAO]:
         with ConnectionWrapper() as conn:
             return conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS,
                             args={"market_id": market_id, "ts_start": ts_start, "sequence": sequence},
-                            obj_type=MarketOfferDetails)
+                            obj_type=MarketOfferDetailsDAO)
 
-    def get_offer(self, offer_id: int) -> List[MarketOffer]:
+    def get_offer(self, offer_id: int) -> List[MarketOfferDAO]:
         with ConnectionWrapper() as conn:
             return conn.select(q=self.queries.SELECT_MARKET_OFFER_BY_ID, args={"offer_id": offer_id},
-                               obj_type=MarketOffer)
+                               obj_type=MarketOfferDAO)
 
     def list_offers(self, ts: TimeSpan, market_id: Optional[int] = None, sequence: Optional[str] = None) \
-            -> List[MarketOffer]:
+            -> List[MarketOfferDAO]:
         # TODO: impelements
         pass
 
-    def register_day_offer(self, offer_details: MarketOfferDetails) -> MarketOfferDetails:
+    def register_day_offer(self, offer_details: MarketOfferDetailsDAO) -> MarketOfferDetailsDAO:
         with ConnectionWrapper() as conn:
             inserted_id = conn.insert(q=self.queries.INSERT_MARKET_OFFER_DETAILS, args=vars(offer_details),
                                       return_id_col="offer_id")
@@ -161,7 +161,7 @@ class MarketOfferDAOImpl(MarketOfferDAO):
             offer_details.offer_id = inserted_id
             return offer_details
 
-    def log_day_offer(self, market_offers: List[MarketOffer]) -> List[Dict[str, Any]]:
+    def log_day_offer(self, market_offers: List[MarketOfferDAO]) -> List[Dict[str, Any]]:
         with ConnectionWrapper() as conn:
             inserted = conn.insert_batch(q=self.queries.INSERT_MARKET_OFFER,
                                          arg_list=[vars(mo) for mo in market_offers],

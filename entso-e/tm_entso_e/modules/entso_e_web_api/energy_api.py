@@ -2,8 +2,6 @@ import logging
 from logging import Logger
 from typing import Optional, Dict
 
-import requests
-from xml.etree.ElementTree import Element, ElementTree, parse as parse_xml
 
 from pydantic import BaseModel, ValidationError
 
@@ -61,7 +59,7 @@ class MarketRequest(BaseModel):
 # 0
 #
 # [O] Integer (allows downloading more than 100 documents. The offset ∈ [0,4800] so that pagging is restricted to query for 4900 documents max., offset=n returns files in sequence between n+1 and n+100)
-class MarketAPI(RESTClient):
+class EnergyMarketAPI(RESTClient):
     _market_uri_prefix: str
 
     def __init__(self, market_uri_prefix: str, logger: Optional[Logger] = None, **kwargs):

@@ -1,7 +1,6 @@
-import os
+from typing import Callable, Optional, Union
 
 import yaml
-from typing import Callable, Optional, Union
 from pydantic import PrivateAttr
 from pydantic_settings import BaseSettings, InitSettingsSource, PydanticBaseSettingsSource, SettingsConfigDict
 

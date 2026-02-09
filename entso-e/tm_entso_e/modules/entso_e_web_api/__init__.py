@@ -2,7 +2,7 @@
 # __DATE_WRITE_FORMAT__ = """%d-%m-%y"""
 import logging
 
-from tm_entso_e.schemas.market import Market
+from tm_entso_e.schemas.market_dao import MarketDAO
 
 # ENTSOE date format: "yyyyMMddHHmm"
 DATE_FORMAT = "%Y%m%d%H%M"
@@ -39,14 +39,14 @@ class EICAreaType:
 # SNA 	Synchronous Area 	Synchronous Area means an area covered by interconnected Transmission System Operators (TSOs) with a common System Frequency in a steady state
 # https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC
 
-def add_market(market: Market, save_add: bool = True) -> Market:
+def add_market(market: MarketDAO, save_add: bool = True) -> MarketDAO:
     from tm_entso_e.core.db.postgresql import dao_manager
     # TODO: update on duplicate?
     if save_add:
-        db_market = dao_manager.market_dao.get_market_uri(market_uri=market.market_uri)
+        db_market = dao_manager.market_api.get_market_uri(market_uri=market.market_uri)
         if db_market is not None:
             return db_market
-    return dao_manager.market_dao.add_market(market=market)
+    return dao_manager.market_api.add_market(market=market)
 
 
 def init_db(market_prefix: str):
@@ -60,11 +60,11 @@ def init_db(market_prefix: str):
         for market_code in s_eic_area.market_codes:
             # TODO: support more than one country code/location
             market_location = api_settings.eic_codes[s_eic_area.code].country_codes[0]
-            market = Market(market_uri=f"{market_prefix}/{s_eic_area.code}/{market_code}",
-                            market_name=s_eic_area.code + "_" + market_code,
-                            market_type=s_eic_area.get_market_type_name(code=market_code),
-                            market_location=market_location,
-                            subscribe=True)
+            market = MarketDAO(market_uri=f"{market_prefix}/{s_eic_area.code}/{market_code}",
+                               market_name=s_eic_area.code + "_" + market_code,
+                               market_type=s_eic_area.get_market_type_name(code=market_code),
+                               market_location=market_location,
+                               subscribe=True)
             add_market(market=market)
             logging.info(f"Setting market: {market}")
             # print(market)
