@@ -53,6 +53,10 @@ entsoe_api:
 
 TODO:
 
+### TODO:
+
+- define how much data there should apper daily for each market, add download time to the subscribed market setting
+
 ### links:
 
 https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC

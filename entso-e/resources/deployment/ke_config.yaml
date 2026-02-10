@@ -17,13 +17,15 @@ knowledge_engine:
         - ' kb:service rdf:type saref:Device  ; saref:hasFunctionOfInterest kb:service_function . '
         - ' kb:service_function rdf:type saref:FunctionOfInterest; saref:hasCommandOfInterest kb:get_data_command . '
         - ' kb:get_data_command rdf:type saref:CommandOfInterest;  saref:hasCommandKind ubmarket:get_data_command ; '
-        - ' saref:observes ?market .'
-        - ' market ?market  rdf:type ?market_type .'
-        - ' ?market_type rdf:type ubmarket:MarketType .'
+        - '           saref:observes  ubmarket:MarketType .'
         - ' ubmarket:get_data_command rdfs:label "get_data" . '
+#        - ' saref:observes ?market .'
+#        - ' market ?market  rdf:type ?market_type .'
+#        - ' ?market_type rdf:type ubmarket:MarketType .'
+#        - ' ubmarket:get_data_command rdfs:label "get_data" . '
     start-command:
       name: "start-command"
-      description: "Start service-command"
+      description: "Graph pattern for starting data acquisition task"
       prefixes:
         time: "http://www.w3.org/2006/time#"
       pattern:

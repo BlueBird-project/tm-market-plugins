@@ -30,3 +30,4 @@ def add_jobs(service_job_scheduler: BaseScheduler):
     job.modify(next_run_time=(datetime.now(tz=__TIME_ZONE__) + timedelta(seconds=30)))
 
     # job = service_job_scheduler.get_job("tge_check_offer_job")
+

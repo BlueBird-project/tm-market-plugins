@@ -21,6 +21,7 @@ if __name__ == "__main__":
 
 if app_settings.use_ke_api:
     from tm_entso_e.modules.ke_interaction import set_bg_ke_client, set_sync_ke_client
+
     ############
     # setup KE #
     ############
@@ -53,8 +54,8 @@ if __name__ == "__main__" and app_settings:
         import uvicorn
         from fastapi import FastAPI
         from tm_entso_e.core.healthcheck.router import router as healthcheck_router
-        # from tm_entso_e.modules.admin.admin_router import router as admin_router
         from tm_entso_e.modules.entsoe_api.router import router as entsoe_router
+        from tm_entso_e.modules.entsoe_api.admin_router import router as admin_router
 
         app = FastAPI(docs_url="/api",
                       openapi_url="/openapi.json", redoc_url="/redoc")
@@ -65,8 +66,8 @@ if __name__ == "__main__" and app_settings:
         healthcheck_app.include_router(router=healthcheck_router, prefix="")
         app.mount("/healthcheck", healthcheck_app)
         app.include_router(entsoe_router, prefix="/api")
-        # admin_app = FastAPI(docs_url="/docs",
-        #                     openapi_url="/openapi.json", redoc_url="/redoc")
-        # admin_app.include_router(router=admin_router, prefix="")
-        # app.mount("/admin", admin_app)
+        admin_app = FastAPI(docs_url="/docs",
+                            openapi_url="/openapi.json", redoc_url="/redoc")
+        admin_app.include_router(router=admin_router, prefix="")
+        app.mount("/admin", admin_app)
         uvicorn.run(app, port=service_settings.port, host=service_settings.host, root_path=service_settings.root_path)
