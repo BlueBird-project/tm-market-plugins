@@ -60,7 +60,8 @@ def init_db(market_prefix: str):
         for market_code in s_eic_area.market_codes:
             # TODO: support more than one country code/location
             market_location = api_settings.eic_codes[s_eic_area.code].country_codes[0]
-            market = MarketDAO(market_uri=f"{market_prefix}/{s_eic_area.code}/{market_code}",
+            from tm_entso_e.modules.ke_interaction.interactions.dam_model import MarketURI
+            market = MarketDAO(market_uri=MarketURI(eic_area=s_eic_area.code, market_code=market_code).uri,
                                market_name=s_eic_area.code + "_" + market_code,
                                market_type=s_eic_area.get_market_type_name(code=market_code),
                                market_location=market_location,

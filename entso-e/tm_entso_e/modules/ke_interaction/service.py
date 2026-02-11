@@ -6,7 +6,7 @@ from rdflib import Literal, URIRef
 
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindings, CountryURI, \
-    EnergyMarketBindingsQuery, MarketOfferInfoBindings, OfferUri, MarketOfferInfoRequest, MarketOfferBindings
+    EnergyMarketBindingsQuery, MarketOfferInfoBindings, OfferUri, MarketOfferInfoRequest, MarketOfferBindings, MarketURI
 from tm_entso_e.schemas.market_dao import MarketDAO, MarketOfferDetailsDAO, MarketOfferDAO
 from tm_entso_e.utils import time_utils, TimeSpan
 
@@ -110,11 +110,13 @@ def find_markets(queries: List[EnergyMarketBindingsQuery]) -> List[EnergyMarketB
             if m is not None:
                 res[m.market_uri] = m
         else:
-            # todo add filtering method to dao by market_type and country
-            filtered = [m for m in dao_manager.market_api.list_market() if
-                        m.market_location.lower() == q.country_name.lower()]
-            for m in filtered:
-                res[m.market_uri] = m
+            from manage import api_settings
+            area = api_settings.get_subscribed_area(q.country_name)
+            for m_type in area.market_types:
+                market_uri = MarketURI(eic_area=area.code, market_code=MarketAgreementTypeCode.parse(m_type).code).uri
+                if market_uri not in res:
+                    market = dao_manager.market_api.get_market_uri(market_uri=market_uri)
+                    res[market_uri] = market
 
     return [EnergyMarketBindings(market_uri=URIRef(m.market_uri),
                                  country_uri=CountryURI(country_name=m.market_location).uri_ref,
@@ -142,34 +144,6 @@ def _get_offer_details_bindings(markets: Dict[int, MarketDAO], offer_details: Li
                                 )
         for o in offer_details]
     return offer_bindings
-
-
-# def get_offer_details(q: MarketOfferInfoRequest):
-#     from tm_entso_e.core.db.postgresql import dao_manager
-#     if q.market_uri is not None:
-#         market = dao_manager.market_dao.get_market_uri(market_uri=q.market_uri)
-#         if market is None:
-#             return []
-#         offer_details = dao_manager.offer_dao.get_recent_market_details(market_id=market.market_id, sequence=q.sequence)
-#         return _get_offer_details_bindings(markets={market.market_id: market}, offer_details=offer_details)
-#     elif q.market_type is not None:
-#         market_type = MarketAgreementTypeCode.parse(q.market_type, nullable=True)
-#         if market_type is None:
-#             # log invalid market_type todo:
-#             return []
-#         if market_type == MarketAgreementTypeCode.DAY_AHEAD:
-#             offer_details = dao_manager.offer_dao.get_recent_dayahead_details(sequence=q.sequence)
-#         elif market_type == MarketAgreementTypeCode.INTRADAY:
-#             offer_details = dao_manager.offer_dao.get_recent_intraday_details(sequence=q.sequence)
-#         else:
-#             raise NotImplementedError
-#         markets: Dict[int, Market] = {}
-#         for od in offer_details:
-#             if od.market_id not in markets:
-#                 markets[od.market_id] = dao_manager.market_dao.get_market(market_id=od.market_id)
-#         return _get_offer_details_bindings(markets=markets, offer_details=offer_details)
-#     else:
-#         return get_all_offer_details()
 
 
 def get_offer_details(q: MarketOfferInfoRequest, ti: Optional[TimeSpan] = None):
@@ -237,7 +211,8 @@ def get_market_offer(offer_uri: URIRef):
         MarketOfferBindings(offer_uri=URIRef(offer_uri), dp=OfferUri.uri_append_ref(offer_uri, "/dp"),
                             ts=Literal(time_utils.xsd_from_ts(mo.ts)), dpr=OfferUri.uri_append_ref(offer_uri, "/dpr"),
                             is_measured_id=Literal(offer_details.is_measured_in),
-                            duration=Literal(duration_isoformat(timedelta(minutes=mo.isp_len * offer_details.isp_unit))),
+                            duration=Literal(
+                                duration_isoformat(timedelta(minutes=mo.isp_len * offer_details.isp_unit))),
                             value=Literal(mo.cost))
         for mo in market_offer]
     return offer_bindings

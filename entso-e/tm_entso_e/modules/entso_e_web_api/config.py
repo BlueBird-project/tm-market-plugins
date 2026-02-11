@@ -1,9 +1,11 @@
+import logging
 from typing import Optional, Dict, List
 
 from pydantic import Field, Extra
 from pydantic_settings import SettingsConfigDict, BaseSettings
 
 from tm_entso_e import app_variables
+from tm_entso_e.modules.entso_e_web_api.errors import EntsoeError
 from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC, EICArea
 from tm_entso_e.utils import DictBaseSettings, load_yaml_obj
 
@@ -42,8 +44,8 @@ class ENTSOEAPISettings(BaseSettings, extra=Extra.allow):
     __SECTION__ = "entsoe_api"
     subscribed_eic: Optional[List[SubscribedEIC]] = None
     eic_codes: Dict[str, EICArea]
-    _country_eic_code_map_: Dict[str, str]
-    _area_eic_code_map_: Dict[str, str]
+    _country_eic_code_map_: Dict[str, EICArea]
+    _area_eic_code_map_: Dict[str, SubscribedEIC]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -51,18 +53,23 @@ class ENTSOEAPISettings(BaseSettings, extra=Extra.allow):
             if eic_area.country_codes is not None:
                 self._country_eic_code_map_ = {}
                 for country_code in eic_area.country_codes:
-                    self._country_eic_code_map_[country_code] = eic_area.code
-            self._area_eic_code_map_ = {}
-            for area_name in eic_area.area_names:
-                self._area_eic_code_map_[area_name] = eic_area.code
+                    self._country_eic_code_map_[country_code.upper()] = eic_area
+        self._area_eic_code_map_ = {}
+        for s_eic in self.subscribed_eic:
+            self._area_eic_code_map_[s_eic.code] = s_eic
 
-    def get_eic_by_country(self, country: str) -> str:
-        # TODO: handle key error
-        return self._country_eic_code_map_[country]
+    def get_eic_by_country(self, country: str) -> EICArea:
+        try:
+            return self._country_eic_code_map_[country.upper()]
+        except KeyError:
+            raise EntsoeError(msg=f"Country name {country} is not defined. ")
 
-    def get_eic_by_area(self, area: str) -> str:
-        # TODO: handle key error
-        return self._area_eic_code_map_[area]
+    def get_subscribed_area(self, country: str) -> SubscribedEIC:
+        try:
+            eic_area = self.get_eic_by_country(country=country)
+            return self._area_eic_code_map_[eic_area.code]
+        except KeyError:
+            raise EntsoeError(msg=f"Country: {country} is not subscribed. ")
 
 
 service_settings = ENTSOEServiceSettings()

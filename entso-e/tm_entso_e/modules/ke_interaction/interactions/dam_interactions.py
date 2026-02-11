@@ -44,14 +44,10 @@ def _publish_market_offer() -> List[MarketOfferDAO]:
     for oi in offer_infos:
         dp_bindings = get_market_offer(offer_uri=oi.offer_uri)
         accu += dp_bindings
-    # print("publish: " + str(len(accu)))
-    logging.info("Market offer publish: " + str(len(accu)))
     return accu
 
 
 def publish_market_offer():
-    # logging.info("Publish market offer")
-    # offer_details = get_all_offer_details()
     resp: KIPostResponse = _publish_market_offer()
     return
 

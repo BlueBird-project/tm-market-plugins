@@ -34,6 +34,9 @@ if app_settings.use_ke_api:
         exit()
 else:
     market_prefix = "https://entsoe.bluebird.com"
+
+from tm_entso_e.modules.ke_interaction.interactions.dam_model import MarketURI
+MarketURI.__MARKET_PREFIX__=market_prefix
 if __name__ == "__main__" and app_settings:
     # configure entsoe
     from tm_entso_e.modules.entso_e_web_api.config import configure_api

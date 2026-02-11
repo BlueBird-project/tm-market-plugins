@@ -69,7 +69,7 @@ class MarketOfferInfoBindings(BindingsBase):
     market_uri: URIRef
     market_type: URIRef
     offer_uri: URIRef
-    sequence: Union[Literal,URIRef,None] = None
+    sequence: Union[Literal, URIRef, None] = None
     update_rate: Literal
     time_create: Literal
     duration: Literal
@@ -154,6 +154,18 @@ class MarketOfferRequest(BindingsBase):
     offer_uri: URIRef
 
 
+@ki_split_uri(uri_template="${eic_area}/${market_code}")
+class MarketURI(SplitURIBase):
+    eic_area: str
+    market_code: str
+    __MARKET_PREFIX__: str = ""
+
+    def __init__(self, eic_area: str, market_code: str):
+        # if prefix is None:
+        #     prefix = MarketURI.__PREFIX__
+        super().__init__(prefix=MarketURI.__MARKET_PREFIX__, eic_area=eic_area, market_code=market_code)
+
+
 @ki_split_uri(uri_template="https://ubeflex.bluebird.eu/country/${country_name}")
 class CountryURI(SplitURIBase):
     # TODO use different country uri prefix
@@ -163,7 +175,6 @@ class CountryURI(SplitURIBase):
 @ki_split_uri(uri_template="offer/${sequence}/${ts_start}/${ts_len}")
 class OfferUri(SplitURIBase):
     __EMPTY__ = "_"
-    # TODO use different country uri prefix
     sequence: str
     ts_start: int
     ts_len: int
@@ -182,18 +193,3 @@ class OfferUri(SplitURIBase):
     @staticmethod
     def get_prefix(uri: [str, URIRef]) -> str:
         return str(uri).split("/offer/")[0]
-
-# @ki_split_uri(uri_template="http://${dt_uri}/${ts_start}/${ts_end}")
-# class DTTSUri(SplitURIBase):
-#     dt_uri: str
-#     ts_start: int
-#     ts_end: int
-#
-#     def __init__(self, dt_uri: str, **kwargs):
-#         dt_uri = self.normalize_kb_id(kb_id=dt_uri)
-#         super().__init__(dt_uri=dt_uri, **kwargs)
-
-# @ki_split_uri(uri_template="http://bluebird.com/interval/${ts_from}/${ts_to}")
-# class TimeIntervalUri(SplitURIBase):
-#     ts_from: int
-#     ts_to: int

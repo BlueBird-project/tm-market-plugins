@@ -61,6 +61,7 @@ knowledge_engine:
         time: "http://www.w3.org/2006/time#"
       pattern:
         - ' ?market_uri rdf:type ?market_type .'
+        - ' ?market_type rdf:type ubmarket:MarketType .'
         - ' ?offer_uri rdf:type ubmarket:MarketTimeSeries .'
         - ' ?offer_uri ubmarket:hasMarketSequence ?sequence .'
         - ' ?offer_uri s4ener:producedBy ?market_uri .'

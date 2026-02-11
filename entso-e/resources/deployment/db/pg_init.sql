@@ -6,6 +6,24 @@
 --    CONSTRAINT "tm_config_text" PRIMARY KEY ("key")
 --)
 --WITH (oids = false);
+DROP TABLE IF EXISTS "${table_prefix}service_jobs";
+DROP SEQUENCE IF EXISTS ${table_prefix}service_jobs_job_id_seq;
+CREATE SEQUENCE ${table_prefix}service_jobs_job_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;
+
+CREATE TABLE "public"."${table_prefix}service_jobs" (
+    "job_id" bigint DEFAULT nextval('${table_prefix}service_jobs_job_id_seq') NOT NULL,
+    "command_uri" character varying(250) NOT NULL,
+    "job_name" character varying(50) NOT NULL,
+    "job_description" character varying(50),
+    "update_ts" bigint NOT NULL,
+    "ext" character varying(10000),
+    CONSTRAINT "${table_prefix}service_jobs_key" PRIMARY KEY ("job_id")
+)
+WITH (oids = false);
+
+CREATE UNIQUE INDEX ${table_prefix}service_jobs_command_uri ON public.${table_prefix}service_jobs USING btree (command_uri);
+
+
 
 DROP TABLE IF EXISTS "${table_prefix}market_details";
 DROP SEQUENCE IF EXISTS ${table_prefix}market_details_market_id_seq;
