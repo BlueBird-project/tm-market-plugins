@@ -49,9 +49,9 @@ class ENTSOEAPISettings(BaseSettings, extra=Extra.allow):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._country_eic_code_map_ = {}
         for eic_area in self.eic_codes.values():
             if eic_area.country_codes is not None:
-                self._country_eic_code_map_ = {}
                 for country_code in eic_area.country_codes:
                     self._country_eic_code_map_[country_code.upper()] = eic_area
         self._area_eic_code_map_ = {}
