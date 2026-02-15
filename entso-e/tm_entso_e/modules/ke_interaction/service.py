@@ -110,7 +110,7 @@ def find_markets(queries: List[EnergyMarketBindingsQuery]) -> List[EnergyMarketB
             if m is not None:
                 res[m.market_uri] = m
         else:
-            from manage import api_settings
+            from tm_entso_e.modules.entso_e_web_api.config import api_settings
             area = api_settings.get_subscribed_area(q.country_name)
             for m_type in area.market_types:
                 market_uri = MarketURI(eic_area=area.code, market_code=MarketAgreementTypeCode.parse(m_type).code).uri

@@ -55,8 +55,9 @@ class ENTSOEAPISettings(BaseSettings, extra=Extra.allow):
                 for country_code in eic_area.country_codes:
                     self._country_eic_code_map_[country_code.upper()] = eic_area
         self._area_eic_code_map_ = {}
-        for s_eic in self.subscribed_eic:
-            self._area_eic_code_map_[s_eic.code] = s_eic
+        if self.subscribed_eic:
+            for s_eic in self.subscribed_eic:
+                self._area_eic_code_map_[s_eic.code] = s_eic
 
     def get_eic_by_country(self, country: str) -> EICArea:
         try:
