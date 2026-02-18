@@ -1,9 +1,11 @@
+import logging
 from datetime import timedelta
 from typing import List, Dict, Optional
 
 from isodate import duration_isoformat
 from rdflib import Literal, URIRef
 
+from tm_entso_e.modules.entso_e_web_api.errors import EntsoeError
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindings, CountryURI, \
     EnergyMarketBindingsQuery, MarketOfferInfoBindings, OfferUri, MarketOfferInfoRequest, MarketOfferBindings, MarketURI
@@ -111,12 +113,16 @@ def find_markets(queries: List[EnergyMarketBindingsQuery]) -> List[EnergyMarketB
                 res[m.market_uri] = m
         else:
             from tm_entso_e.modules.entso_e_web_api.config import api_settings
-            area = api_settings.get_subscribed_area(q.country_name)
-            for m_type in area.market_types:
-                market_uri = MarketURI(eic_area=area.code, market_code=MarketAgreementTypeCode.parse(m_type).code).uri
-                if market_uri not in res:
-                    market = dao_manager.market_api.get_market_uri(market_uri=market_uri)
-                    res[market_uri] = market
+            try:
+                area = api_settings.get_subscribed_area(q.country_name)
+                for m_type in area.market_types:
+                    market_uri = MarketURI(eic_area=area.code,
+                                           market_code=MarketAgreementTypeCode.parse(m_type).code).uri
+                    if market_uri not in res:
+                        market = dao_manager.market_api.get_market_uri(market_uri=market_uri)
+                        res[market_uri] = market
+            except EntsoeError:
+                logging.warning(f"{q.country_name} is not subscribed")
 
     return [EnergyMarketBindings(market_uri=URIRef(m.market_uri),
                                  country_uri=CountryURI(country_name=m.market_location).uri_ref,

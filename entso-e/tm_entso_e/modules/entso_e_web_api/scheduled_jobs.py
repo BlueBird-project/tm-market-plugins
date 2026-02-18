@@ -6,6 +6,8 @@ from effi_onto_tools.db import TimeSpan
 
 __TIME_ZONE__ = ZoneInfo("Europe/Warsaw")
 
+from tm_entso_e.utils import time_utils
+
 
 def add_jobs(service_job_scheduler: BaseScheduler):
     logging.info("Add ENTSO-E jobs")
@@ -23,11 +25,15 @@ def add_jobs(service_job_scheduler: BaseScheduler):
                                          run_date=(datetime.now(tz=__TIME_ZONE__) + timedelta(seconds=30)))
     def check_offer_job_init():
         from tm_entso_e.modules.entso_e_web_api.service import subscribe_data
+        # current day
         subscribe_data(ti=TimeSpan.last_day())
+        # next day
+        current_ts = time_utils.current_timestamp()
+        day_ts = 24 * 3600 * 1000
+        subscribe_data(ti=TimeSpan(ts_from=current_ts, ts_to=current_ts + day_ts))
 
     job = service_job_scheduler.get_job("entso_e_check_offer_job")
     # job.modify(next_run_time=time_utils.from_timestamp(time_utils.current_timestamp() + 30000))
     job.modify(next_run_time=(datetime.now(tz=__TIME_ZONE__) + timedelta(seconds=30)))
 
     # job = service_job_scheduler.get_job("tge_check_offer_job")
-
