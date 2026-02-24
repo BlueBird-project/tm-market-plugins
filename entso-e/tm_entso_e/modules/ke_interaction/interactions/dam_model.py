@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 from effi_onto_tools.utils import time_utils
 from isodate import parse_duration
-from ke_client import BindingsBase
+from ke_client import BindingsBase, is_nil
 from ke_client import ki_object, ki_split_uri, SplitURIBase, OptionalLiteral
 from rdflib import URIRef, Literal
 
@@ -121,10 +121,14 @@ class MarketOfferInfoFilteredRequest(MarketOfferInfoRequest):
 
     @property
     def ts_from(self):
+        if is_nil(self.ts_date_from):
+            return None
         return time_utils.xsd_to_ts(self.ts_date_from)
 
     @property
     def ts_to(self):
+        if is_nil(self.ts_date_to):
+            return None
         return time_utils.xsd_to_ts(self.ts_date_to)
 
 

@@ -1,6 +1,11 @@
 import logging
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.base import BaseScheduler
+
+# TODO: set time zone
+__TIME_ZONE__ = ZoneInfo("Europe/Warsaw")
 
 
 def add_jobs(service_job_scheduler: BaseScheduler):
@@ -30,3 +35,7 @@ def add_jobs(service_job_scheduler: BaseScheduler):
     def post_offers_detailed():
         from tm_entso_e.modules.ke_interaction.interactions.dam_interactions import publish_market_offer
         publish_market_offer()
+
+    job = service_job_scheduler.get_job("entsoe-markets")
+
+    job.modify(next_run_time=(datetime.now(tz=__TIME_ZONE__) + timedelta(seconds=300)))

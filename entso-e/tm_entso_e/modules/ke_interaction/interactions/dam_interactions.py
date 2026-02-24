@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 from effi_onto_tools.db import TimeSpan
-from ke_client import KIHolder
+from ke_client import KIHolder, is_nil
 from ke_client.ki_model import KIPostResponse
 
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindingsQuery, EnergyMarketBindings, \
@@ -73,6 +73,8 @@ def market_offer_information(ki_id, bindings: List[MarketOfferInfoRequest]) -> L
     return get_offer_details(bindings[0])
 
 
+
+
 @ki.answer("market-offer-info-filtered")
 def market_offer_information(ki_id, bindings: List[MarketOfferInfoFilteredRequest]) -> \
         List[MarketOfferInfoFilteredBindings]:
@@ -85,7 +87,7 @@ def market_offer_information(ki_id, bindings: List[MarketOfferInfoFilteredReques
         logging.warning("Empty bindings query")
         return []
     q: MarketOfferInfoFilteredRequest = bindings[0]
-    if q.ts_interval_uri is not None:
+    if q.ts_interval_uri is not None and not (is_nil(q.ts_interval_uri)):
         offer_details = get_offer_details(bindings[0], ti=TimeSpan(ts_from=q.ts_from, ts_to=q.ts_to))
         resp_bindings = [MarketOfferInfoFilteredBindings(ts_interval_uri=q.ts_interval_uri, ts_date_from=q.ts_date_from,
                                                          ts_date_to=q.ts_date_to, **b.__dict__) for b in offer_details]

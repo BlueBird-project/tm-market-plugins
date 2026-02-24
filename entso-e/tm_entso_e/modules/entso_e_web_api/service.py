@@ -1,5 +1,6 @@
 import logging
 import math
+import threading
 from datetime import datetime, timedelta
 
 from effi_onto_tools.db.dao_exception import DAOException
@@ -17,7 +18,7 @@ market_api: EnergyMarketAPI
 def init_service(market_prefix: str, load_data: bool, days_to_load: int = 31):
     global market_api
     from tm_entso_e.modules.entso_e_web_api import init_db
-
+    from tm_entso_e.modules.ke_interaction.interactions import ki_client
     init_db(market_prefix=market_prefix)
     market_api = EnergyMarketAPI(market_uri_prefix=market_prefix)
     if load_data:
@@ -28,9 +29,22 @@ def init_service(market_prefix: str, load_data: bool, days_to_load: int = 31):
             day_ts = 24 * 3600 * 1000
             for i in range(-1, days_to_load):
                 subscribe_data(
-                    ti=TimeSpan(ts_from=current_ts - (day_ts * (1 + i)), ts_to=current_ts - (day_ts * (i  ))))
+                    ti=TimeSpan(ts_from=current_ts - (day_ts * (1 + i)), ts_to=current_ts - (day_ts * (i))))
         except Exception as ex:
             logging.error(f"Failed to load data on start: {ex}")
+
+    if ki_client.is_registered:
+        from tm_entso_e.modules.ke_interaction.interactions.dam_interactions import publish_market_information
+        def _publish():
+            try:
+                publish_market_information()
+            except Exception as ex:
+                logging.error(f"Failed to publish market information: {ex}")
+
+        t = threading.Thread(target=_publish)
+        t.start()
+    else:
+        logging.warning("KE Client is not not registered can't publish market information")
 
 
 def subscribe_data(ti: TimeSpan):
@@ -115,7 +129,7 @@ def get_data(ti: TimeSpan):
     service_job_scheduler.add_job(_job, trigger='date', max_instances=1, id=JOB_NAME, run_date=run_time)
 
 
-def get_data_job_running( )->bool:
+def get_data_job_running() -> bool:
     from tm_entso_e.core.task_manager import service_job_scheduler
     JOB_NAME = "get_data_job"
     current_job = service_job_scheduler.get_job(JOB_NAME)
