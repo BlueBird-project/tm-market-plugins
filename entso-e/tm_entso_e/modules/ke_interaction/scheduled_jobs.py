@@ -29,7 +29,7 @@ def add_jobs(service_job_scheduler: BaseScheduler):
         from tm_entso_e.modules.ke_interaction.interactions.dam_interactions import publish_market_offer_information
         publish_market_offer_information()
 
-    @service_job_scheduler.scheduled_job(trigger='cron', id="tge_check_offer_job", day_of_week='*', hour='19',
+    @service_job_scheduler.scheduled_job(trigger='cron', id="entsoe-offer", day_of_week='*', hour='19',
                                          minute='30',
                                          month='*', year='*', day='*', max_instances=1, coalesce=True)
     def post_offers_detailed():
@@ -37,5 +37,8 @@ def add_jobs(service_job_scheduler: BaseScheduler):
         publish_market_offer()
 
     job = service_job_scheduler.get_job("entsoe-markets")
-
+    job.modify(next_run_time=(datetime.now(tz=__TIME_ZONE__) + timedelta(seconds=180)))
+    job = service_job_scheduler.get_job("entsoe-offer-info")
+    job.modify(next_run_time=(datetime.now(tz=__TIME_ZONE__) + timedelta(seconds=240)))
+    job = service_job_scheduler.get_job("entsoe-offer")
     job.modify(next_run_time=(datetime.now(tz=__TIME_ZONE__) + timedelta(seconds=300)))
