@@ -29,12 +29,13 @@ def init_service(market_prefix: str, load_data: bool, days_to_load: int = 31):
             day_ts = 24 * 3600 * 1000
             for i in range(-1, days_to_load):
                 subscribe_data(
-                    ti=TimeSpan(ts_from=current_ts - (day_ts * (1 + i)), ts_to=current_ts - (day_ts * (i))))
+                    ti=TimeSpan(ts_from=current_ts - (day_ts * (1 + i)), ts_to=current_ts - (day_ts * i)))
         except Exception as ex:
             logging.error(f"Failed to load data on start: {ex}")
 
     if ki_client.is_registered:
         from tm_entso_e.modules.ke_interaction.interactions.dam_interactions import publish_market_information
+
         def _publish():
             try:
                 publish_market_information()
