@@ -61,7 +61,7 @@ def _publish_market_offer_information(offer_details: List[MarketOfferInfoBinding
     return offer_details
 
 
-@ki.react("market-offer-info")
+@ki.answer("market-offer-info")
 def market_offer_information(ki_id, bindings: List[MarketOfferInfoRequest]) -> List[MarketOfferInfoBindings]:
     # logging.info(f"Ask arrived {ki_id}")
     logging.debug(f"Ask arrived {ki_id}, {bindings}")

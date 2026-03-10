@@ -216,7 +216,7 @@ def get_market_offer(offer_uri: URIRef):
     offer_bindings = [
         MarketOfferBindings(offer_uri=URIRef(offer_uri), dp=OfferUri.uri_append_ref(offer_uri, "/dp"),
                             ts=Literal(time_utils.xsd_from_ts(mo.ts)), dpr=OfferUri.uri_append_ref(offer_uri, "/dpr"),
-                            is_measured_id=Literal(offer_details.is_measured_in),
+                            is_measured_in=Literal(offer_details.is_measured_in),
                             duration=Literal(
                                 duration_isoformat(timedelta(minutes=mo.isp_len * offer_details.isp_unit))),
                             value=Literal(mo.cost))

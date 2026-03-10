@@ -138,7 +138,7 @@ class MarketOfferBindings(BindingsBase):
     dp: URIRef
     ts: Literal
     dpr: URIRef
-    is_measured_id: Literal
+    is_measured_in: Literal
     duration: Literal
     value: Union[URIRef, Literal, None]
 
