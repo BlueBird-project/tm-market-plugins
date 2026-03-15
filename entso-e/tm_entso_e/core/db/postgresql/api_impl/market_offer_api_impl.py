@@ -5,6 +5,7 @@ from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 
 from tm_entso_e.core.db.api.market_offer_dao import MarketOfferAPI
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
+from tm_entso_e.schemas.market import MarketOfferValues
 from tm_entso_e.schemas.market_dao import MarketOfferDAO, MarketOfferDetailsDAO
 from tm_entso_e.utils import time_utils
 
@@ -48,6 +49,15 @@ class MarketOfferQueries:
     SELECT_MARKET_OFFER_BY_ID = """SELECT "ts","offer_id", "isp_start","isp_len", "cost"  ,"update_ts" 
     FROM "${table_prefix}market_offer" WHERE offer_id = :offer_id   """
 
+    SELECT_MARKET_OFFER_VALUES = """ SELECT 
+        mod.offer_id,mod.sequence,mod.currency_unit,mod.volume_unit,mod.isp_unit,mod.ts_start,
+        mo.ts, mo.isp_start, mo.isp_len, mo.cost 
+        FROM "${table_prefix}market_offer_details" mod 
+        JOIN "${table_prefix}market_offer" mo on mod."offer_id"=mo."offer_id" 
+        WHERE mod.market_id = :market_id 
+        AND ( coalesce(:ts_from<=mod."ts_end",TRUE) and  coalesce(:ts_to>=mod."ts_start",TRUE))
+        ORDER BY sequence, ts_start"""
+
     INSERT_MARKET_OFFER_DETAILS = """  INSERT INTO "${table_prefix}market_offer_details" 
     ("market_id", "offer_uri","sequence", "currency_unit",  "volume_unit", "ts_start", "ts_end", "isp_unit",
      "update_ts", "ext")
@@ -62,6 +72,7 @@ class MarketOfferQueries:
 
 
 class MarketOfferAPIImpl(MarketOfferAPI):
+
     def __init__(self, table_prefix: str):
         super(MarketOfferAPI, self).__init__(table_prefix=table_prefix)
         self.queries: MarketOfferQueries = self.build_queries(MarketOfferQueries)
@@ -79,7 +90,7 @@ class MarketOfferAPIImpl(MarketOfferAPI):
                                   market_type: Optional[str] = None) -> List[MarketOfferDetailsDAO]:
         with ConnectionWrapper() as conn:
             args = {"market_id": market_id, "sequence": sequence, "market_type": None}
-            max_ts = conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_LAST_TS, args=args )
+            max_ts = conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_LAST_TS, args=args)
             max_ts = max_ts.max_ts if max_ts is not None else None
             if max_ts is None or max_ts < time_utils.current_timestamp():
                 return []
@@ -136,7 +147,8 @@ class MarketOfferAPIImpl(MarketOfferAPI):
                                      "ts_from": ti.ts_from, "ts_to": ti.ts_to},
                                obj_type=MarketOfferDetailsDAO)
 
-    def get_offer_details(self, market_id: int, ts_start: int, sequence: Optional[str]) -> Optional[MarketOfferDetailsDAO]:
+    def get_offer_details(self, market_id: int, ts_start: int, sequence: Optional[str]) -> Optional[
+        MarketOfferDetailsDAO]:
         with ConnectionWrapper() as conn:
             return conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS,
                             args={"market_id": market_id, "ts_start": ts_start, "sequence": sequence},
@@ -173,3 +185,11 @@ class MarketOfferAPIImpl(MarketOfferAPI):
             deleted = conn.update(q=self.queries.DELETE_MARKET_OFFER,
                                   args={"offer_id": offer_id}, )
             return deleted
+
+    def get_offer_values(self, ti: TimeSpan, market_id: Optional[int] = None) -> List[MarketOfferValues]:
+        with ConnectionWrapper() as conn:
+            return conn.select(q=self.queries.SELECT_MARKET_OFFER_VALUES,
+                               args={"market_id": market_id, "ts_from": ti.ts_from, "ts_to": ti.ts_to},
+                               obj_type=MarketOfferValues)
+
+        pass

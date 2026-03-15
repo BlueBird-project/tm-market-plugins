@@ -1,7 +1,9 @@
-from typing import List
+from typing import List, Optional, Dict
+
+from effi_onto_tools.db import TimeSpan
 from fastapi import APIRouter
 
-from tm_entso_e.schemas.market import Market, MarketOfferDetails
+from tm_entso_e.schemas.market import Market, MarketOfferDetails, MarketOfferValues
 
 router = APIRouter(prefix="")
 
@@ -10,6 +12,20 @@ router = APIRouter(prefix="")
 async def list_markets() -> List[Market]:
     from tm_entso_e.modules.entsoe_api import service
     return service.list_markets()
+
+@router.get("/market/{market_id}/offer")
+async def get_market_offer(market_id: int, ts_from: Optional[int] = None, ts_to: Optional[int] = None,
+                             ) -> List[MarketOfferValues]:
+    from tm_entso_e.modules.entsoe_api import service
+    ts = TimeSpan(ts_from=ts_from, ts_to=ts_to)
+    return service.get_offer(market_id=market_id,ts=ts)
+
+# @router.get("/")
+# @router.get("")
+# async def list_extended_offer(ts_from: Optional[int] = None, ts_to: Optional[int] = None,
+#                               granularity: Optional[int] = None,):
+#     return service.list_extended_offer(ts=TimeSpan(ts_from=ts_from, ts_to=ts_to), granularity=granularity)
+
 
 
 # @router.get("/market/{market_id}/offerinfo")

@@ -42,3 +42,15 @@ class MarketOffer(_BaseModel):
     isp_start: int
     isp_len: int
     cost: float
+
+class MarketOfferValues(BaseModel):
+    offer_id: int
+    sequence: Optional[str]
+    currency_unit: str
+    volume_unit: str
+    isp_unit: int
+    ts_start: int
+    ts: int
+    isp_start: int
+    isp_len: int
+    cost: Optional[float]

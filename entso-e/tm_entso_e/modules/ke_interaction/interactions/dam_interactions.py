@@ -73,8 +73,6 @@ def market_offer_information(ki_id, bindings: List[MarketOfferInfoRequest]) -> L
     return get_offer_details(bindings[0])
 
 
-
-
 @ki.answer("market-offer-info-filtered")
 def market_offer_information(ki_id, bindings: List[MarketOfferInfoFilteredRequest]) -> \
         List[MarketOfferInfoFilteredBindings]:

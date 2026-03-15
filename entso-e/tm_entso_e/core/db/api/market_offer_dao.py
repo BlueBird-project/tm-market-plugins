@@ -4,6 +4,7 @@ from typing import List, Optional, Dict, Any
 from effi_onto_tools.db import TimeSpan
 from effi_onto_tools.db.dao import DAO
 
+from tm_entso_e.schemas.market import MarketOfferValues
 from tm_entso_e.schemas.market_dao import MarketOfferDetailsDAO, MarketOfferDAO
 
 
@@ -73,4 +74,8 @@ class MarketOfferAPI(DAO):
     @abstractmethod
     def list_offers(self, ts: TimeSpan, market_id: Optional[int] = None, sequence: Optional[str] = None) \
             -> List[MarketOfferDAO]:
+        pass
+
+    @abstractmethod
+    def get_offer_values(self, ti: TimeSpan, market_id: Optional[int] = None ) -> List[MarketOfferValues]:
         pass
