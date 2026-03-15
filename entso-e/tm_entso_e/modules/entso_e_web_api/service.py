@@ -8,6 +8,7 @@ from isodate import parse_duration
 
 from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument
 from tm_entso_e.modules.entso_e_web_api.errors import JobError
+from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC
 from tm_entso_e.schemas.market_dao import MarketOfferDetailsDAO, MarketOfferDAO
 from tm_entso_e.utils import time_utils, TimeSpan
 from tm_entso_e.modules.entso_e_web_api.energy_api import EnergyMarketAPI
@@ -53,14 +54,29 @@ def subscribe_data(ti: TimeSpan):
     from tm_entso_e.modules.entso_e_web_api.config import api_settings
 
     for s_eic_area in api_settings.subscribed_eic:
-        try:
-            result = market_api.get_energy_prices(eic=s_eic_area, ti=ti)
+        subscribe_eic_data(s_eic_area=s_eic_area, ti=ti)
+        # try:
+        #     result = market_api.get_energy_prices(eic=s_eic_area, ti=ti)
+        #
+        #     for market_code, market_offer in result.items():
+        #         market_uri = market_api.get_market_uri(eic_area_code=s_eic_area.code, market_code=market_code)
+        #         store_offers(market_uri=market_uri, market_offer=market_offer)
+        # except Exception as ex:
+        #     logging.error(f"Exception {ex}, appeared while get_energy_prices for {s_eic_area.code} in {ti}")
 
-            for market_code, market_offer in result.items():
-                market_uri = market_api.get_market_uri(eic_area_code=s_eic_area.code, market_code=market_code)
-                store_offers(market_uri=market_uri, market_offer=market_offer)
-        except Exception as ex:
-            logging.error(f"Exception {ex}, appeared while get_energy_prices for {s_eic_area.code} in {ti}")
+
+def subscribe_eic_data(s_eic_area: SubscribedEIC, ti: TimeSpan):
+    global market_api
+    from tm_entso_e.modules.entso_e_web_api.config import api_settings
+
+    try:
+        result = market_api.get_energy_prices(eic=s_eic_area, ti=ti)
+
+        for market_code, market_offer in result.items():
+            market_uri = market_api.get_market_uri(eic_area_code=s_eic_area.code, market_code=market_code)
+            store_offers(market_uri=market_uri, market_offer=market_offer)
+    except Exception as ex:
+        logging.error(f"Exception {ex}, appeared while get_energy_prices for {s_eic_area.code} in {ti}")
 
 
 def store_offers(market_uri: str, market_offer: MarketDocument):

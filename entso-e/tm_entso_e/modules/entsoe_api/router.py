@@ -13,19 +13,27 @@ async def list_markets() -> List[Market]:
     from tm_entso_e.modules.entsoe_api import service
     return service.list_markets()
 
+
 @router.get("/market/{market_id}/offer")
 async def get_market_offer(market_id: int, ts_from: Optional[int] = None, ts_to: Optional[int] = None,
-                             ) -> List[MarketOfferValues]:
+                           ) -> List[MarketOfferValues]:
     from tm_entso_e.modules.entsoe_api import service
     ts = TimeSpan(ts_from=ts_from, ts_to=ts_to)
-    return service.get_offer(market_id=market_id,ts=ts)
+    return service.get_offer(market_id=market_id, ts=ts)
+
+
+@router.post("/market/country/{country_name}/update", description="Update country offer")
+async def update_market_offer(country_name: str, ts_from: Optional[int] = None, ts_to: Optional[int] = None, )  :
+    from tm_entso_e.modules.entsoe_api import service
+    ts = TimeSpan(ts_from=ts_from, ts_to=ts_to)
+    return service.update_offer(country_name=country_name, ts=ts)
+
 
 # @router.get("/")
 # @router.get("")
 # async def list_extended_offer(ts_from: Optional[int] = None, ts_to: Optional[int] = None,
 #                               granularity: Optional[int] = None,):
 #     return service.list_extended_offer(ts=TimeSpan(ts_from=ts_from, ts_to=ts_to), granularity=granularity)
-
 
 
 # @router.get("/market/{market_id}/offerinfo")
