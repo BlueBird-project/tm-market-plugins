@@ -5,6 +5,12 @@ ENTSOE_TOKEN) - [acquire token](https://www.amsleser.no/blog/post/21-obtaining-a
 
 ## Managing the service
 
+API docs (Swagger):
+
+```
+GET: {service_location}/api
+```
+
 Check configured markets:
 
 ```
@@ -23,7 +29,9 @@ Check running job state:
 ```
 POST: {service_location}/api/market/country/job/state
 ```
-Verify  data (for 15 minutes day/intraday offer total_isp_span should be 96 or 48 for some of the intraday markets  ) :
+
+Verify data (for 15 minutes day/intraday offer total_isp_span should be 96 or 48 for some of the intraday markets  ) :
+
 ```
 GET: {service_location}/api/market/verify 
 ```
