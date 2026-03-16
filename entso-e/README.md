@@ -10,6 +10,11 @@ API docs (Swagger):
 ```
 GET: {service_location}/api
 ```
+HealthcheckAPI docs (Swagger):
+
+```
+GET: {service_location}/healthcheck/docs
+```
 
 Check configured markets:
 
