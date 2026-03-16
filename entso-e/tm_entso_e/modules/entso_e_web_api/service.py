@@ -94,7 +94,6 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
             sequence = ts.sequence  # if ts.sequence is not None else None
             offer_details = dao_manager.offer_api.get_offer_details(market_id=market.market_id,
                                                                     ts_start=ts_start, sequence=sequence)
-
             if offer_details is None:
                 from tm_entso_e.modules.ke_interaction.interactions.dam_model import OfferUri
 
@@ -105,13 +104,15 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
                                                       volume_unit=ts.measurement_unit,
                                                       ts_start=ts_start, ts_end=ts_end, isp_unit=period_minutes)
                 offer_details = dao_manager.offer_api.register_day_offer(offer_details=offer_details)
+                isp_span=int((offer_details.ts_end-offer_details.ts_start)/60000/offer_details.isp_unit)
             else:
-                # todo: if override previous
+                # todo:  override previous offer_details
                 dao_manager.offer_api.clear_offer(offer_id=offer_details.offer_id)
+                isp_span=int((offer_details.ts_end-offer_details.ts_start)/60000/offer_details.isp_unit)
                 # else log something and return
             market_offers = [MarketOfferDAO(
                 ts=ts_start + p.position * period_ms, offer_id=offer_details.offer_id, isp_start=p.position,
-                isp_len=(period.points[i + 1].position - p.position if i < (len(period.points) - 1) else 1),
+                isp_len=(period.points[i + 1].position - p.position if i < (len(period.points) - 1) else (isp_span-p.position+1)),
                 cost=p.price
             ) for i, p in enumerate(period.points)]
             dao_manager.offer_api.log_day_offer(market_offers=market_offers)

@@ -40,3 +40,8 @@ class MarketOfferDAO(BaseModel):
     isp_len: int
     cost: float
     update_ts: Optional[int] = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.isp_len<1:
+            raise ValueError("isp_len must be positive integer")

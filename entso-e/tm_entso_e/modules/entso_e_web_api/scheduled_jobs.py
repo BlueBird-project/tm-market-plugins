@@ -22,7 +22,8 @@ def add_jobs(service_job_scheduler: BaseScheduler):
     from datetime import datetime, timedelta
 
     @service_job_scheduler.scheduled_job(trigger='date', id='entso_e_check_offer_job_init',
-                                         run_date=(datetime.now(tz=__TIME_ZONE__) + timedelta(seconds=30)))
+                                         run_date=(datetime.now(tz=__TIME_ZONE__) + timedelta(seconds=30)),
+                                         coalesce=True)
     def check_offer_job_init():
         from tm_entso_e.modules.entso_e_web_api.service import subscribe_data
         # current day

@@ -5,7 +5,7 @@ from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 
 from tm_entso_e.core.db.api.market_offer_dao import MarketOfferAPI
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
-from tm_entso_e.schemas.market import MarketOfferValues
+from tm_entso_e.schemas.market import MarketOfferValues, MarketOfferValuesState
 from tm_entso_e.schemas.market_dao import MarketOfferDAO, MarketOfferDetailsDAO
 from tm_entso_e.utils import time_utils
 
@@ -57,6 +57,24 @@ class MarketOfferQueries:
         WHERE mod.market_id = :market_id 
         AND ( coalesce(:ts_from<=mod."ts_end",TRUE) and  coalesce(:ts_to>=mod."ts_start",TRUE))
         ORDER BY sequence, ts_start"""
+    VERIFY_MARKET_OFFER_VALUES = """ SELECT "${table_prefix}market_offer".offer_id, 
+       count(*) as data_points, (sum(isp_len) = 48 or sum(isp_len) = 96 ) as "state", sum(isp_len) as total_isp_span,
+       "${table_prefix}market_offer_details".ts_start, "${table_prefix}market_offer_details".sequence,
+       "${table_prefix}market_offer_details".market_id ,"${table_prefix}market_details"."market_location"
+    FROM "${table_prefix}market_offer" 
+    JOIN "${table_prefix}market_offer_details" 
+    ON "${table_prefix}market_offer_details"."offer_id"="${table_prefix}market_offer".offer_id
+    JOIN ${table_prefix}market_details 
+    ON ${table_prefix}market_details."market_id" = ${table_prefix}market_offer_details."market_id"
+    WHERE ${table_prefix}market_offer_details.ts_start < :ts_to
+     AND ${table_prefix}market_offer_details.ts_end > :ts_from
+     AND COALESCE("${table_prefix}market_offer_details".market_id = :market_id,TRUE )
+     AND COALESCE("${table_prefix}market_details".market_location = :market_location,TRUE )
+    GROUP BY "${table_prefix}market_offer".offer_id ,"${table_prefix}market_offer_details".ts_start,
+    "${table_prefix}market_offer_details".sequence, "${table_prefix}market_offer_details".market_id ,
+    "${table_prefix}market_details"."market_location"
+    ORDER BY "${table_prefix}market_offer_details".market_id , "${table_prefix}market_offer_details".sequence,
+      ${table_prefix}market_offer_details.ts_start  """
 
     INSERT_MARKET_OFFER_DETAILS = """  INSERT INTO "${table_prefix}market_offer_details" 
     ("market_id", "offer_uri","sequence", "currency_unit",  "volume_unit", "ts_start", "ts_end", "isp_unit",
@@ -192,4 +210,10 @@ class MarketOfferAPIImpl(MarketOfferAPI):
                                args={"market_id": market_id, "ts_from": ti.ts_from, "ts_to": ti.ts_to},
                                obj_type=MarketOfferValues)
 
-        pass
+    def verify_stored_offers(self, ti: TimeSpan, market_id: Optional[int] = None,
+                             market_location: Optional[str] = None) -> List[MarketOfferValuesState]:
+        with ConnectionWrapper() as conn:
+            return conn.select(q=self.queries.VERIFY_MARKET_OFFER_VALUES,
+                               args={"market_id": market_id, "market_location": market_location, "ts_from": ti.ts_from,
+                                     "ts_to": ti.ts_to},
+                               obj_type=MarketOfferValuesState)

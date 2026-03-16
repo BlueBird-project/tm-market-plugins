@@ -3,8 +3,9 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict
 from rdflib import URIRef
 
-DAYAHEAD_MARKET_TYPE=URIRef(value="DayAheadMarket", base="https://ubeflex.bluebird.eu/market/")
-INTRADAY_MARKET_TYPE=URIRef(value="IntradayMarket", base="https://ubeflex.bluebird.eu/market/")
+DAYAHEAD_MARKET_TYPE = URIRef(value="DayAheadMarket", base="https://ubeflex.bluebird.eu/market/")
+INTRADAY_MARKET_TYPE = URIRef(value="IntradayMarket", base="https://ubeflex.bluebird.eu/market/")
+
 
 class _BaseModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -43,6 +44,7 @@ class MarketOffer(_BaseModel):
     isp_len: int
     cost: float
 
+
 class MarketOfferValues(BaseModel):
     offer_id: int
     sequence: Optional[str]
@@ -54,3 +56,14 @@ class MarketOfferValues(BaseModel):
     isp_start: int
     isp_len: int
     cost: Optional[float]
+
+
+class MarketOfferValuesState(BaseModel):
+    offer_id: int
+    data_points: int
+    state: bool
+    total_isp_span: int
+    ts_start: int
+    sequence: Optional[str]
+    market_id: int
+    market_location: str

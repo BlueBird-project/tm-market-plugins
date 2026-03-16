@@ -12,7 +12,9 @@ orjson~=3.10.12
 xsdata~=25.4
 requests~=2.32.4
 PyYAML~=6.0.2
-apscheduler~=3.11.0
+apscheduler~=3.11.2
+#apscheduler~=4.0.0a6
+
 packaging~=25.0
 jsonpickle==4.1.1
 unidecode==1.4.0

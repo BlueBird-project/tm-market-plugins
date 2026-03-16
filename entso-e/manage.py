@@ -46,7 +46,7 @@ if __name__ == "__main__":
     api_settings = configure_api()
     from tm_entso_e.modules.entso_e_web_api.service import init_service
 
-    init_service(market_prefix=market_prefix, load_data=True, days_to_load=2)
+    init_service(market_prefix=market_prefix, load_data=False, days_to_load=2)
 
     ###################
     # setup SCHEDULER #
