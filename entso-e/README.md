@@ -52,9 +52,9 @@ docker-compose -f .\compose\local.yaml --env-file .\resources\.env build entsoe-
 #### Import/export docker
 
 ```
-docker save -o d:/tmp/tm-entsoe-service-app_latest.tar bluebird.com/bluebird/tm-entsoe-service:latest
+docker save -o d:/tmp/tm-entsoe-service-latest.tar bluebird.com/bluebird/tm-entsoe-service:latest
 
-docker load -i d:/tmp/tm-entsoe-service-app_latest.tar
+docker load -i d:/tmp/tm-entsoe-service-latest.tar
 ```
 
 ## Configuration
@@ -65,7 +65,8 @@ docker load -i d:/tmp/tm-entsoe-service-app_latest.tar
     - subscribed_eic - list of markets to read the data
         - code - region EIC code
         - market_types - list of markets types: `intraday`|`day_ahead`
-    - eic_codes - list of EIC codes with country/area names
+    - eic_codes - list of EIC codes with country/area names. Additional area codes can be found [here](https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC)
+
       Sample:
 
 ```yaml
