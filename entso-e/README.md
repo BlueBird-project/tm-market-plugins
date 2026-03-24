@@ -52,9 +52,10 @@ docker-compose -f .\compose\local.yaml --env-file .\resources\.env build entsoe-
 #### Import/export docker
 
 ```
-docker save -o d:/tmp/tm-entsoe-service-latest.tar bluebird.com/bluebird/tm-entsoe-service:latest
+#TODO: save with aprpropriate tag  (env variable)
+docker save -o d:/tmp/tm-entsoe-service-latest-0.5.3.tar bluebird.com/bluebird/tm-entsoe-service:latest bluebird.com/bluebird/tm-entsoe-service:0.5.3 
 
-docker load -i d:/tmp/tm-entsoe-service-latest.tar
+docker load -i d:/tmp/tm-entsoe-service-latest-0.5.3.tar
 ```
 
 ## Configuration
