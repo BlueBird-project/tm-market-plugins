@@ -10,6 +10,7 @@ API docs (Swagger):
 ```
 GET: {service_location}/api
 ```
+
 HealthcheckAPI docs (Swagger):
 
 ```
@@ -49,6 +50,12 @@ GET: {service_location}/api/market/verify
 docker-compose -f .\compose\local.yaml --env-file .\resources\.env build entsoe-service
 ```
 
+build and export image:
+
+```shell
+ .\compose\export_image.ps1 .\resources\.env         
+```
+
 #### Import/export docker
 
 ```
@@ -66,7 +73,8 @@ docker load -i d:/tmp/tm-entsoe-service-latest-0.5.3.tar
     - subscribed_eic - list of markets to read the data
         - code - region EIC code
         - market_types - list of markets types: `intraday`|`day_ahead`
-    - eic_codes - list of EIC codes with country/area names. Additional area codes can be found [here](https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC)
+    - eic_codes - list of EIC codes with country/area names. Additional area codes can be
+      found [here](https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC)
 
       Sample:
 
