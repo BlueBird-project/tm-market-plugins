@@ -4,7 +4,7 @@ knowledge_engine:
   kb_description: 'ENTSO-E  service'
   prefixes:
     kb: "${KB_ID}/"
-    ubmarket: "https://ubeflex.bluebird.eu/market/"
+    ubmarket: "https://ubflex.bluebird.eu/market/"
     rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     s4ener: "https://saref.etsi.org/saref4ener/"
     xsd: "http://www.w3.org/2001/XMLSchema#"

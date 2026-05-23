@@ -128,7 +128,7 @@ def get_data(ti: TimeSpan):
     from tm_entso_e.core.task_manager import service_job_scheduler
     JOB_NAME = "get_data_job"
     DAY_MS = 24 * 3600 * 1000
-    MAX_DAYS = 10
+    MAX_DAYS = 32
     current_job = service_job_scheduler.get_job(JOB_NAME)
     if current_job:
         raise JobError(msg="Wait until previous job end")

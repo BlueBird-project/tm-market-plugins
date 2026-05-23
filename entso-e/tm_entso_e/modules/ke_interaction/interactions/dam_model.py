@@ -170,7 +170,7 @@ class MarketURI(SplitURIBase):
         super().__init__(prefix=MarketURI.__MARKET_PREFIX__, eic_area=eic_area, market_code=market_code)
 
 
-@ki_split_uri(uri_template="https://ubeflex.bluebird.eu/country/${country_name}")
+@ki_split_uri(uri_template="https://ubflex.bluebird.eu/country/${country_name}")
 class CountryURI(SplitURIBase):
     # TODO use different country uri prefix
     country_name: str

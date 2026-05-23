@@ -74,14 +74,16 @@ def update_job_state() -> Dict:
         "entsoe_job_progress": dao_manager.settings_api.get("entsoe_job_progress")}
 
 
-def verify_offer(market_location: Optional[str], market_id: Optional[int], ts: TimeSpan ) -> List[MarketOfferValuesState]:
-
+def verify_offer(market_location: Optional[str], market_id: Optional[int], ts: TimeSpan) -> List[
+    MarketOfferValuesState]:
     from tm_entso_e.core.db.postgresql import dao_manager
     if market_id is not None:
-        market=dao_manager.market_api.get_market(market_id=market_id)
+        market = dao_manager.market_api.get_market(market_id=market_id)
         if market is None:
             raise HTTPException(status_code=404, detail="Market not found")
-    return dao_manager.offer_api.verify_stored_offers(ti=ts,market_id=market_id,market_location=market_location)
+    return dao_manager.offer_api.verify_stored_offers(ti=ts, market_id=market_id, market_location=market_location)
+
+
 def update_offer(country_name: str, ts: TimeSpan, bg: bool = False, override: bool = False) -> Optional[Dict]:
     from tm_entso_e.modules.entso_e_web_api.config import api_settings
     from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC
