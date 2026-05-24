@@ -9,6 +9,7 @@ knowledge_engine:
     s4ener: "https://saref.etsi.org/saref4ener/"
     xsd: "http://www.w3.org/2001/XMLSchema#"
     rdfs: "http://www.w3.org/2000/01/rdf-schema#"
+    time: "http://www.w3.org/2006/time#"
   graph_patterns:
     service:
       name: "service"
@@ -42,12 +43,12 @@ knowledge_engine:
       name: "market"
       description: "Basic information about the market"
       prefixes:
-        s4city: "https://saref.etsi.org/s4city/"
+        s4city: "https://saref.etsi.org/saref4city/"
         foaf: "http://xmlns.com/foaf/0.1/"
         rdfs: "http://www.w3.org/2000/01/rdf-schema#"
       pattern:
         - ' ?market_uri rdf:type ?market_type ; rdfs:subClassOf foaf:Agent ;'
-        - '      s4city:hasAdministrativeArea ?country_uri .'
+        - '      ubmarket:hasAdministrativeArea ?country_uri .'
         - ' ?country_uri rdf:type s4city:Country ; ubmarket:hasISO3166Name ?country_name .'
         - ' ?market_type rdf:type ubmarket:MarketType .'
     market-offer-info-filtered:
@@ -63,7 +64,8 @@ knowledge_engine:
         - ' ?offer_uri s4ener:producedBy ?market_uri .'
         - ' ?offer_uri s4ener:hasUpdateRate  ?update_rate.'
         - ' ?offer_uri s4ener:hasCreationTime ?time_create .'
-        - ' ?offer_uri s4ener:hasEffectivePeriod  ?duration .'
+        - ' ?offer_uri s4ener:hasEffectivePeriod  ?duration_uri.'
+        - ' ?duration_uri  rdf:type  time:Interval; time:hasXSDDuration ?duration .'
         - ' ?ts_interval_uri rdf:type time:Interval; time:hasBeginning ?ts_date_from; time:hasEnd ?ts_date_to .'
     market-offer-info:
       name: "market-offer-info"
@@ -77,7 +79,8 @@ knowledge_engine:
         - ' ?offer_uri s4ener:producedBy ?market_uri .'
         - ' ?offer_uri s4ener:hasUpdateRate  ?update_rate.'
         - ' ?offer_uri s4ener:hasCreationTime ?time_create .'
-        - ' ?offer_uri s4ener:hasEffectivePeriod  ?duration .'
+        - ' ?offer_uri s4ener:hasEffectivePeriod  ?duration_uri.'
+        - ' ?duration_uri  rdf:type  time:Interval; time:hasXSDDuration ?duration .'
     market-offer:
       name: "market-offer"
       description: "Daily market offer values"
@@ -86,6 +89,7 @@ knowledge_engine:
       pattern:
         - ' ?offer_uri rdf:type ubmarket:MarketTimeSeries .'
         - ' ?dp s4ener:belongsToTimeSeries ?offer_uri ; rdf:type s4ener:DataPoint ; saref:hasTimestamp ?ts ;'
-        - '   s4ener:hasEffectivePeriod ?duration ; saref:hasResult ?dpr.'
+        - '   s4ener:hasEffectivePeriod ?duration_uri ; saref:hasResult ?dpr.'
+        - ' ?duration_uri  rdf:type  time:Interval; time:hasXSDDuration ?duration .'
         - ' ?dpr saref:hasValue ?value ; saref:isMeasuredIn ?is_measured_in.'
 

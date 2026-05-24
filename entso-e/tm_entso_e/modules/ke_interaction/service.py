@@ -8,7 +8,8 @@ from rdflib import Literal, URIRef
 from tm_entso_e.modules.entso_e_web_api.errors import EntsoeError
 from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindings, CountryURI, \
-    EnergyMarketBindingsQuery, MarketOfferInfoBindings, OfferUri, MarketOfferInfoRequest, MarketOfferBindings, MarketURI
+    EnergyMarketBindingsQuery, MarketOfferInfoBindings, OfferUri, MarketOfferInfoRequest, MarketOfferBindings, \
+    MarketURI, DurationURI
 from tm_entso_e.schemas.market_dao import MarketDAO, MarketOfferDetailsDAO, MarketOfferDAO
 from tm_entso_e.utils import time_utils, TimeSpan
 
@@ -146,6 +147,9 @@ def _get_offer_details_bindings(markets: Dict[int, MarketDAO], offer_details: Li
                                 sequence=o.sequence,
                                 update_rate=Literal(duration_isoformat(timedelta(minutes=o.isp_unit))),
                                 time_create=Literal(time_utils.xsd_from_ts(ts=o.ts_start)),
+                                duration_uri=DurationURI(minutes=
+                                                         timedelta(milliseconds=(o.ts_end - o.ts_start))
+                                                         .total_seconds() / 60).uri_ref,
                                 duration=Literal(duration_isoformat(timedelta(milliseconds=(o.ts_end - o.ts_start))))
                                 )
         for o in offer_details]
@@ -217,6 +221,7 @@ def get_market_offer(offer_uri: URIRef):
         MarketOfferBindings(offer_uri=URIRef(offer_uri), dp=OfferUri.uri_append_ref(offer_uri, "/dp"),
                             ts=Literal(time_utils.xsd_from_ts(mo.ts)), dpr=OfferUri.uri_append_ref(offer_uri, "/dpr"),
                             is_measured_in=Literal(offer_details.is_measured_in),
+                            duration_uri=DurationURI(minutes=mo.isp_len * offer_details.isp_unit).uri_ref,
                             duration=Literal(
                                 duration_isoformat(timedelta(minutes=mo.isp_len * offer_details.isp_unit))),
                             value=Literal(mo.cost))

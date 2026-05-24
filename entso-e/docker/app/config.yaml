@@ -30,8 +30,8 @@ ke:
     DAY_DURATION: '"PT1440M"^^xsd:duration'
     ISP_UNIT: '"PT60M"^^xsd:duration'
   #  db_init_script_location: "path/to/script.sql"
-  db_table_prefix: ""
-  db_schema_name: "public"
-  db_init: false
+  extension_ontology_files:
+    - "/app/resources/ontologies/bluebird.ttl"
+    - "/app/resources/ontologies/resources.ttl"
 entsoe:
   api_config_path: ./resources/deployment/entsoe.yaml

@@ -30,5 +30,8 @@ ke:
   ki_vars:
     DAY_DURATION: '"PT1440M"^^xsd:duration'
     ISP_UNIT: '"PT15M"^^xsd:duration'
+  extension_ontology_files:
+    - "../../trading-manage/compose/ontologies/bluebird.ttl"
+    - "../../trading-manage/compose/ontologies/resources.ttl"
 entsoe:
   api_config_path: ./resources/deployment/entsoe.yaml

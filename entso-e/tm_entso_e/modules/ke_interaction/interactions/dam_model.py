@@ -72,6 +72,7 @@ class MarketOfferInfoBindings(BindingsBase):
     sequence: Union[Literal, URIRef, None] = None
     update_rate: Literal
     time_create: Literal
+    duration_uri: URIRef
     duration: Literal
 
     def __init__(self, **kwargs):
@@ -138,8 +139,9 @@ class MarketOfferBindings(BindingsBase):
     dp: URIRef
     ts: Literal
     dpr: URIRef
-    is_measured_in: Literal
+    is_measured_in: URIRef
     duration: Literal
+    duration_uri: URIRef
     value: Union[URIRef, Literal, None]
 
     # def __init__(self, **kwargs):
@@ -197,3 +199,8 @@ class OfferUri(SplitURIBase):
     @staticmethod
     def get_prefix(uri: [str, URIRef]) -> str:
         return str(uri).split("/offer/")[0]
+
+
+@ki_split_uri(uri_template="https://ubflex.bluebird.eu/period_${minutes}")
+class DurationURI(SplitURIBase):
+    minutes: int
