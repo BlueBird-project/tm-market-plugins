@@ -29,6 +29,7 @@ RUN pip install -r /tmp/requirements.txt
 COPY /tm_entso_e /app/tm_entso_e
 COPY /manage.py /app/manage.py
 COPY /resources/deployment /app/resources/deployment
+COPY --from=ontologies_dir . /app/resources/deployment/ontologies
 COPY /docker/app/config.yaml /config/config.yaml
 
 ENV KE_KI_CONFIG_PATH="/app/resources/deployment/ke_config.yaml"
