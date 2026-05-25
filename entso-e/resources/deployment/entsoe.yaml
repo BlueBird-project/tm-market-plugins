@@ -3,15 +3,15 @@ entsoe_api:
     - code: 10YPL-AREA-----S
       market_types:
         - "day_ahead"
-#    - code: 10Y1001A1001A82H
-#      market_types:
-#        - "day_ahead"
-#    - code: 10YAT-APG------L
-#      market_types:
-#        - "day_ahead"
-#    - code: 10YBE----------2
-#      market_types:
-#        - "day_ahead"
+    - code: 10Y1001A1001A82H
+      market_types:
+        - "day_ahead"
+    - code: 10YAT-APG------L
+      market_types:
+        - "day_ahead"
+    - code: 10YBE----------2
+      market_types:
+        - "day_ahead"
     - code: 10YES-REE------0
       market_types:
         - "intraday"
