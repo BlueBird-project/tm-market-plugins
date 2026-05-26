@@ -2,7 +2,6 @@ import logging
 from logging import Logger
 from typing import Optional, Dict
 
-from deprecation import deprecated
 from pydantic import BaseModel, ValidationError
 
 from tm_entso_e.modules.entso_e_web_api import ApiKeys
@@ -67,9 +66,8 @@ class EnergyMarketAPI(RESTClient):
         super().__init__(logger=logger, **kwargs)
         self._market_uri_prefix = market_uri_prefix
 
-    @deprecated
-    def get_market_uri(self, eic_area_code: str, market_code: str):
-        return f"{self._market_uri_prefix}/{eic_area_code}/{market_code}"
+    # def get_market_uri(self, eic_area_code: str, market_code: str):
+    #      return f"{self._market_uri_prefix}/{eic_area_code}/{market_code}"
 
     def get_market_code(self, market_type: str):
         market_code = MarketAgreementTypeCode.parse(market_type).code
