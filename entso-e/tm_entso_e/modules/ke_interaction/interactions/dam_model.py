@@ -169,6 +169,7 @@ class MarketURI(SplitURIBase):
     def __init__(self, eic_area: str, market_code: str):
         # if prefix is None:
         #     prefix = MarketURI.__PREFIX__
+
         super().__init__(prefix=MarketURI.__MARKET_PREFIX__, eic_area=eic_area, market_code=market_code)
 
 

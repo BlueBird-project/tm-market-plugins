@@ -27,9 +27,15 @@ class MarketQueries:
     ("market_uri", "market_name", "market_type", "market_description", "market_location","subscribe",
       "update_ts", "ext") 
     VALUES (:market_uri,:market_name,:market_type, :market_description, :market_location, :subscribe ,
-       extract(epoch from now()) * 1000,:ext)
- 
+       extract(epoch from now()) * 1000,:ext) 
         """
+
+    UPDATE_MARKET = """UPDATE "${table_prefix}market_details" 
+    SET "market_name" =  :market_name , "market_type" = :market_type, "market_description" = :market_description,
+    "market_location" =  :market_location, "subscribe" = :subscribe , "update_ts" =  extract(epoch from now()) * 1000 ,
+    ext = :ext 
+    WHERE market_id = :market_id and "market_uri" = :market_uri
+    """
     # ON CONFLICT ("market_uri" ) DO UPDATE  todo:
     SET_MARKET_SUBSCRIBE = """UPDATE "${table_prefix}market_details"  set "subscribe" = :subscribe
      WHERE "market_id" = :market_id"""
@@ -44,7 +50,7 @@ class MarketAPIImpl(MarketAPI):
     def get_market(self, market_id: int) -> Optional[MarketDAO]:
         with ConnectionWrapper() as conn:
             args = {"market_id": market_id}
-            market = conn.get(q=self.queries.SELECT_MARKET_BY_ID, args=args, obj_type=MarketDAO )
+            market = conn.get(q=self.queries.SELECT_MARKET_BY_ID, args=args, obj_type=MarketDAO)
             return market
 
     def get_market_uri(self, market_uri: str) -> Optional[MarketDAO]:
@@ -61,6 +67,12 @@ class MarketAPIImpl(MarketAPI):
                 raise ValueError(f"Market not saved: {market.__dict__}")
             market.market_id = inserted_id
             return market
+
+    def update_market(self, market: MarketDAO):
+        with ConnectionWrapper() as conn:
+            inserted = conn.update(q=self.queries.UPDATE_MARKET, args=vars(market))
+            if inserted == 0:
+                raise ValueError(f"Market not updated: {market.__dict__}")
 
     def list_market(self) -> List[MarketDAO]:
         with ConnectionWrapper() as conn:

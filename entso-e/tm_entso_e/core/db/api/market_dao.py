@@ -27,5 +27,9 @@ class MarketAPI(DAO):
         pass
 
     @abstractmethod
+    def update_market(self, market: MarketDAO):
+        pass
+
+    @abstractmethod
     def set_subscribe(self, market_id: int, subscribe: bool) -> bool:
         pass

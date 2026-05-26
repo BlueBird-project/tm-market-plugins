@@ -80,7 +80,7 @@ class DictBaseSettings(MergeConfigMixin, BaseSettings):
 
 
 def load_yaml_obj(config_path: str, section: Optional[str] = None,
-                 settings_constructor: Optional[Union[Callable, dict]] = None) -> Union[dict, object]:
+                  settings_constructor: Optional[Union[Callable, dict]] = None) -> Union[dict, object]:
     class YAML:
         def __init__(self, **entries):
             self.__dict__.update(entries)
@@ -145,6 +145,9 @@ class TimeSpan:
             from tm_entso_e.utils import time_utils
             ts_to_str = time_utils.ts_to_str(self.ts_to)
         return f" {ts_from_str} - {ts_to_str} "
+
+    def __repr__(self):
+        return self.__str__()
 
     @staticmethod
     def last_week():

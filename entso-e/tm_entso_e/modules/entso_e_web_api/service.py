@@ -51,6 +51,7 @@ def init_service(market_prefix: str, load_data: bool, days_to_load: int = 31):
 
 def subscribe_data(ti: TimeSpan):
     global market_api
+    logging.info(f"Subscribe data for :{ti}")
     from tm_entso_e.modules.entso_e_web_api.config import api_settings
 
     for s_eic_area in api_settings.subscribed_eic:
@@ -73,7 +74,8 @@ def subscribe_eic_data(s_eic_area: SubscribedEIC, ti: TimeSpan):
         result = market_api.get_energy_prices(eic=s_eic_area, ti=ti)
 
         for market_code, market_offer in result.items():
-            market_uri = market_api.get_market_uri(eic_area_code=s_eic_area.code, market_code=market_code)
+            from tm_entso_e.modules.ke_interaction.interactions.dam_model import MarketURI
+            market_uri = MarketURI(eic_area=s_eic_area.code, market_code=market_code).uri
             store_offers(market_uri=market_uri, market_offer=market_offer)
     except Exception as ex:
         logging.error(f"Exception {ex}, appeared while get_energy_prices for {s_eic_area.code} in {ti}")
@@ -83,6 +85,9 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
     from tm_entso_e.core.db.postgresql import dao_manager
     logging.info(f"Store offers for: {market_uri}")
     market = dao_manager.market_api.get_market_uri(market_uri=market_uri)
+    if market is None:
+        logging.error(f"Market has not been registered: {market_uri}")
+        raise KeyError(f"Market has not been registered: {market_uri}")
     # if market is none log  error todo:
     for ts in market_offer.timeseries:
         for period in ts.periods:
@@ -104,15 +109,18 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
                                                       volume_unit=ts.measurement_unit,
                                                       ts_start=ts_start, ts_end=ts_end, isp_unit=period_minutes)
                 offer_details = dao_manager.offer_api.register_day_offer(offer_details=offer_details)
-                isp_span=int((offer_details.ts_end-offer_details.ts_start)/60000/offer_details.isp_unit)
+                isp_span = int((offer_details.ts_end - offer_details.ts_start) / 60000 / offer_details.isp_unit)
             else:
                 # todo:  override previous offer_details
+                logging.info(
+                    f"Clear previous offers for: {offer_details.offer_id}:{offer_details.market_id},{offer_details.ts_start}")
                 dao_manager.offer_api.clear_offer(offer_id=offer_details.offer_id)
-                isp_span=int((offer_details.ts_end-offer_details.ts_start)/60000/offer_details.isp_unit)
+                isp_span = int((offer_details.ts_end - offer_details.ts_start) / 60000 / offer_details.isp_unit)
                 # else log something and return
             market_offers = [MarketOfferDAO(
                 ts=ts_start + p.position * period_ms, offer_id=offer_details.offer_id, isp_start=p.position,
-                isp_len=(period.points[i + 1].position - p.position if i < (len(period.points) - 1) else (isp_span-p.position+1)),
+                isp_len=(period.points[i + 1].position - p.position if i < (len(period.points) - 1) else (
+                        isp_span - p.position + 1)),
                 cost=p.price
             ) for i, p in enumerate(period.points)]
             dao_manager.offer_api.log_day_offer(market_offers=market_offers)

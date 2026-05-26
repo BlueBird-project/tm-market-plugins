@@ -41,10 +41,11 @@ class EICAreaType:
 
 def add_market(market: MarketDAO, save_add: bool = True) -> MarketDAO:
     from tm_entso_e.core.db.postgresql import dao_manager
-    # TODO: update on duplicate?
     if save_add:
         db_market = dao_manager.market_api.get_market_uri(market_uri=market.market_uri)
         if db_market is not None:
+            market.market_id = db_market.market_id
+            dao_manager.market_api.update_market(market=market)
             return db_market
     return dao_manager.market_api.add_market(market=market)
 

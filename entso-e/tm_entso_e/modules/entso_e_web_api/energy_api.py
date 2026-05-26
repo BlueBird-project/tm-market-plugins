@@ -2,11 +2,12 @@ import logging
 from logging import Logger
 from typing import Optional, Dict
 
-
+from deprecation import deprecated
 from pydantic import BaseModel, ValidationError
 
 from tm_entso_e.modules.entso_e_web_api import ApiKeys
 from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument, MarketDocumentError, APIError
+from tm_entso_e.modules.entso_e_web_api.errors import NO_MATCHING_DATA
 from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC, MarketAgreementTypeCode
 from tm_entso_e.modules.entso_e_web_api.rest import RESTClient, _get_ns
 from tm_entso_e.utils import TimeSpan
@@ -66,12 +67,13 @@ class EnergyMarketAPI(RESTClient):
         super().__init__(logger=logger, **kwargs)
         self._market_uri_prefix = market_uri_prefix
 
+    @deprecated
     def get_market_uri(self, eic_area_code: str, market_code: str):
         return f"{self._market_uri_prefix}/{eic_area_code}/{market_code}"
 
-    def get_market_uri_by_market_type(self, eic_area_code: str, market_type: str):
+    def get_market_code(self, market_type: str):
         market_code = MarketAgreementTypeCode.parse(market_type).code
-        return self.get_market_uri(eic_area_code=eic_area_code, market_code=market_code)
+        return market_code
 
     def get_energy_prices(self, eic: SubscribedEIC, ti: TimeSpan):
         # TODO: move 'A44' to some constant object
@@ -89,9 +91,12 @@ class EnergyMarketAPI(RESTClient):
                 md: MarketDocument = MarketDocument.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
                                                              skip_fields=True)
             except ValidationError as err:
-                logging.error(f"ValidationError {err} occurred while  processing data for {mr.api_args} in {ti}")
                 err_document = MarketDocumentError.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
                                                             skip_fields=True)
+                if err_document.reason.code == NO_MATCHING_DATA:
+                    logging.error(f"ENTSO-E {NO_MATCHING_DATA}: No matching data  for {mr.api_args} in {ti}")
+                else:
+                    logging.error(f"ValidationError {err} occurred while  processing data for {mr.api_args} in {ti}")
                 raise APIError(code=err_document.reason.code, text=err_document.reason.text, ctx=str(mr))
             res[market_code] = md
         return res
