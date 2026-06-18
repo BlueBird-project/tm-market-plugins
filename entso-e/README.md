@@ -88,6 +88,11 @@ curl -X 'GET'  'http://localhost:11001/api/market/country/job/state' -H 'accept:
 
 ```
 
+## ENTSO-E 
+
+* Area List with Energy Identification Code (EIC) [here](https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC)
+* Main price portal [here](https://transparency.entsoe.eu/)
+* REST API [docs](https://transparencyplatform.zendesk.com/hc/en-us/articles/15692855254548-Sitemap-for-Restful-API-Integration)
 
 
 
