@@ -33,6 +33,7 @@ class MarketOfferDetailsDAO(BaseModel):
     ts_start: int
     ts_end: int
     isp_unit: int
+    created_ts: Optional[int] = None
     update_ts: Optional[int] = None
     ext: Optional[str] = None
 
@@ -42,7 +43,7 @@ class MarketOfferDetailsDAO(BaseModel):
         if unit.lower() in units:
             return units[unit.lower()]
         else:
-            raise KeyError(f"unknown currenct unit: {unit}")
+            raise KeyError(f"unknown currency unit: {unit}")
         # return f"{self.currency_unit}Per{self.volume_unit}"
 
 

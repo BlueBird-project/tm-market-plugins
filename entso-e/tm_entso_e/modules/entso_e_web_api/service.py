@@ -90,7 +90,9 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
         raise KeyError(f"Market has not been registered: {market_uri}")
     # if market is none log  error todo:
     for ts in market_offer.timeseries:
+        created_ts=time_utils.xsd_to_ts(market_offer.create_date_time)
         for period in ts.periods:
+
             period_minutes = int(parse_duration(period.resolution, as_timedelta_if_possible=True).total_seconds() / 60)
             period_ms = period_minutes * 60 * 1000
             ts_start = time_utils.xsd_to_ts(period.time_interval.start)
@@ -107,7 +109,8 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
                 offer_details = MarketOfferDetailsDAO(market_id=market.market_id, offer_uri=offer_uri_str,
                                                       sequence=sequence, currency_unit=ts.currency_unit,
                                                       volume_unit=ts.measurement_unit,
-                                                      ts_start=ts_start, ts_end=ts_end, isp_unit=period_minutes)
+                                                      ts_start=ts_start, ts_end=ts_end, isp_unit=period_minutes,
+                                                      created_ts=created_ts)
                 offer_details = dao_manager.offer_api.register_day_offer(offer_details=offer_details)
                 isp_span = int((offer_details.ts_end - offer_details.ts_start) / 60000 / offer_details.isp_unit)
             else:
