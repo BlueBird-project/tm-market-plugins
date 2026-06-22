@@ -111,6 +111,7 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
                                                       volume_unit=ts.measurement_unit,
                                                       ts_start=ts_start, ts_end=ts_end, isp_unit=period_minutes,
                                                       created_ts=created_ts)
+                raise Exception()
                 offer_details = dao_manager.offer_api.register_day_offer(offer_details=offer_details)
                 isp_span = int((offer_details.ts_end - offer_details.ts_start) / 60000 / offer_details.isp_unit)
             else:
