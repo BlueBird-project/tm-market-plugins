@@ -61,6 +61,7 @@ CREATE TABLE "public"."${table_prefix}market_offer_details" (
     "ts_end" bigint NOT NULL,
     "isp_unit" int NOT NULL,
     "update_ts" bigint NOT NULL,
+      "created_ts" bigint NOT  NULL,
     "ext" character varying(10000),
     CONSTRAINT "${table_prefix}market_offer_details_key" PRIMARY KEY ("offer_id")
 )
@@ -89,3 +90,16 @@ WITH (oids = false);
 ALTER TABLE ONLY "public"."${table_prefix}market_offer"
 ADD CONSTRAINT "${table_prefix}market_offer_offer_id_fkey" FOREIGN KEY (offer_id)
 REFERENCES ${table_prefix}market_offer_details(offer_id) ON UPDATE RESTRICT ON DELETE RESTRICT NOT DEFERRABLE;
+
+CREATE TABLE "${table_prefix}service_log" (
+  "log_id" bigint NOT NULL,
+  PRIMARY KEY ("log_id"),
+  "log_tag" character varying(10) NOT NULL,
+  "log_context" character varying(100) NULL,
+  "log_message" character varying(250) NOT NULL,
+  "log_obj_type" character varying(100) NULL,
+  "log_obj_json" text NULL,
+  "log_ts" bigint NOT NULL
+);
+
+CREATE INDEX "${table_prefix}service_log_log_ts" ON "local_entsoe_service_log" USING btree ("log_ts");

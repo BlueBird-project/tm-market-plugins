@@ -23,3 +23,20 @@ ALTER "created_ts" SET NOT NULL;
 def db_0_2_update(db_meta: DBMeta):
     from tm_entso_e.core.db.postgresql import dao_manager
     _run_ddl(ddl_str=_0_2_ddl, db_version=db_meta.db_version, table_prefix=db_meta.db_table_prefix)
+
+_0_3_ddl="""
+CREATE TABLE "${table_prefix}service_log" (
+  "log_id" bigint NOT NULL,
+  PRIMARY KEY ("log_id"),
+  "log_tag" character varying(10) NOT NULL,
+  "log_context" character varying(100) NULL,
+  "log_message" character varying(250) NOT NULL,
+  "log_obj_type" character varying(100) NULL,
+  "log_obj_json" text NULL,
+  "log_ts" bigint NOT NULL
+);
+CREATE INDEX "${table_prefix}service_log_log_ts" ON "local_entsoe_service_log" USING btree ("log_ts");
+"""
+def db_0_3_update(db_meta: DBMeta):
+    from tm_entso_e.core.db.postgresql import dao_manager
+    _run_ddl(ddl_str=_0_3_ddl, db_version=db_meta.db_version, table_prefix=db_meta.db_table_prefix)
