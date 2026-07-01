@@ -1,10 +1,13 @@
 from builtins import super
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import List, Optional, Dict, Iterable, Type, Union
 
 from pydantic import BaseModel, ConfigDict
 from rdflib import URIRef
 
 from tm_entso_e.schemas.market import DAYAHEAD_MARKET_TYPE, INTRADAY_MARKET_TYPE
+from tm_entso_e.utils import time_utils
 from tm_entso_e.utils.enum_utils import BaseEnum
 
 
@@ -23,20 +26,31 @@ class MarketAgreementTypeCode(BaseEnum):
 
 
 # Literal("PT60M", datatype=XSD.duration)
-class MarketTypeInfo(BaseModel):
+@dataclass(frozen=True)
+class MarketTypeInfo:
     publish: str
-    offer_length: int
+    offer_length: Optional[int] = None
     sequence: Optional[str] = None
     max_delay: Optional[str] = None
+    # UTC publish hour
     publish_hour: int = 15
     publish_min: int = 0
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    # def __init__(self, **kwargs):
+    #     super().__init__(**kwargs)
+    #     if self.publish:
+    #         f = self.publish.split(":")
+    #         self.publish_hour = int(f[0])
+    #         self.publish_min = int(f[1])
+    def __post_init__(self, ):
         if self.publish:
             f = self.publish.split(":")
-            self.publish_hour = int(f[0])
-            self.publish_min = int(f[1])
+            object.__setattr__(self, "publish_hour", int(f[0]))
+            object.__setattr__(self, "publish_min", int(f[1]))
+
+    @staticmethod
+    def init_default():
+        return MarketTypeInfo(publish="15:00", max_delay="PT2H")
 
     @property
     def max_delay_ts(self) -> int:
@@ -44,6 +58,18 @@ class MarketTypeInfo(BaseModel):
         if self.max_delay is None:
             return 3600000
         return int(parse_duration(self.max_delay).total_seconds() * 1000.0)
+
+    @property
+    def current_publish_ts(self) -> int:
+        # TODO: check
+        dt = datetime.now(tz=timezone.utc)
+        publish_dt = datetime(year=dt.year, month=dt.month, day=dt.day, hour=self.publish_hour, minute=self.publish_min,
+                              second=0, microsecond=0)
+        return int(publish_dt.timestamp() * 1000.0)
+
+    @property
+    def is_publish_timeout(self):
+        return (self.current_publish_ts + self.max_delay_ts) < time_utils.current_timestamp()
 
 
 class SubscribedEIC(BaseModel):
@@ -62,6 +88,18 @@ class SubscribedEIC(BaseModel):
 
     def get_market_type_name(self, code: str) -> str:
         return self._market_codes_[code]
+
+    def get_market_type(self, market_type_code: str, default: bool = False) -> Union[MarketTypeInfo, str]:
+        if isinstance(self.market_types, dict):
+            try:
+                return self.market_types[market_type_code]
+            except KeyError:
+                raise KeyError(f"Missing market type code: {market_type_code}, for market: {self.code}")
+
+        if market_type_code in self.market_types:
+            return market_type_code
+        else:
+            raise KeyError(f"Missing market type code: {market_type_code}, for market: {self.code}")
 
 
 class EICArea(BaseModel):

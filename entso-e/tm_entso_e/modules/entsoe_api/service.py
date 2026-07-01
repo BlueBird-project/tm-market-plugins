@@ -10,7 +10,7 @@ from fastapi import HTTPException
 
 from tm_entso_e.core.task_manager import service_job_scheduler
 from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC
-from tm_entso_e.modules.entso_e_web_api.service import subscribe_eic_data
+from tm_entso_e.modules.entso_e_web_api.service import subscribe_eic_area
 from tm_entso_e.schemas.market import MarketOfferDetails, Market, MarketOfferValues, MarketOfferValuesState
 
 day_ts = 24 * 3600 * 1000
@@ -50,7 +50,7 @@ def _update_offer(s_eic_area: SubscribedEIC, ts: TimeSpan, bg: bool = False):
     if bg:
         dao_manager.settings_api.set("entsoe_job_progress", f"0.0")
     while ts_from < ts.ts_to:
-        subscribe_eic_data(s_eic_area=s_eic_area, ti=TimeSpan(ts_from=ts_from, ts_to=ts_to))
+        subscribe_eic_area(s_eic_area=s_eic_area, ti=TimeSpan(ts_from=ts_from, ts_to=ts_to))
         ts_from += day_ts
         ts_to = ts_from + day_ts
         current_day += 1

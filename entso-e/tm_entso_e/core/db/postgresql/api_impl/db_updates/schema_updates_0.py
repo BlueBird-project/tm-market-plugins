@@ -25,17 +25,23 @@ def db_0_2_update(db_meta: DBMeta):
     _run_ddl(ddl_str=_0_2_ddl, db_version=db_meta.db_version, table_prefix=db_meta.db_table_prefix)
 
 _0_3_ddl="""
-CREATE TABLE "${table_prefix}service_log" (
-  "log_id" bigint NOT NULL,
-  PRIMARY KEY ("log_id"),
+DROP TABLE IF EXISTS "${table_prefix}service_log";
+DROP SEQUENCE IF EXISTS ${table_prefix}service_log_log_id_seq;
+CREATE SEQUENCE ${table_prefix}service_log_log_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;
+
+ 
+CREATE TABLE "${table_prefix}service_log" ( 
+   "log_id" bigint DEFAULT nextval('${table_prefix}service_log_log_id_seq') NOT NULL,  
   "log_tag" character varying(10) NOT NULL,
   "log_context" character varying(100) NULL,
   "log_message" character varying(250) NOT NULL,
-  "log_obj_type" character varying(100) NULL,
+  "log_obj_type" character varying(150) NULL,
   "log_obj_json" text NULL,
-  "log_ts" bigint NOT NULL
+  "log_ts" bigint NOT NULL,
+    CONSTRAINT "${table_prefix}service_log_pk" PRIMARY KEY ("log_id")
 );
-CREATE INDEX "${table_prefix}service_log_log_ts" ON "local_entsoe_service_log" USING btree ("log_ts");
+
+CREATE INDEX "${table_prefix}service_log_log_ts" ON public.${table_prefix}service_log USING btree ("log_ts");
 """
 def db_0_3_update(db_meta: DBMeta):
     from tm_entso_e.core.db.postgresql import dao_manager

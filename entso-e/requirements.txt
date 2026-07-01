@@ -28,4 +28,4 @@ setuptools==80.10.2
 git+https://github.com/BlueBird-project/ke-pyclient.git@v0.30.2
 #git+https://github.com/BlueBird-project/ke-pyclient.git@main
 ke_client==0.30.2
-effi_onto_tools==0.19.14
+effi_onto_tools==0.19.15

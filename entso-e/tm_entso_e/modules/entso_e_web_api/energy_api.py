@@ -1,6 +1,6 @@
 import logging
 from logging import Logger
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from pydantic import BaseModel, ValidationError
 
@@ -73,28 +73,39 @@ class EnergyMarketAPI(RESTClient):
         market_code = MarketAgreementTypeCode.parse(market_type).code
         return market_code
 
-    def get_energy_prices(self, eic: SubscribedEIC, ti: TimeSpan):
+    def get_all_energy_prices(self, eic: SubscribedEIC, ti: TimeSpan, market_type_codes: Optional[List[str]] = None) \
+            -> Dict[str, MarketDocument]:
         # TODO: move 'A44' to some constant object
         # classificationSequence_AttributeInstanceComponent.position
-        # TODO: eic.market_codes -> if empty log warning
         res = {}
-        for market_code in eic.market_codes:
-            mr = MarketRequest(document_type="A44", in_domain=eic.code, out_domain=eic.code, offset=0,
-                               market_contract_type=market_code, period_start=self.parse_time(ti.ts_from),
-                               period_end=self.parse_time(ti.ts_to))
+        if market_type_codes is None:
+            market_type_codes = eic.market_codes
+        if market_type_codes is None or len(market_type_codes) == 0:
+            logging.error(f"No selected market types for area: {eic.code}")
+            return res
+        for market_type_code in market_type_codes:
+            md = self.get_energy_prices(eic_code=eic.code, market_code=market_type_code, ti=ti)
 
-            resp_content = self.send_request(parameters=mr.api_args)
-            ns = _get_ns(resp_content)
-            try:
-                md: MarketDocument = MarketDocument.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
-                                                             skip_fields=True)
-            except ValidationError as err:
-                err_document = MarketDocumentError.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
-                                                            skip_fields=True)
-                if err_document.reason.code == NO_MATCHING_DATA:
-                    logging.error(f"ENTSO-E {NO_MATCHING_DATA}: No matching data  for {mr.api_args} in {ti}")
-                else:
-                    logging.error(f"ValidationError {err} occurred while  processing data for {mr.api_args} in {ti}")
-                raise APIError(code=err_document.reason.code, text=err_document.reason.text, ctx=str(mr))
-            res[market_code] = md
+            res[market_type_code] = md
         return res
+
+    def get_energy_prices(self, eic_code: str, market_code: str, ti: TimeSpan) -> MarketDocument:
+        # TODO: move 'A44' to some constant object
+        mr = MarketRequest(document_type="A44", in_domain=eic_code, out_domain=eic_code, offset=0,
+                           market_contract_type=market_code, period_start=self.parse_time(ti.ts_from),
+                           period_end=self.parse_time(ti.ts_to))
+
+        resp_content = self.send_request(parameters=mr.api_args)
+        ns = _get_ns(resp_content)
+        try:
+            md: MarketDocument = MarketDocument.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
+                                                         skip_fields=True)
+        except ValidationError as err:
+            err_document = MarketDocumentError.from_xml(root_ele=resp_content, namespace_len=len(ns) + 2,
+                                                        skip_fields=True)
+            if err_document.reason.code == NO_MATCHING_DATA:
+                logging.error(f"ENTSO-E {NO_MATCHING_DATA}: No matching data  for {mr.api_args} in {ti}")
+            else:
+                logging.error(f"ValidationError {err} occurred while  processing data for {mr.api_args} in {ti}")
+            raise APIError(code=err_document.reason.code, text=err_document.reason.text, ctx=str(mr))
+        return md

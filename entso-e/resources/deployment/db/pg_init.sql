@@ -91,15 +91,21 @@ ALTER TABLE ONLY "public"."${table_prefix}market_offer"
 ADD CONSTRAINT "${table_prefix}market_offer_offer_id_fkey" FOREIGN KEY (offer_id)
 REFERENCES ${table_prefix}market_offer_details(offer_id) ON UPDATE RESTRICT ON DELETE RESTRICT NOT DEFERRABLE;
 
+
+DROP TABLE IF EXISTS "${table_prefix}service_log";
+DROP SEQUENCE IF EXISTS ${table_prefix}service_log_log_id_seq;
+CREATE SEQUENCE ${table_prefix}service_log_log_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;
+
+
 CREATE TABLE "${table_prefix}service_log" (
-  "log_id" bigint NOT NULL,
-  PRIMARY KEY ("log_id"),
+   "log_id" bigint DEFAULT nextval('${table_prefix}service_log_log_id_seq') NOT NULL,
   "log_tag" character varying(10) NOT NULL,
   "log_context" character varying(100) NULL,
   "log_message" character varying(250) NOT NULL,
-  "log_obj_type" character varying(100) NULL,
+  "log_obj_type" character varying(150) NULL,
   "log_obj_json" text NULL,
-  "log_ts" bigint NOT NULL
+  "log_ts" bigint NOT NULL,
+    CONSTRAINT "${table_prefix}service_log_pk" PRIMARY KEY ("log_id")
 );
 
-CREATE INDEX "${table_prefix}service_log_log_ts" ON "local_entsoe_service_log" USING btree ("log_ts");
+CREATE INDEX "${table_prefix}service_log_log_ts" ON public.${table_prefix}service_log USING btree ("log_ts");

@@ -12,7 +12,7 @@ def _run_ddl(ddl_str: str, table_prefix: str, db_version: str):
         ddl_query_str = ddl_template.substitute(table_prefix=table_prefix)
         conn.execute(text(ddl_query_str))
         from tm_entso_e.core.db.postgresql import dao_manager
-        dao_manager.settings_api.set('db_version', "0.2")
+        dao_manager.settings_api.set('db_version', db_version)
         conn.commit()
 
         # conn.execute(text(f"""INSERT INTO "{table_prefix}{APP_CONFIG_TABLE_NAME}" ("key", "value","update_ts")

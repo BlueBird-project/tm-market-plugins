@@ -3,13 +3,10 @@ entsoe_api:
     - code: 10YPL-AREA-----S
       market_types:
         day_ahead:
-          - sequence: "1"
+          - sequence: None
             publish: "14:00"
             offer_length: 96
             max_delay: PT1H
-          - sequence: "2"
-            publish: "15:00"
-            offer_length: 96
     - code: 10Y1001A1001A82H
       market_types:
         - "day_ahead"

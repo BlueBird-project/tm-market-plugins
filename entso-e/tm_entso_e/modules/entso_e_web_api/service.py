@@ -1,9 +1,9 @@
 import logging
-import math
 import threading
 from datetime import datetime, timedelta
+from typing import Optional
 
-from effi_onto_tools.db.dao_exception import DAOException
+import pytz
 from isodate import parse_duration
 
 from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument
@@ -55,7 +55,7 @@ def subscribe_data(ti: TimeSpan):
     from tm_entso_e.modules.entso_e_web_api.config import api_settings
 
     for s_eic_area in api_settings.subscribed_eic:
-        subscribe_eic_data(s_eic_area=s_eic_area, ti=ti)
+        subscribe_eic_area(s_eic_area=s_eic_area, ti=ti)
         # try:
         #     result = market_api.get_energy_prices(eic=s_eic_area, ti=ti)
         #
@@ -66,12 +66,10 @@ def subscribe_data(ti: TimeSpan):
         #     logging.error(f"Exception {ex}, appeared while get_energy_prices for {s_eic_area.code} in {ti}")
 
 
-def subscribe_eic_data(s_eic_area: SubscribedEIC, ti: TimeSpan):
+def subscribe_eic_area(s_eic_area: SubscribedEIC, ti: TimeSpan):
     global market_api
-    from tm_entso_e.modules.entso_e_web_api.config import api_settings
-
     try:
-        result = market_api.get_energy_prices(eic=s_eic_area, ti=ti)
+        result = market_api.get_all_energy_prices(eic=s_eic_area, ti=ti)
 
         for market_code, market_offer in result.items():
             from tm_entso_e.modules.ke_interaction.interactions.dam_model import MarketURI
@@ -81,16 +79,29 @@ def subscribe_eic_data(s_eic_area: SubscribedEIC, ti: TimeSpan):
         logging.error(f"Exception {ex}, appeared while get_energy_prices for {s_eic_area.code} in {ti}")
 
 
-def store_offers(market_uri: str, market_offer: MarketDocument):
+def subscribe_offer(eic_code: str, market_type_code: str, ti: TimeSpan, expected_length: Optional[int] = None):
+    global market_api
+    try:
+
+        market_offer = market_api.get_energy_prices(eic_code=eic_code, market_code=market_type_code, ti=ti)
+
+        from tm_entso_e.modules.ke_interaction.interactions.dam_model import MarketURI
+        market_uri = MarketURI(eic_area=eic_code, market_code=market_type_code).uri
+        store_offers(market_uri=market_uri, market_offer=market_offer, expected_length=expected_length)
+    except Exception as ex:
+        logging.error(f"Exception {ex}, appeared while get_energy_prices for {eic_code} in {ti}")
+        raise Exception("Subscribe offer failed")
+
+
+def store_offers(market_uri: str, market_offer: MarketDocument, expected_length: Optional[int] = None):
     from tm_entso_e.core.db.postgresql import dao_manager
     logging.info(f"Store offers for: {market_uri}")
     market = dao_manager.market_api.get_market_uri(market_uri=market_uri)
     if market is None:
         logging.error(f"Market has not been registered: {market_uri}")
         raise KeyError(f"Market has not been registered: {market_uri}")
-    # if market is none log  error todo:
     for ts in market_offer.timeseries:
-        created_ts=time_utils.xsd_to_ts(market_offer.create_date_time)
+        created_ts = time_utils.xsd_to_ts(market_offer.create_date_time)
         for period in ts.periods:
 
             period_minutes = int(parse_duration(period.resolution, as_timedelta_if_possible=True).total_seconds() / 60)
@@ -101,6 +112,7 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
             sequence = ts.sequence  # if ts.sequence is not None else None
             offer_details = dao_manager.offer_api.get_offer_details(market_id=market.market_id,
                                                                     ts_start=ts_start, sequence=sequence)
+            clear_previous = False
             if offer_details is None:
                 from tm_entso_e.modules.ke_interaction.interactions.dam_model import OfferUri
 
@@ -111,14 +123,13 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
                                                       volume_unit=ts.measurement_unit,
                                                       ts_start=ts_start, ts_end=ts_end, isp_unit=period_minutes,
                                                       created_ts=created_ts)
-                raise Exception()
                 offer_details = dao_manager.offer_api.register_day_offer(offer_details=offer_details)
                 isp_span = int((offer_details.ts_end - offer_details.ts_start) / 60000 / offer_details.isp_unit)
             else:
                 # todo:  override previous offer_details
                 logging.info(
                     f"Clear previous offers for: {offer_details.offer_id}:{offer_details.market_id},{offer_details.ts_start}")
-                dao_manager.offer_api.clear_offer(offer_id=offer_details.offer_id)
+                clear_previous = True
                 isp_span = int((offer_details.ts_end - offer_details.ts_start) / 60000 / offer_details.isp_unit)
                 # else log something and return
             market_offers = [MarketOfferDAO(
@@ -127,7 +138,17 @@ def store_offers(market_uri: str, market_offer: MarketDocument):
                         isp_span - p.position + 1)),
                 cost=p.price
             ) for i, p in enumerate(period.points)]
-            dao_manager.offer_api.log_day_offer(market_offers=market_offers)
+            if expected_length is not None:
+                current_length = sum([mo.isp_len for mo in market_offers])
+                try:
+                    assert expected_length == current_length
+                    if clear_previous:
+                        dao_manager.offer_api.clear_offer(offer_id=offer_details.offer_id)
+                    dao_manager.offer_api.log_day_offer(market_offers=market_offers)
+                except AssertionError:
+                    logging.error("invalid")
+                    raise AssertionError(
+                        f"Invalid market offer length , expected:{expected_length} . Received: {current_length}")
 
 
 def unsubscribe_all_markets():
@@ -154,7 +175,7 @@ def get_data(ti: TimeSpan):
         # TODO: check if the data is in the db, so we can avoid extra API cal
         subscribe_data(ti=ti)
 
-    run_time = datetime.now() + timedelta(seconds=5)
+    run_time = datetime.now(tz=pytz.UTC) + timedelta(seconds=5)
     # TODO: make thread safe lock starting new task?
     service_job_scheduler.add_job(_job, trigger='date', max_instances=1, id=JOB_NAME, run_date=run_time)
 
