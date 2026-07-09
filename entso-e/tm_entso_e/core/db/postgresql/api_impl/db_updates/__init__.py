@@ -7,6 +7,7 @@ from sqlalchemy import text
 
 def _run_ddl(ddl_str: str, table_prefix: str, db_version: str):
     from effi_onto_tools.db.postgresql.dbconnection import connection_manager
+    logging.info(f"({table_prefix}) update db to {db_version}")
     with connection_manager.get_connection() as conn:
         ddl_template = Template(ddl_str)
         ddl_query_str = ddl_template.substitute(table_prefix=table_prefix)
@@ -25,8 +26,10 @@ def update_db(update_map, db_meta: DBMeta):
     processed_versions = set()
     while cur_version not in processed_versions and cur_version != db_meta.db_version:
         update_stage = update_map[cur_version]
+        logging.info(f"db update from: '{cur_version}'")
         update_stage(db_meta=db_meta)
         processed_versions.add(cur_version)
         cur_version = dao_manager.settings_api.get("db_version")
+        logging.info(f"db updated to: '{cur_version}'")
     #     TODO log stages
     logging.info("Finished update")

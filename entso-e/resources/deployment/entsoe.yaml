@@ -25,13 +25,13 @@ entsoe_api:
             max_delay: PT1H
         day_ahead:
           - sequence: "1"
-            publish: "14:00"
+            publish: "13:00"
             offer_length: 96
-            max_delay: PT1H
+            max_delay: PT2H
           - sequence: "2"
             publish: "15:00"
-            offer_length: 48
-            max_delay: PT1H
+            offer_length: 96
+            max_delay: PT2H
 #         - intraday
   eic_codes:
     10Y1001A1001A82H:

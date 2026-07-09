@@ -22,7 +22,8 @@ ALTER "created_ts" SET NOT NULL;
 
 def db_0_2_update(db_meta: DBMeta):
     from tm_entso_e.core.db.postgresql import dao_manager
-    _run_ddl(ddl_str=_0_2_ddl, db_version=db_meta.db_version, table_prefix=db_meta.db_table_prefix)
+
+    _run_ddl(ddl_str=_0_2_ddl, db_version="0.2", table_prefix=db_meta.db_table_prefix)
 
 _0_3_ddl="""
 DROP TABLE IF EXISTS "${table_prefix}service_log";
@@ -45,4 +46,4 @@ CREATE INDEX "${table_prefix}service_log_log_ts" ON public.${table_prefix}servic
 """
 def db_0_3_update(db_meta: DBMeta):
     from tm_entso_e.core.db.postgresql import dao_manager
-    _run_ddl(ddl_str=_0_3_ddl, db_version=db_meta.db_version, table_prefix=db_meta.db_table_prefix)
+    _run_ddl(ddl_str=_0_3_ddl, db_version="0.3", table_prefix=db_meta.db_table_prefix)
