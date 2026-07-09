@@ -77,6 +77,7 @@ def subscribe_eic_area(s_eic_area: SubscribedEIC, ti: TimeSpan):
             store_offers(market_uri=market_uri, market_offer=market_offer)
     except Exception as ex:
         logging.error(f"Exception {ex}, appeared while get_energy_prices for {s_eic_area.code} in {ti}")
+        raise Exception(f"Subscribe EIC area ({s_eic_area.code}) failed: {ex}")
 
 
 def subscribe_offer(eic_code: str, market_type_code: str, ti: TimeSpan, expected_length: Optional[int] = None):
@@ -90,7 +91,7 @@ def subscribe_offer(eic_code: str, market_type_code: str, ti: TimeSpan, expected
         store_offers(market_uri=market_uri, market_offer=market_offer, expected_length=expected_length)
     except Exception as ex:
         logging.error(f"Exception {ex}, appeared while get_energy_prices for {eic_code} in {ti}")
-        raise Exception("Subscribe offer failed")
+        raise Exception(f"Subscribe offer failed: {ex}")
 
 
 def store_offers(market_uri: str, market_offer: MarketDocument, expected_length: Optional[int] = None):

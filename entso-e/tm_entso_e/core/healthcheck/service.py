@@ -126,14 +126,14 @@ def market_state() -> bool:
 
 
 def get_service_report() -> Dict[str, Any]:
-    report = {"check_start": time_utils.current_timestamp()}
+    report = {"check_start_ts": time_utils.current_timestamp()}
 
     report = check_ke(report=report)
     report = check_db(report=report)
     report = check_market(report=report)
     report = check_scheduler(report=report)
     report = check_log(report=report)
-    report["check_end"] = time_utils.current_timestamp()
+    report["check_end_ts"] = time_utils.current_timestamp()
     return report
 
 

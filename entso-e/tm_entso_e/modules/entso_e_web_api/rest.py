@@ -63,7 +63,8 @@ class RESTClient(BaseModel):
             response: Response = requests.get(url, headers=headers, timeout=self._timeout_, verify=self._verify_cert_)
             return self._assert_response_(response=response)
         except Exception as ex:
-            logging.error(f"Connection issue {url} : {ex} ")
+            logging.error(f"Connection issue: {url} : {ex} ")
+            raise ConnectionError(f"Connection issue: {url} : {ex} ")
 
     def _assert_response_(self, response: requests.Response) -> Element:
         """
