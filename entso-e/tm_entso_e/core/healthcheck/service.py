@@ -60,7 +60,7 @@ def check_log(report: Dict) -> Dict:
 def log_state() -> bool:
     ts_to = time_utils.current_timestamp()
     last_hour = TimeSpan(ts_from=ts_to - 3600000, ts_to=ts_to)
-    return check_error(ts=last_hour) == 0 and len(job_error(ts=TimeSpan.last_day())) == 0
+    return check_error(ts=last_hour) == 0 and len(job_error(ts=last_hour)) == 0
 
 
 def check_db(report: Dict) -> Dict:

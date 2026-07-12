@@ -2,9 +2,9 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from tm_entso_e.utils import time_utils
+ERROR_TAG = "ERROR"
 
-ERROR_TAG="ERROR"
+
 @dataclass
 class ServiceLogDAO:
     log_tag: str
@@ -16,6 +16,6 @@ class ServiceLogDAO:
     log_context: Optional[str] = None
 
     def __post_init__(self):
-        if len(self.log_message) > 95:
+        if len(self.log_message) > 200:
             logging.warning(f"trim log message: {self.log_message}")
-            self.log_message = self.log_message[0:95] + "..."
+            self.log_message = self.log_message[0:200] + "..."
