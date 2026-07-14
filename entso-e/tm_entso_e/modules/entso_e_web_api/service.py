@@ -1,14 +1,14 @@
 import logging
 import threading
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List
 
 import pytz
 from isodate import parse_duration
 
 from tm_entso_e.modules.entso_e_web_api.api_model import MarketDocument
 from tm_entso_e.modules.entso_e_web_api.errors import JobError
-from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC
+from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC, MarketTypeInfo
 from tm_entso_e.schemas.market_dao import MarketOfferDetailsDAO, MarketOfferDAO
 from tm_entso_e.utils import time_utils, TimeSpan
 from tm_entso_e.modules.entso_e_web_api.energy_api import EnergyMarketAPI
@@ -75,14 +75,14 @@ def subscribe_eic_area(s_eic_area: SubscribedEIC, ti: TimeSpan):
             from tm_entso_e.modules.ke_interaction.interactions.dam_model import MarketURI
             market_uri = MarketURI(eic_area=s_eic_area.code, market_code=market_code).uri
             market_type_info = s_eic_area.get_market_type_info(code=market_code)
-            expected_length = None if market_type_info is None else market_type_info.offer_length
-            store_offers(market_uri=market_uri, market_offer=market_offer, expected_length=expected_length)
+
+            store_offers(market_uri=market_uri, market_offer=market_offer, market_type_info=market_type_info)
     except Exception as ex:
         logging.error(f"Exception {ex}, appeared while get_energy_prices for {s_eic_area.code} in {ti}")
         raise Exception(f"Subscribe EIC area ({s_eic_area.code}) failed: {ex}")
 
 
-def subscribe_offer(eic_code: str, market_type_code: str, ti: TimeSpan, expected_length: Optional[int] = None):
+def subscribe_offer(eic_code: str, market_type_code: str, ti: TimeSpan):
     global market_api
     try:
 
@@ -90,13 +90,19 @@ def subscribe_offer(eic_code: str, market_type_code: str, ti: TimeSpan, expected
 
         from tm_entso_e.modules.ke_interaction.interactions.dam_model import MarketURI
         market_uri = MarketURI(eic_area=eic_code, market_code=market_type_code).uri
-        store_offers(market_uri=market_uri, market_offer=market_offer, expected_length=expected_length)
+
+        from tm_entso_e.modules.entso_e_web_api.config import api_settings
+        area = api_settings.get_subscribed_area_by_code(eic_area_code=eic_code)
+        market_type_info = area.get_market_type(market_type_code=market_type_code)
+        if isinstance(market_type_info, str):
+            market_type_info = None
+        store_offers(market_uri=market_uri, market_offer=market_offer, market_type_info=market_type_info)
     except Exception as ex:
         logging.error(f"Exception {ex}, appeared while get_energy_prices for {eic_code} in {ti}")
         raise Exception(f"Subscribe offer failed: {ex}")
 
 
-def store_offers(market_uri: str, market_offer: MarketDocument, expected_length: Optional[int] = None):
+def store_offers(market_uri: str, market_offer: MarketDocument, market_type_info: List[MarketTypeInfo]):
     from tm_entso_e.core.db.postgresql import dao_manager
     logging.info(f"Store offers for: {market_uri}")
     market = dao_manager.market_api.get_market_uri(market_uri=market_uri)
@@ -113,6 +119,12 @@ def store_offers(market_uri: str, market_offer: MarketDocument, expected_length:
             ts_end = time_utils.xsd_to_ts(period.time_interval.end)
             logging.info(f"Store offers for: {market_uri},{ts_start}:{ts.sequence}")
             sequence = ts.sequence  # if ts.sequence is not None else None
+            expected_length = None
+            if market_type_info is not None:
+                for mt in market_type_info:
+                    if mt.sequence == sequence:
+                        expected_length = mt.offer_length
+
             offer_details = dao_manager.offer_api.get_offer_details(market_id=market.market_id,
                                                                     ts_start=ts_start, sequence=sequence)
             clear_previous = False

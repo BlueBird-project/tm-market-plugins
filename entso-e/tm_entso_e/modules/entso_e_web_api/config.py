@@ -71,6 +71,11 @@ class ENTSOEAPISettings(BaseSettings, extra=Extra.allow):
             return self._area_eic_code_map_[eic_area.code]
         except KeyError:
             raise EntsoeError(msg=f"Country: {country} is not subscribed. ")
+    def get_subscribed_area_by_code(self, eic_area_code: str) -> SubscribedEIC:
+        try:
+            return self._area_eic_code_map_[eic_area_code]
+        except KeyError:
+            raise EntsoeError(msg=f"Area code: {eic_area_code} is not subscribed. ")
 
 
 service_settings = ENTSOEServiceSettings()

@@ -89,14 +89,14 @@ class SubscribedEIC(BaseModel):
     def get_market_type_name(self, code: str) -> str:
         return self._market_codes_[code]
 
-    def get_market_type_info(self, code: str) -> Optional[MarketTypeInfo]:
+    def get_market_type_info(self, code: str) -> Optional[List[MarketTypeInfo]]:
         market_type_name = self.get_market_type_name(code).lower()
         type_info = self.get_market_type(market_type_name)
-        if isinstance(type_info, MarketTypeInfo):
-            return type_info
-        return None
+        if isinstance(type_info, str):
+            return None
+        return type_info
 
-    def get_market_type(self, market_type_code: str, default: bool = False) -> Union[MarketTypeInfo, str]:
+    def get_market_type(self, market_type_code: str, default: bool = False) -> Union[List[MarketTypeInfo], str]:
         if isinstance(self.market_types, dict):
             try:
                 return self.market_types[market_type_code]
