@@ -143,13 +143,14 @@ def store_offers(market_uri: str, market_offer: MarketDocument, expected_length:
                 current_length = sum([mo.isp_len for mo in market_offers])
                 try:
                     assert expected_length == current_length
-                    if clear_previous:
-                        dao_manager.offer_api.clear_offer(offer_id=offer_details.offer_id)
-                    dao_manager.offer_api.log_day_offer(market_offers=market_offers)
                 except AssertionError:
                     logging.error("invalid")
                     raise AssertionError(
                         f"Invalid market offer length , expected:{expected_length} . Received: {current_length}")
+
+            if clear_previous:
+                dao_manager.offer_api.clear_offer(offer_id=offer_details.offer_id)
+            dao_manager.offer_api.log_day_offer(market_offers=market_offers)
 
 
 def unsubscribe_all_markets():
