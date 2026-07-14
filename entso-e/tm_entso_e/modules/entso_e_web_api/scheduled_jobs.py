@@ -45,11 +45,12 @@ def check_offer(job_meta: Iterable[JobMeta], current_ts: int, last_day: TimeSpan
                                                       log_obj_json=to_json(market_metadata)))
             subscribe_offer(eic_code=market_metadata.market_eic_code,
                             market_type_code=market_metadata.market_type_code,
-                            ti=last_day)
+                            ti=last_day, expected_length=market_metadata.market_type_info.offer_length)
             # next day
             subscribe_offer(eic_code=market_metadata.market_eic_code,
                             market_type_code=market_metadata.market_type_code,
-                            ti=TimeSpan(ts_from=current_ts, ts_to=current_ts + day_ts))
+                            ti=TimeSpan(ts_from=current_ts, ts_to=current_ts + day_ts),
+                            expected_length=market_metadata.market_type_info.offer_length)
             dao_manager.log_api.log(ServiceLogDAO(log_tag="INFO", log_message="Read market success",
                                                   log_ts=time_utils.current_timestamp(),
                                                   log_obj_type=f"{JobMeta.__module__}.{JobMeta.__name__}",

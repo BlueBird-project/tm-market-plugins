@@ -74,7 +74,9 @@ def subscribe_eic_area(s_eic_area: SubscribedEIC, ti: TimeSpan):
         for market_code, market_offer in result.items():
             from tm_entso_e.modules.ke_interaction.interactions.dam_model import MarketURI
             market_uri = MarketURI(eic_area=s_eic_area.code, market_code=market_code).uri
-            store_offers(market_uri=market_uri, market_offer=market_offer)
+            market_type_info = s_eic_area.get_market_type_info(code=market_code)
+            expected_length = None if market_type_info is None else market_type_info.offer_length
+            store_offers(market_uri=market_uri, market_offer=market_offer, expected_length=expected_length)
     except Exception as ex:
         logging.error(f"Exception {ex}, appeared while get_energy_prices for {s_eic_area.code} in {ti}")
         raise Exception(f"Subscribe EIC area ({s_eic_area.code}) failed: {ex}")
