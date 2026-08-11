@@ -1,9 +1,9 @@
 from typing import Optional
 
+import ubflex.rdf as ubflex
 from pydantic import BaseModel
 from rdflib import URIRef
 
-UBFLEX_MARKET_BASE = "https://ubflex.bluebird.eu/market/"
 
 
 class MarketDAO(BaseModel):
@@ -19,7 +19,7 @@ class MarketDAO(BaseModel):
 
 
 units = {
-    "EURPerMWH".lower(): URIRef(value="EURPerMegawattHour", base=UBFLEX_MARKET_BASE)
+    "EURPerMWH".lower(): ubflex.EURPerMWH
 }
 
 

@@ -5,8 +5,8 @@ from typing import List, Optional, Dict, Iterable, Type, Union
 
 from pydantic import BaseModel, ConfigDict
 from rdflib import URIRef
+import ubflex.rdf as  ubflex
 
-from tm_entso_e.schemas.market import DAYAHEAD_MARKET_TYPE, INTRADAY_MARKET_TYPE
 from tm_entso_e.utils import time_utils
 from tm_entso_e.utils.enum_utils import BaseEnum
 
@@ -17,8 +17,8 @@ class MarketAgreementTypeCode(BaseEnum):
         code: str
         uri_ref: URIRef
 
-    DAY_AHEAD = _Value(code="A01", uri_ref=DAYAHEAD_MARKET_TYPE)
-    INTRADAY = _Value(code="A07", uri_ref=INTRADAY_MARKET_TYPE)
+    DAY_AHEAD = _Value(code="A01", uri_ref=ubflex.DAYAHEAD_MARKET_TYPE)
+    INTRADAY = _Value(code="A07", uri_ref=ubflex.INTRADAY_MARKET_TYPE)
 
     @classmethod
     def parse(cls: Type, s: str, nullable: bool = False) -> Optional[_Value]:
