@@ -25,9 +25,9 @@ uvicorn==0.38.0
 isodate==0.7.2
 rdflib==7.5.0
 setuptools==80.10.2
-git+https://github.com/BlueBird-project/ke-pyclient.git@v0.31.6
+git+https://github.com/BlueBird-project/ke-pyclient.git@v0.31.10
 git+https://github.com/BlueBird-project/UBFlex.git@dev#subdirectory=ontology/PyUBFlex
-#git+https://github.com/BlueBird-project/ke-pyclient.git@main
-effi_onto_tools==0.19.15
+#git+https://github.com/BlueBird-project/ke-pyclient.git@reconnect_register_updates
+#ke_client==0.26.3
 ke_client==0.31.10
 ubflex==0.0.3
