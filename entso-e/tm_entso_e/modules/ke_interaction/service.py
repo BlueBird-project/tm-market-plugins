@@ -218,9 +218,10 @@ def get_market_offer(offer_uri: URIRef):
     offer_uri = offer_details.offer_uri
     market_offer: List[MarketOfferDAO] = dao_manager.offer_api.get_offer(offer_id=offer_details.offer_id)
     offer_bindings = [
-        MarketOfferBindings(offer_uri=URIRef(offer_uri), dp=OfferUri.uri_append_ref(offer_uri, "/dp"),
-                            ts=Literal(time_utils.xsd_from_ts(mo.ts)), dpr=OfferUri.uri_append_ref(offer_uri, "/dpr"),
-                            is_measured_in= offer_details.is_measured_in ,
+        MarketOfferBindings(offer_uri=URIRef(offer_uri), dp=OfferUri.uri_append_ref(offer_uri, f"/{mo.isp_start}/dp"),
+                            ts=Literal(time_utils.xsd_from_ts(mo.ts)),
+                            dpr=OfferUri.uri_append_ref(offer_uri, f"/{mo.isp_start}/dpr"),
+                            is_measured_in=offer_details.is_measured_in,
                             duration_uri=DurationURI(minutes=mo.isp_len * offer_details.isp_unit).uri_ref,
                             duration=Literal(
                                 duration_isoformat(timedelta(minutes=mo.isp_len * offer_details.isp_unit))),
