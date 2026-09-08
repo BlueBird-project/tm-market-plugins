@@ -3,6 +3,7 @@
 Retrieving API TOKEN (
 ENTSOE_TOKEN) - [acquire token](https://www.amsleser.no/blog/post/21-obtaining-api-token-from-entso-e)
 
+News [website](https://transparency.entsoe.eu/news) - in case of API problems or missing data   
 ## REST API
 
 ### Description
