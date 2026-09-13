@@ -8,6 +8,9 @@ from ke_client.utils.enum_utils import EnumItem, BaseEnum
 #     PRODUCTION = EnumItem(1)
 #     CONSUMPTION = EnumItem(0)
 
+# =====================================================
+# Positive power is consumption , negative production
+# =====================================================
 
 @dataclass
 class ContractDAO:

@@ -4,7 +4,7 @@ from typing import List, Optional
 from effi_onto_tools.db import TimeSpan
 from effi_onto_tools.db.dao import DAO
 
-from tm_capacity_pl.models.contract import ContractDAO
+from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO
 
 
 class ContractAPI(DAO):
@@ -12,13 +12,17 @@ class ContractAPI(DAO):
         super(ContractAPI, self).__init__(table_prefix=table_prefix)
 
     @abstractmethod
-    def list_contracts(self, ts: TimeSpan) -> List[ContractDAO]:
+    def list_contracts(self, ts: TimeSpan, contract_ack: bool) -> List[ContractDAO]:
         pass
 
     @abstractmethod
-    def get_current(self,contract_ack:bool) -> Optional[ContractDAO]:
+    def get_current(self, contract_ack: bool) -> Optional[ContractDAO]:
         pass
 
     @abstractmethod
-    def set_current(self, contract: ContractDAO) -> ContractDAO:
+    def add_contract(self, contract: ContractDAO) -> ContractDAO:
+        pass
+
+    @abstractmethod
+    def ack_contract(self, contract: ContractDAO) -> ContractDAO:
         pass
