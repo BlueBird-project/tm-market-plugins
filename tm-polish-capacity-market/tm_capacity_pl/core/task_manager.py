@@ -1,6 +1,7 @@
 import logging
 import random
 import threading
+from abc import abstractmethod
 from datetime import datetime, timedelta
 
 import pytz
@@ -33,14 +34,19 @@ def init(bg=True):
 def reset_scheduler():
     global service_job_scheduler
     import logging
+    logging.info(f"Current Scheduled jobs: {",".join([f"{j.name}({j.id})" for j in service_job_scheduler.get_jobs()])}")
     logging.info(f"Restart scheduler ({threading.current_thread().ident})")
     # from tm.core.db.postgresql import dao_manager
     # dao_manager.
+    jobs = [j for j in service_job_scheduler.get_jobs() if j.trigger == "cron"]
     service_job_scheduler.remove_all_jobs()
-    setup_scheduler_jobs(scheduler=service_job_scheduler, on_start=False)
+    for job in jobs:
+        logging.info(f"Restart job: {job.name}({job.id})")
+        service_job_scheduler.add_job(**vars(job))
+    service_job_scheduler.start()
 
 
-def setup_scheduler_jobs(scheduler: BaseScheduler, on_start: bool):
+def setup_scheduler_jobs(scheduler: BaseScheduler, on_start: bool, ):
     # from tm_entso_e.modules.entso_e_web_api import scheduled_jobs as entsoe_e_jobs
     # from tm_entso_e.modules.ke_interaction import scheduled_jobs as ke_jobs
     # entsoe_e_jobs.add_jobs(scheduler)
@@ -49,6 +55,7 @@ def setup_scheduler_jobs(scheduler: BaseScheduler, on_start: bool):
     if not scheduler.running:
         scheduler.start()
     jobs = scheduler.get_jobs()
+
     logging.info(f"Scheduled job: {",".join([f"{j.name}({j.id})" for j in jobs])}")
 
 
@@ -57,8 +64,8 @@ def _restart_jobs(scheduler: BaseScheduler, on_start=False):
     # hotfix for knowledge engine graph pattern inference (after service or KE server restart, inferred graph patterns are removed
     def start_retry_job():
         logging.info(f"Restart KE client and job scheduler ({threading.current_thread().ident}) ")
-        from tm_capacity_pl.core import ke_client
-        ke_client.reconnect(timeout_s=1, try_extend_gp=True)
+        from tm_capacity_pl.core import smart_client
+        smart_client.reconnect(timeout_s=1, try_extend_gp=True)
         reset_scheduler()
         # next_run = datetime.now(pytz.utc) + timedelta(seconds=15)
 
@@ -77,8 +84,8 @@ def _restart_jobs(scheduler: BaseScheduler, on_start=False):
                                          jitter=9000)  # jitter=int(60 * 60 * 2.5)
     def start_retry_job():
         logging.info(f"Restart KE client ({threading.current_thread().ident}) ")
-        from tm_capacity_pl.core import ke_client
-        ke_client.reconnect(timeout_s=1, try_extend_gp=True)
+        from tm_capacity_pl.core import smart_client
+        smart_client.reconnect(timeout_s=1, try_extend_gp=True)
 
 
 def setup_scheduler():
