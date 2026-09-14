@@ -9,7 +9,7 @@ from tm_capacity_pl.contract.core.db.postgresql.api_impl import QueryObject
 from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO
 
 
-class BaseQueries(QueryObject):
+class BaselineQueries(QueryObject):
     __TABLE_NAME__ = "contract_baseline"
 
     __PROJECTION__ = """ ${table_alias}."contract_id",${table_alias}."baseline_start",${table_alias}."granularity_ms",
@@ -42,7 +42,7 @@ class BaselineAPIImpl(BaselineAPI):
 
     def __init__(self, table_prefix: str):
         super(BaselineAPI, self).__init__(table_prefix=table_prefix)
-        self.queries: BaseQueries = self.build_queries(BaseQueries)
+        self.queries: BaselineQueries = self.build_queries(BaselineQueries)
 
     def get_baseline(self, contract_id: int) -> List[BaselineDAO]:
         with ConnectionWrapper() as conn:
