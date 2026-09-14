@@ -24,10 +24,11 @@ class ContractDAO:
 @dataclass
 class BaselineDAO:
     contract_id: int
-    create_time: int
     update_time: int
+    baseline_start: Optional[int]=None
+    granularity_ms: Optional[int]=None
+    baseline_value: Optional[float] = None
     power_span: Optional[float] = None
-    baseline: Optional[float] = None
     cost_mwh: Optional[float] = None
 
 
