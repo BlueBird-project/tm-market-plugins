@@ -3,7 +3,7 @@ from typing import Optional
 from effi_onto_tools.db import TimeSpan
 from fastapi import APIRouter
 
-from tm_entso_e.core.healthcheck import service
+from tm_capacity_pl.contract.core.healthcheck import service
 
 router = APIRouter(prefix="")
 

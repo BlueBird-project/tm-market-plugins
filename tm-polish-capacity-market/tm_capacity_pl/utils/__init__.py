@@ -1,0 +1,90 @@
+import math
+from typing import Optional
+
+from pydantic import BaseModel
+
+DAY_MS = 24 * 3600 * 1000
+WEEK_MS = 7 * DAY_MS
+
+
+# TODO: replace other timespan references
+class TimeSpan(BaseModel):
+    ts_from: Optional[int] = None
+    ts_to: Optional[int] = None
+
+    def __init__(self, ts_from: Optional[int] = None, ts_to: Optional[int] = None):
+        if ts_from is None and ts_to is None:
+            from ke_client.utils import time_utils
+            ts_to = time_utils.current_timestamp() + DAY_MS
+            ts_from = ts_to - 2 * DAY_MS
+        ts_from = ts_from if ts_from is not None else ts_to - DAY_MS
+        ts_to = ts_to if ts_to is not None else ts_from + DAY_MS
+        if ts_to < ts_from:
+            raise ValueError("Time from cannot be after time to")
+        super().__init__(ts_from=ts_from, ts_to=ts_to)
+
+    @staticmethod
+    def last_week():
+        from ke_client.utils import time_utils
+        ts_to = time_utils.current_timestamp()
+        ts_from = ts_to - WEEK_MS
+        return TimeSpan(ts_from=ts_from, ts_to=ts_to)
+
+    @staticmethod
+    def last_day():
+        from ke_client.utils import time_utils
+        ts_to = time_utils.current_timestamp()
+        ts_from = ts_to - DAY_MS
+        return TimeSpan(ts_from=ts_from, ts_to=ts_to)
+
+    @staticmethod
+    def next_day():
+        from ke_client.utils import time_utils
+        ts_from = time_utils.current_timestamp()
+        ts_to = ts_from + DAY_MS
+        return TimeSpan(ts_from=ts_from, ts_to=ts_to)
+
+    def __len__(self):
+        try:
+            span = self.ts_to - self.ts_from
+            if span < 0:
+                raise ValueError("Negative time interval")
+            return span
+        except AttributeError | TypeError:
+            return None
+
+    @staticmethod
+    def non_empty(ts: Optional['TimeSpan'] = None) -> 'TimeSpan':
+        if ts is None or len(ts) == 0:
+            from ke_client.utils import time_utils
+            cur_ts = time_utils.current_timestamp()
+            return TimeSpan(ts_from=cur_ts - DAY_MS, ts_to=cur_ts + DAY_MS)
+        return ts
+
+    @property
+    def time_span_ms(self):
+        return self.ts_to - self.ts_from
+
+    @property
+    def time_span_min(self):
+        return self.time_span_ms / 60000
+
+
+def ms_to_isp_unit(ms: int) -> int:
+    """
+    milliseconds to isp unit
+    :param ms:  milliseconds
+    :return:
+    """
+    _minute_ms = 60 * 1000
+    return math.ceil(ms / _minute_ms)
+
+
+def isp_unit_to_ms(isp_unit: int) -> int:
+    """
+    isp unit to milliseconds
+    :param isp_unit - isp len in minutes
+    :return:
+    """
+    _minute_ms = 60 * 1000
+    return isp_unit * _minute_ms

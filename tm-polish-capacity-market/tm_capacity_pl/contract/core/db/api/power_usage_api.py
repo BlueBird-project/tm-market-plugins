@@ -16,5 +16,5 @@ class PowerUsageAPI(DAO):
         pass
 
     @abstractmethod
-    def log_power(self, power_history: List[CapacityPowerDAO]) -> Optional[CapacityPowerDAO]:
+    def log_power(self, power_history: List[CapacityPowerDAO]) -> int:
         pass

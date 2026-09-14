@@ -31,8 +31,8 @@ class BaselineDAO:
     power_span: Optional[float] = None
     cost_mwh: Optional[float] = None
 
-
+@dataclass
 class CapacityPowerDAO:
     ts: int
-    value: Optional[float] = None
     granularity_ms: int
+    value: Optional[float] = None
