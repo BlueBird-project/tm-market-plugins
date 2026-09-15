@@ -2,7 +2,7 @@ from effi_onto_tools.db.dao_exception import DeprecatedSchemaException
 
 
 def setup_db():
-    from tm_entso_e import app_args
+    from tm_capacity_pl import app_args
     from effi_onto_tools.db.postgresql import configure_pg
     configure_pg(app_args.config_path)
 

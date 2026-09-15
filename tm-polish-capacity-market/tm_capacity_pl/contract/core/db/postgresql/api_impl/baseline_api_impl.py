@@ -12,7 +12,7 @@ from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO
 class BaselineQueries(QueryObject):
     __TABLE_NAME__ = "contract_baseline"
 
-    __PROJECTION__ = """ ${table_alias}."contract_id",${table_alias}."baseline_start",${table_alias}."granularity_ms",
+    __PROJECTION__ = """ ${table_alias}."contract_id",${table_alias}."baseline_isp",${table_alias}."isp_len",
      ${table_alias}."power_span",  ${table_alias}."baseline_value", ${table_alias}."cost_mwh",
       ${table_alias}."update_time" """
 
@@ -21,20 +21,20 @@ class BaselineQueries(QueryObject):
     """
 
     INSERT_CONTRACT_BASELINE = """INSERT INTO "${table_prefix}contract_baseline" 
-    ("contract_id", "baseline_start", "granularity_ms","power_span", "baseline_value", "cost_mwh") 
-    VALUES (:contract_id,:baseline_start,:granularity_ms,:power_span, :baseline_value, :cost_mwh,
+    ("contract_id", "baseline_isp", "isp_len","power_span", "baseline_value", "cost_mwh") 
+    VALUES (:contract_id,:baseline_isp,:isp_len,:power_span, :baseline_value, :cost_mwh,
     extract(epoch from now()) * 1000,:ext) 
     """
 
     UPDATE_CONTRACT_BASELINE = """UPDATE "${table_prefix}contract_baseline" 
-    SET "baseline_start" =  :baseline_start , "granularity_ms" = :granularity_ms, "baseline_value" = :baseline_value,
+    SET "baseline_isp" =  :baseline_isp , "isp_len" = :isp_len, "baseline_value" = :baseline_value,
     "update_ts" =  extract(epoch from now()) * 1000  
-    WHERE contract_id = :contract_id and "baseline_start" = :baseline_start
+    WHERE contract_id = :contract_id and "baseline_isp" = :baseline_isp
     """
 
     UPDATE_BASELINE_OFFER = """UPDATE "${table_prefix}contract_baseline" 
     SET "power_span" =  :power_span ,  "update_ts" =  extract(epoch from now()) * 1000  
-    WHERE contract_id = :contract_id and "baseline_start" = :baseline_start
+    WHERE contract_id = :contract_id and "baseline_isp" = :baseline_isp
     """
 
 

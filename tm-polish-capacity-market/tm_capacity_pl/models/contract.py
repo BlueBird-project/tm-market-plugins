@@ -24,9 +24,9 @@ class ContractDAO:
 @dataclass
 class BaselineDAO:
     contract_id: int
-    update_time: int
-    baseline_start: Optional[int]=None
-    granularity_ms: Optional[int]=None
+    update_time: Optional[int]=None
+    baseline_isp: Optional[int]=None
+    isp_len: Optional[int]=None
     baseline_value: Optional[float] = None
     power_span: Optional[float] = None
     cost_mwh: Optional[float] = None
