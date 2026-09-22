@@ -15,21 +15,30 @@ from ke_client.utils.enum_utils import EnumItem, BaseEnum
 @dataclass
 class ContractDAO:
     create_time: int
-    update_time: int
-    cost_mwh: Optional[float] = None
+    update_time: Optional[int] = None
+    offer_mwh: Optional[float] = None
+    capacity_obligation: Optional[float] = None
+    offer_ack_mwh: Optional[float] = None
+    capacity_ack_obligation: Optional[float] = None
+    current_baseline_id: Optional[float] = None
     # contract_ack: bool = False
     ack_ts: Optional[int] = None
 
 
 @dataclass
+class CertifiedBaselineDAO:
+    baseline_id: int
+    update_time: Optional[int] = None
+
+
+@dataclass
 class BaselineDAO:
+    baseline_id: int
     contract_id: int
-    update_time: Optional[int]=None
-    baseline_isp: Optional[int]=None
-    isp_len: Optional[int]=None
+    baseline_isp: Optional[int] = None
+    isp_len: Optional[int] = None
     baseline_value: Optional[float] = None
-    power_span: Optional[float] = None
-    cost_mwh: Optional[float] = None
+
 
 @dataclass
 class CapacityPowerDAO:
