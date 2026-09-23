@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 
 from ke_client.utils.enum_utils import EnumItem, BaseEnum
 
@@ -25,20 +25,35 @@ class ContractDAO:
     ack_ts: Optional[int] = None
 
 
-@dataclass
-class CertifiedBaselineDAO:
-    baseline_id: int
-    update_time: Optional[int] = None
+
 
 
 @dataclass
 class BaselineDAO:
     baseline_id: int
+    # contract_id: Optional[int] = None
+    update_time: Optional[int] = None
+
+@dataclass
+class CertifiedBaseline:
+    baseline_id: int
     contract_id: int
+    update_time: Optional[int] = None
+
+
+@dataclass
+class BaselineValueDAO:
+    baseline_id: int
     baseline_isp: Optional[int] = None
     isp_len: Optional[int] = None
     baseline_value: Optional[float] = None
 
+@dataclass
+class Baseline:
+    baseline_id: int
+    values: List[BaselineValueDAO]
+    contract_id:  Optional[int] = None
+    update_time: Optional[int] = None
 
 @dataclass
 class CapacityPowerDAO:
