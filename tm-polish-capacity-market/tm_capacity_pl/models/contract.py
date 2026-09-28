@@ -20,7 +20,7 @@ class ContractDAO:
     capacity_obligation: Optional[float] = None
     offer_ack_mwh: Optional[float] = None
     capacity_ack_obligation: Optional[float] = None
-    current_baseline_id: Optional[float] = None
+    current_baseline_id: Optional[int] = None
     # contract_ack: bool = False
     ack_ts: Optional[int] = None
 

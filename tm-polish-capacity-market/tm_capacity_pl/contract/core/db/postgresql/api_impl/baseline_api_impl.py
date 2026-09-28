@@ -72,6 +72,7 @@ class BaselineAPIImpl(BaselineAPI):
             baselines = conn.select(q=self.queries.LIST_BASELINE, args=args, obj_type=CertifiedBaseline)
             return baselines
 
+
     def get_baseline(self, baseline_id: int) -> Baseline:
         with ConnectionWrapper() as conn:
             args = {"baseline_id": baseline_id}

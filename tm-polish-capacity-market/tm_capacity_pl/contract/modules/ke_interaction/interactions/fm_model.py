@@ -51,8 +51,28 @@ class FMPnt(BindingsBase):
     def get_value(self) -> Optional[float]:
         return self.convert_value(self.value, float)
 
+@ki_object("flex-request" )
+class BaselineFlexibilityRequest(BindingsBase):
+    flex_request: URIRef
+    baseline_uri: URIRef
+    dp: URIRef
+    ts: Literal
+    dpr: URIRef
+    value: Optional[Literal]
+
+    def __init__(self, **kwargs):
+        super().__init__(bindings=kwargs)
+
+    @property
+    def ts_ms(self) -> int:
+        return time_utils.xsd_to_ts(self.ts)
+
+    def get_value(self) -> Optional[float]:
+        return self.convert_value(self.value, float)
+
 
 @ki_split_uri(uri_template="http://ke.bluebird.com/interval/${ts_from}/${ts_to}")
 class KETimeIntervalUri(SplitURIBase):
     ts_from: int
     ts_to: int
+
