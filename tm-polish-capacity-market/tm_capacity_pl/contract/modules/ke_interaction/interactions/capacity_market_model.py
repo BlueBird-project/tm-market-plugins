@@ -89,3 +89,21 @@ class BaselineDPUri(SplitURIBase):
 @ki_split_uri(uri_template="/dpr/${isp}")
 class BaselineDPRUri(SplitURIBase):
     isp: int
+
+
+#####################
+
+@ki_object("contract")
+class TMContract(BindingsBase):
+    flex_request: URIRef
+    flex_offer: URIRef
+    flex_participant: URIRef
+    flex_dp: URIRef
+    cost_dp: URIRef
+    flex_dpr: URIRef
+    cost_dpr: URIRef
+    ts: Literal
+    dpr: URIRef
+    flex_value: Union[URIRef, Literal, None]
+    cost_value: Union[URIRef, Literal, None]
+
