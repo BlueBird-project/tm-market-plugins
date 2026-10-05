@@ -1,7 +1,5 @@
-
-
 From: Portal Uczestnika Rynku Mocy <powiadomienia@dmkpsrm1.pse.pl>
-To: "some_email@example.org" <some_email@example.org>
+To: "tomaszc@man.poznan.pl" <tomaszc@man.poznan.pl>
 Subject: =?iso-8859-2?Q?Og=B3oszenie_okresu_przywo=B3ania_na_rynku_mocy_-_06.08.20?=
  =?iso-8859-2?Q?26_godz._18:00_-_19:00?=
 Thread-Topic: =?iso-8859-2?Q?Og=B3oszenie_okresu_przywo=B3ania_na_rynku_mocy_-_06.08.20?=
@@ -11,7 +9,9 @@ Date: Thu, 6 Aug 2026 07:34:06 +0000
 Message-ID: <a1a4807e4e0f4815b20f60a4891dee68@purm.pse.pl>
 Accept-Language: pl-PL, en-US
 Content-Language: en-US
-
+Content-Type: multipart/alternative;
+	boundary="_000_a1a4807e4e0f4815b20f60a4891dee68purmpsepl_"
+MIME-Version: 1.0
 --_000_a1a4807e4e0f4815b20f60a4891dee68purmpsepl_
 Content-Type: text/plain; charset="iso-8859-2"
 Content-Transfer-Encoding: quoted-printable
