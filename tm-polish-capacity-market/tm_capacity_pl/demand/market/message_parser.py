@@ -16,7 +16,7 @@ ratio_pattern = r"SOMi\s*=\s*([0-9]+,[0-9]+)\s*\*\s*OMi"
 def _get_time(bs_page: BeautifulSoup) -> Optional[Tuple[str, int, int]]:
     span_list = bs_page.select("span")
     for span in span_list:
-        span_matched = re.search(time_pattern,  span.text)
+        span_matched = re.search(time_pattern, span.text)
         if span_matched:
             date, start_time, end_time = span_matched.groups()
             return date, int(start_time.split(":")[0]), int(end_time.split(":")[0])
@@ -49,6 +49,14 @@ class CapacityMarketNotification:
         dt = datetime.strptime(value, "%d.%m.%Y")
 
         return Literal(dt.isoformat(), datatype=XSD.dateTime)
+
+    @property
+    def xsd_start_datetime(self):
+        value = self.date.strip().strip("*")
+        dt = datetime.strptime(value, "%d.%m.%Y")
+
+        return Literal(datetime(dt.year, dt.month, dt.day, self.start_time, minute=0).isoformat(),
+                       datatype=XSD.dateTime)
 
     @property
     def xsd_start_time(self):

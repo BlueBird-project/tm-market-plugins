@@ -5,7 +5,7 @@ from ke_client import KIHolder
 from ke_client.ki_model import KIPostResponse
 
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import BaselineFlexRequest, \
-    BaselineFlexResponse, MarketPrice, TMContract
+    BaselineFlexResponse, MarketPrice, TMContract, TMContractACK
 
 ki = KIHolder()
 
@@ -15,11 +15,20 @@ def _request_flexibility_offer(baseline: List[BaselineFlexRequest]):
     return baseline
 
 
-@ki.react("baseline-flexibility")
+@ki.react("contract")
 def on_contract(kb_id: str, bindings: List[TMContract]):
+    # receive from TM contract
+    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import process_contract
     # todo:
     # process contract
+    process_contract(contracts=bindings)
     return []
+
+
+@ki.post("contract-ack")
+def _post_contract_ack(contract_ack: TMContractACK):
+    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import process_contract
+    return contract_ack
 
 
 @ki.post("capacity-market-price")
@@ -44,3 +53,10 @@ def request_flexibility_offer(baseline: List[BaselineFlexRequest]) -> BaselineFl
 def post_market_price():
     resp_bindings: KIPostResponse = _post_market_price()
     pass
+
+
+def post_market_ack(contract_ack: List[TMContractACK]):
+    resp_bindings: KIPostResponse = _post_contract_ack(contract_ack)
+    # resp_bindings.exchangeInfo[0].knowledgeBaseId
+    # todo: verify if all have acknowledged the contract
+

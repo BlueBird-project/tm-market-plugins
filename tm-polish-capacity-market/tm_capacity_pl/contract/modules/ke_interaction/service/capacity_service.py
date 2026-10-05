@@ -4,6 +4,7 @@ from typing import List
 from isodate import duration_isoformat
 from rdflib import Literal
 
+from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_interactions import post_market_ack
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import MarketPrice, \
     MarketOfferUri, MarketOfferDPUri, DurationURI, MarketOfferDPRUri, TMContract
 
@@ -35,4 +36,8 @@ def get_prices() -> List[MarketPrice]:
 def process_contract(contracts: List[TMContract]):
     # todo:
     # intearact with market and post ACK
-    pass
+    def publish_job():
+        # todo:
+        # market_contract_ack =
+        post_market_ack([])
+    return
