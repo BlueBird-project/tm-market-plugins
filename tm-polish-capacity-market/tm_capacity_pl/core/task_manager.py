@@ -98,4 +98,7 @@ def setup_scheduler():
     else:
         print("Start sync scheduler")
         service_job_scheduler = init(bg=False)
+
+
+def start_scheduler():
     setup_scheduler_jobs(scheduler=service_job_scheduler, on_start=True)

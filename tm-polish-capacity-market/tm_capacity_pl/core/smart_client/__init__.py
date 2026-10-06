@@ -108,7 +108,7 @@ def set_sync_ke_client():
     _set_ke_client(bg_mode=False)
 
 
-def init_client():
+def start_client():
     from tm_capacity_pl.core import app_settings
     if app_settings.use_scheduler or app_settings.use_rest_api:
 
