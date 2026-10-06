@@ -1,5 +1,5 @@
-from tm_capacity_pl.demand.modules.market.message_generator import init_message
-from tm_capacity_pl.demand.modules.market import process_message
+from tm_capacity_pl.notification.modules.market.message_generator import init_message
+from tm_capacity_pl.notification.modules.market import process_message
 
 # with open("../resources/sample_email.eml", "rb") as f:
 #     msg = BytesParser(policy=policy.default).parse(f)

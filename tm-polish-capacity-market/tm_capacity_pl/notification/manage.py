@@ -1,6 +1,5 @@
 import logging
 
-
 from tm_capacity_pl.core import service_settings
 
 if __name__ == "__main__":
@@ -9,6 +8,7 @@ if __name__ == "__main__":
     ###
     tm.init_args()
     from effi_onto_tools import utils
+
     utils.ENV_FILE = tm.app_args.env_path
     tm.set_logging()
     logging.info(f"START {service_settings.name}")
@@ -19,9 +19,9 @@ if __name__ == "__main__":
     #
     # setup_db()
 
+if __name__ == "__main__":
+    from tm_capacity_pl.core import app_settings
 
-if __name__ == "__main__" :
-    from tm_capacity_pl.core import  app_settings
     if app_settings.use_ke_api:
         logging.info("INIT KI")
         # setup ke
@@ -53,11 +53,11 @@ if __name__ == "__main__":
 
         # from main.modules.tge_api.admin_router import router as admin_router
         from fastapi import FastAPI
-        from tm_capacity_pl.demand.modules.rest.router import router as demand_router
+        from tm_capacity_pl.notification.modules.rest.router import router as notification_router
 
         app = FastAPI(docs_url="/api",
                       openapi_url="/openapi.json", redoc_url="/redoc")
-        app.include_router(router=demand_router, prefix="/api")
+        app.include_router(router=notification_router, prefix="/api")
         # app.include_router(router=ki_router, prefix="/ki")
 
         healthcheck_app = FastAPI(docs_url="/docs",
