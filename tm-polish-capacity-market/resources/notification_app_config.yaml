@@ -1,0 +1,29 @@
+service:
+  port: 8081
+  host: "0.0.0.0"
+  root_path: ""
+  name: "local-service"
+app:
+  logging_conf_path: "./resources/logging.ini"
+db:
+  db_log_query: false
+  db_log_error_query: true
+  db_max_rows: 65000
+  db_init: true
+ke:
+  allow_partial_ki: true
+  ki_config_path: ./resources/deployment/ke_config.yaml
+  ki_vars:
+    DAY_DURATION: '"PT1440M"^^xsd:duration'
+    ISP_UNIT: '"PT15M"^^xsd:duration'
+    CURRENCY_UNIT: "EUR"
+    ENERGY_COST_UNIT: "EURPerMegawattHour"
+#  ontology_prefixes:
+#    saref: "https://saref.etsi.org/core/"
+#    s4city: "https://saref.etsi.org/saref4city/"
+#    s4ener: "https://saref.etsi.org/saref4ener/"
+#    foaf: "http://xmlns.com/foaf/0.1/"
+#    ubmarket: "https://ubflex.bluebird.eu/market/"
+  extension_ontology_files:
+    - "./resources/deployment/ki/bluebird.ttl"
+    - "./resources/deployment/ki/resources.ttl"

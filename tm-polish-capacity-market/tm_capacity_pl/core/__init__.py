@@ -7,11 +7,13 @@ from tm_capacity_pl.core.config import APPSettings, ServiceSettings
 app_settings: APPSettings = APPSettings.load()
 service_settings: ServiceSettings = ServiceSettings.load()
 smart_client: KEClient
+_smart_client_initialized = False
 
 
 def init_sc(env_path: str = ".env"):
     global smart_client
-    if smart_client:
+    global _smart_client_initialized
+    if _smart_client_initialized:
         return smart_client
     import ke_client
 
@@ -23,6 +25,7 @@ def init_sc(env_path: str = ".env"):
     import logging
     ki_client: KEClient = KEClient.build(logger=logging.getLogger())
     smart_client = ki_client
+    _smart_client_initialized = True
     return smart_client
 
 

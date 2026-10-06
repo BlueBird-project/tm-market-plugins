@@ -2,6 +2,7 @@ import argparse
 import os
 from typing import Optional, Tuple
 
+from fastapi import FastAPI
 
 if __name__ == "__main__":
     # ke_endpoint = os.environ.get( "KE_ENDPOINT")
@@ -36,6 +37,7 @@ def get_args() -> AppArgs:
 
 
 app_args: Optional[AppArgs] = None
+rest_app: FastAPI
 
 
 def init_args() -> AppArgs:
@@ -66,6 +68,7 @@ def set_logging():
 def init_service():
     # if ke is enabled
     import logging
+    global app  # TODO move to rest api python package
     from tm_capacity_pl.core import app_settings
     if app_settings.use_ke_api:
         logging.info("INIT KI")
@@ -81,10 +84,7 @@ def init_service():
         from tm_capacity_pl.core import task_manager
         task_manager.setup_scheduler()
     if app_settings.use_rest_api:
-        import uvicorn
-
         # from main.modules.tge_api.admin_router import router as admin_router
-        from fastapi import FastAPI
         from tm_capacity_pl.notification.modules.rest.router import router as notification_router
 
         app = FastAPI(docs_url="/api",
@@ -101,14 +101,19 @@ def init_service():
         #                     openapi_url="/openapi.json", redoc_url="/redoc")
         # admin_app.include_router(router=admin_router, prefix="")
         # app.mount("/admin", admin_app)
-        from tm_capacity_pl.core import service_settings
-        uvicorn.run(app, port=service_settings.port, host=service_settings.host, root_path=service_settings.root_path,
-                    log_config=None)
-
 
 
 def start_service():
     from tm_capacity_pl.core.task_manager import start_scheduler
     from tm_capacity_pl.core import start_sc
-    start_sc()
-    start_scheduler()
+    from tm_capacity_pl.core import app_settings
+    if app_settings.use_ke_api:
+        start_sc()
+    if app_settings.use_scheduler:
+        start_scheduler()
+
+    if app_settings.use_rest_api:
+        import uvicorn
+        from tm_capacity_pl.core import service_settings
+        uvicorn.run(app, port=service_settings.port, host=service_settings.host, root_path=service_settings.root_path,
+                    log_config=None)

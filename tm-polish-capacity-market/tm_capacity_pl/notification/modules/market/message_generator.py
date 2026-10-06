@@ -1,4 +1,6 @@
-template_path = "../resources/template_email.eml"
+# TODO:
+# set it in the config file
+template_path = "./resources/template_email.eml"
 
 
 def _validate_time(t: int):
