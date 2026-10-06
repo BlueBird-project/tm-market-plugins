@@ -1,13 +1,11 @@
 import random
-from datetime import datetime
 from typing import List
 
-from ke_client.utils import time_utils
 from rdflib import URIRef, Literal
 from ubflex.rdf import UBFLEX_MARKET_BASE
 
-from tm_capacity_pl.demand.ke_interaction.interactions.capacity_market_model import TMNotification
-from tm_capacity_pl.demand.market.message_parser import CapacityMarketNotification
+from tm_capacity_pl.demand.modules.ke_interaction.interactions.capacity_market_model import TMNotification
+from tm_capacity_pl.demand.modules.market.message_parser import CapacityMarketNotification
 
 
 def init_message(notification: CapacityMarketNotification) -> List[TMNotification]:

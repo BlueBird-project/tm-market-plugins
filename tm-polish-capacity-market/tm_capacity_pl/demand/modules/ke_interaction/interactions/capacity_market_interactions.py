@@ -3,8 +3,7 @@ from typing import List
 from ke_client import KIHolder
 from ke_client.ki_model import KIPostResponse
 
-from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import TMContractACK
-from tm_capacity_pl.demand.ke_interaction.interactions.capacity_market_model import TMNotification
+from tm_capacity_pl.demand.modules.ke_interaction.interactions.capacity_market_model import TMNotification
 
 ki = KIHolder()
 
