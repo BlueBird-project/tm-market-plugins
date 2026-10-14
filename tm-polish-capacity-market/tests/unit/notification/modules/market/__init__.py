@@ -42,7 +42,7 @@ sample_consumption_data = {
                    10.810, 10.350, 10.100, 10.310, 10.420, 10.570, 10.780, 10.380, 10.430, 10.190]
 
 }
-sample_notifications = [CapacityMarketNotification(date="2021-01-20", start_time=11, end_time=12, ratio=1.0)]
+sample_notifications = [CapacityMarketNotification(date="20.01.2021", start_time=11, end_time=12, ratio=1.0)]
 
 
 def init_consumption_timeseries(tz: ZoneInfo) -> List[CapacityPower]:
@@ -53,3 +53,8 @@ def init_consumption_timeseries(tz: ZoneInfo) -> List[CapacityPower]:
                               , granularity_ms=3600000, value=v).set_timezone(tzinfo=tz) for h, v in enumerate(d[k])]
 
     return res
+
+
+def init_notification(tz: ZoneInfo) -> List[CapacityMarketNotification]:
+    return [(CapacityMarketNotification(date=n.date, start_time=n.start_time, end_time=n.end_time,
+                                        ratio=n.ratio).set_timezone(tzinfo=tz)) for n in sample_notifications]

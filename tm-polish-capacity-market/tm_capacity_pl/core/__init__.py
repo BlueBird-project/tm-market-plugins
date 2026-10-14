@@ -33,4 +33,4 @@ def start_sc():
     global smart_client
     from tm_capacity_pl.core.smart_client import start_client
 
-    start_client()
+    start_client(ki_client=smart_client)

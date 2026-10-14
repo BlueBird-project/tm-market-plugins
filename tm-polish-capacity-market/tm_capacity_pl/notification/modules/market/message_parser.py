@@ -1,5 +1,5 @@
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, time
 from email import policy
 from email.message import EmailMessage, Message
@@ -8,6 +8,7 @@ from typing import Optional, Tuple
 
 from bs4 import BeautifulSoup
 from rdflib import Literal, XSD
+from zoneinfo import ZoneInfo
 
 time_pattern = r"(\d{1,2}\.\d{1,2}\.\d{4})\s+od godziny\s+(\d{1,2}:\d{2})\s+do godziny\s+(\d{1,2}:\d{2})"
 ratio_pattern = r"SOMi\s*=\s*([0-9]+,[0-9]+)\s*\*\s*OMi"
@@ -42,6 +43,8 @@ class CapacityMarketNotification:
     start_time: int
     end_time: int
     ratio: float
+    _datetime: Optional[datetime] = field(default=None, repr=False, compare=False)
+    _tz: Optional[ZoneInfo] = field(default=None, repr=False, compare=False)
 
     @property
     def xsd_date(self):
@@ -57,6 +60,26 @@ class CapacityMarketNotification:
 
         return Literal(datetime(dt.year, dt.month, dt.day, self.start_time, minute=0).isoformat(),
                        datatype=XSD.dateTime)
+
+    def set_timezone(self, tzinfo: ZoneInfo):
+        self._tz = tzinfo
+        self._datetime = None
+        return self
+
+    @property
+    def dt(self) -> datetime:
+        """
+        :return: datetime
+        """
+        # tzinfo = self._tz if tzinfo is None else tzinfo
+        if self._datetime is None:
+            value = self.date.strip().strip("*")
+            if self._tz is None:
+                dt = datetime.strptime(value, "%d.%m.%Y")
+            else:
+                dt = datetime.strptime(value, "%d.%m.%Y").replace(tzinfo=self._tz)
+            self._datetime = dt
+        return self._datetime
 
     @property
     def xsd_start_time(self):

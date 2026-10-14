@@ -4,11 +4,13 @@ from typing import Optional
 
 @dataclass
 class PowerDemandDAO:
-    create_time: int
+    ts: int
     demand_start: int
     demand_end: int
     capacity_obligation_ratio: float
-    demand_id: Optional[int] = None
+    contracted_capacity:float
+    max_power:float
+    update_time: Optional[int] = None
 
 
 @dataclass

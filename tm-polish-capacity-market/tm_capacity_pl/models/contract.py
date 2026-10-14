@@ -1,6 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Optional, List
+from zoneinfo import ZoneInfo
 
+from ke_client.utils import time_utils
 from ke_client.utils.enum_utils import EnumItem, BaseEnum
 
 
@@ -25,14 +28,12 @@ class ContractDAO:
     ack_ts: Optional[int] = None
 
 
-
-
-
 @dataclass
 class BaselineDAO:
     baseline_id: int
     # contract_id: Optional[int] = None
     update_time: Optional[int] = None
+
 
 @dataclass
 class CertifiedBaseline:
@@ -48,15 +49,50 @@ class BaselineValueDAO:
     isp_len: Optional[int] = None
     baseline_value: Optional[float] = None
 
+
+@dataclass
+class BaselineValue:
+    ts: int
+    baseline_isp: Optional[int]
+    baseline_value: Optional[float]
+    isp_len: Optional[int]
+
+
 @dataclass
 class Baseline:
     baseline_id: int
     values: List[BaselineValueDAO]
-    contract_id:  Optional[int] = None
+    contract_id: Optional[int] = None
     update_time: Optional[int] = None
+
 
 @dataclass
 class CapacityPowerDAO:
     ts: int
     granularity_ms: int
     value: Optional[float] = None
+
+
+@dataclass
+class CapacityPower(CapacityPowerDAO):
+    _datetime: Optional[datetime] = field(default=None, repr=False, compare=False)
+    _tz: Optional[ZoneInfo] = field(default=None, repr=False, compare=False)
+
+    def set_timezone(self, tzinfo: ZoneInfo):
+        self._tz = tzinfo
+        self._datetime = None
+        return self
+
+    @property
+    def dt(self):
+        """
+        :return: datetime
+        """
+        # tzinfo = self._tz if tzinfo is None else tzinfo
+        if self._datetime is None:
+            if self._tz is None:
+                dt = time_utils.from_timestamp(ts_ms=self.ts)
+            else:
+                dt = time_utils.from_timestamp(ts_ms=self.ts).replace(tzinfo=self._tz)
+            self._datetime = dt
+        return self._datetime

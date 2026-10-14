@@ -39,10 +39,10 @@ from ke_client import KEClient
 #     DAY_DURATION = "DAY_DURATION"
 
 
-def _set_ke_client(bg_mode=False) -> KEClient:
+def _set_ke_client(ki_client: KEClient, bg_mode=False, ) -> KEClient:
     # from tm_entso_e.modules.ke_interaction.interactions import ki_client as ke_ki_client
-    ki_client: KEClient = KEClient.build(logger=logging.getLogger())
-    setup_ke()
+    # ki_client: KEClient = KEClient.build(logger=logging.getLogger())
+    # setup_ke()
     # ke_client.KE_CONFIG_PATH = ke_config_path
     MAX_ATTEMPTS = 20
 
@@ -94,9 +94,10 @@ def _set_ke_client(bg_mode=False) -> KEClient:
         return ki_client
 
 
-def set_bg_ke_client() -> KEClient:
+def set_bg_ke_client(ki_client: KEClient) -> KEClient:
     # from tm.modules.ke_interaction.interactions import ki_client
-    ki_client = _set_ke_client(bg_mode=True)
+    # ki_client = _set_ke_client(bg_mode=True)
+    _set_ke_client(ki_client=ki_client, bg_mode=True)
     while not ki_client.is_registered:
         # TODO: stop service id can't register
         logging.info(f"KE client is not registered, wait for all KI to be registered.")
@@ -104,16 +105,15 @@ def set_bg_ke_client() -> KEClient:
     return ki_client
 
 
-def set_sync_ke_client():
-    _set_ke_client(bg_mode=False)
+def set_sync_ke_client(ki_client: KEClient):
+    _set_ke_client(ki_client=ki_client, bg_mode=False)
 
 
-def start_client():
+def start_client(ki_client: KEClient):
     from tm_capacity_pl.core import app_settings
     if app_settings.use_scheduler or app_settings.use_rest_api:
 
-
         logging.info("Running BG KE client")
-        return set_bg_ke_client()
+        return set_bg_ke_client(ki_client=ki_client)
     else:
-        return set_sync_ke_client()
+        return set_sync_ke_client(ki_client=ki_client)

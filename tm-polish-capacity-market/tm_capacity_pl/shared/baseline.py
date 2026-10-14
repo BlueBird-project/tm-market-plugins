@@ -168,9 +168,10 @@ class ReferenceProfileStream:
 
         return None
 
-    def ref_profile(self):
+    def ref_profile(self,dt:datetime):
         assert all(v is not None for v in self.value_buffer)
-        return self.value_buffer
+        return [ BaselineValue(ts=time_utils.to_timestamp(dt.replace(hour=i)), baseline_value=b.cur(), baseline_isp=i,
+                               isp_len=60) for i, b in enumerate(self.value_buffer)]
 
     def profile_exists(self):
         return all(v is not None for v in self.value_buffer)
