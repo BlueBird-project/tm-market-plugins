@@ -11,4 +11,4 @@ def test_calc_reference_profile():
                      9.363, 9.493, 9.563, 9.455, 9.375, 9.330, 9.375, 9.368, 9.600, 9.430,
                      9.325, 9.280, 9.450, 9.405]
     for i, v in enumerate(assert_values):
-        assert round_math(round_math(ref_profile[i].baseline_value,6),3) == v
+        assert  round_math(ref_profile[i].baseline_value ,3) == v

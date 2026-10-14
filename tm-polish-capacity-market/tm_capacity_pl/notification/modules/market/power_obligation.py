@@ -52,7 +52,7 @@ def dt_key(dt: datetime):
 
 
 def calc_obligation(notification: List[CapacityMarketNotification], power_history: List[CapacityPower],
-                    contracted_capacity: float = 0)->Dict[int, List[Optional[PowerDemandDAO]]]:
+                    contracted_capacity: float = 0) -> Dict[int, List[Optional[PowerDemandDAO]]]:
     notification_grouped: Dict[int, NotificationList] = defaultdict(NotificationList)
     power_history_grouped: Dict[int, PowerList] = defaultdict(PowerList)
     baseline_grouped: Dict[int, List[BaselineValue]] = defaultdict(list)
@@ -68,7 +68,7 @@ def calc_obligation(notification: List[CapacityMarketNotification], power_histor
         p.set_timezone(tzinfo=POLAND_TZ)
         power_history_grouped[dt_key(dt=p.dt)].data.append(p)
 
-    if len(notification_grouped) >= 0.2 * len(power_history_grouped):
+    if len(notification_grouped) >= 0.2 * len(power_history_grouped) or len(notification_grouped) == 0:
         rps = ReferenceProfileStream()
         for k in sorted(power_history_grouped.keys()):
             for p in power_history_grouped[k].data:
@@ -87,7 +87,7 @@ def calc_obligation(notification: List[CapacityMarketNotification], power_histor
                 i -= 1
             baseline_grouped[k] = rps.ref_profile(time_utils.from_timestamp(ts_ms=k * 1000).replace(tzinfo=POLAND_TZ))
 
-    dates = notification_grouped.keys() if len(notification_grouped) != 0 else power_history_grouped.keys()
+    dates = notification_grouped.keys() if len(notification_grouped) != 0 else baseline_grouped.keys()
     for d in dates:
         if d not in power_history_grouped:
             raise ValueError(f"missing power data for: {d}")
@@ -111,13 +111,14 @@ def calc_obligation(notification: List[CapacityMarketNotification], power_histor
                 else:
                     correction = -1 * min(0.2 * ref_v.baseline_value, abs(correction))
                 max_power = ref_v.baseline_value + correction - contracted_capacity
-                demand_grouped[d][n.start_time] = PowerDemandDAO(ts=time_utils.to_timestamp(n.dt), demand_start=n.start_time,
-                                                              demand_end=n.start_time + 1,
-                                                              capacity_obligation_ratio=n.ratio,
-                                                              max_power=max_power,
-                                                              contracted_capacity=contracted_capacity)
+                demand_grouped[d][n.start_time] = PowerDemandDAO(ts=time_utils.to_timestamp(n.dt),
+                                                                 demand_start=n.start_time,
+                                                                 demand_end=n.start_time + 1,
+                                                                 capacity_obligation_ratio=n.ratio,
+                                                                 max_power=max_power,
+                                                                 contracted_capacity=contracted_capacity)
         else:
-            for k in range(7, 23):
+            for k in range(7, 22):
                 ref_v = ref_p[k]
                 correction = (avg_real - avg_ref)
                 if correction > 0:
@@ -129,7 +130,7 @@ def calc_obligation(notification: List[CapacityMarketNotification], power_histor
                     ts=time_utils.to_timestamp(time_utils.from_timestamp(d).replace(hour=k, tzinfo=POLAND_TZ)),
                     demand_start=k,
                     demand_end=k + 1,
-                    capacity_obligation_ratio=n.ratio,
+                    capacity_obligation_ratio=1.0,
                     max_power=max_power,
                     contracted_capacity=contracted_capacity)
 
