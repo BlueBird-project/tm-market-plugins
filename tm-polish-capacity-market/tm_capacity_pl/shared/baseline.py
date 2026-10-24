@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 from ke_client.utils import time_utils
 
 from tm_capacity_pl.contract.modules.market.utils import get_hour_offset, get_hour_from_ts
-from tm_capacity_pl.models.contract import CapacityPowerDAO, BaselineValueDAO, BaselineValue, CapacityPower
+from tm_capacity_pl.models.contract import ConsumptionPowerDAO, BaselineValueDAO, BaselineValue, ConsumptionPower
 
 import holidays
 
@@ -121,7 +121,7 @@ class BaselineBuffer:
 #     return baseline
 
 
-def calc_reference_profile(power_history: List[CapacityPowerDAO]) -> List[BaselineValue]:
+def calc_reference_profile(power_history: List[ConsumptionPowerDAO]) -> List[BaselineValue]:
     # result: List[BaselineValue] = []
     # value_buffer: Dict[int, BaselineBuffer] = defaultdict(BaselineBuffer)
     # for p in power_history:
@@ -152,10 +152,10 @@ class ReferenceProfileStream:
         # self.value_buffer = defaultdict(BaselineBuffer)
         self.value_buffer = [BaselineBuffer() for _ in range(24)]
 
-    def ref_value(self, p: Union[CapacityPowerDAO, CapacityPower]):
+    def ref_value(self, p: Union[ConsumptionPowerDAO, ConsumptionPower]):
         if p.granularity_ms != 3600000:
             raise ValueError(f"Invalid granularity {p.granularity_ms}, accepted only 3600000 [ms] (1 [h])")
-        if type(p) is CapacityPowerDAO:
+        if type(p) is ConsumptionPowerDAO:
             dt = datetime.fromtimestamp(timestamp=p.ts / 1000.0, tz=POLAND_TZ)
         else:
             dt = p.dt

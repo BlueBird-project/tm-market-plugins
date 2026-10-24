@@ -2,6 +2,7 @@ from typing import Optional, Union, Any
 
 from ke_client import ki_split_uri, SplitURIBase, BindingsBase, ki_object, OptionalLiteral
 from ke_client.utils import time_utils
+from pydantic import PrivateAttr
 from rdflib import URIRef, Literal
 
 
@@ -11,6 +12,9 @@ class FMTSRequest(BindingsBase):
     ts_date_from: Literal
     ts_date_to: Literal
 
+    # T ODO: move constant uri to pyubflex lib
+    # ts_usage = URIRef("Consumption", base=SAREF_4_ENER_BASE)
+
     def __init__(self, **kwargs):
         super().__init__(bindings=kwargs)
 
@@ -18,8 +22,12 @@ class FMTSRequest(BindingsBase):
 @ki_object("fm-ts-info-request")
 class FMTSResponse(FMTSRequest):
     ts_uri: URIRef
-    ts_usage: URIRef
+    # ts_interval_uri: URIRef
+    # ts_usage: URIRef
     time_create: Literal
+
+    # ts_date_from: Literal
+    # ts_date_to: Literal
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -40,18 +48,22 @@ class FMPnt(BindingsBase):
     ts: Literal
     dpr: URIRef
     value: Optional[Literal]
+    _ts_ms: int = PrivateAttr(default=None)
 
     def __init__(self, **kwargs):
         super().__init__(bindings=kwargs)
 
     @property
     def ts_ms(self) -> int:
-        return time_utils.xsd_to_ts(self.ts)
+        if self._ts_ms is None:
+            self._ts_ms = time_utils.xsd_to_ts(self.ts)
+        return self._ts_ms
 
     def get_value(self) -> Optional[float]:
         return self.convert_value(self.value, float)
 
-@ki_object("flex-request" )
+
+@ki_object("flex-request")
 class BaselineFlexibilityRequest(BindingsBase):
     flex_request: URIRef
     baseline_uri: URIRef
@@ -75,4 +87,3 @@ class BaselineFlexibilityRequest(BindingsBase):
 class KETimeIntervalUri(SplitURIBase):
     ts_from: int
     ts_to: int
-

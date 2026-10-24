@@ -44,4 +44,5 @@ def set_logging():
         logging.config.fileConfig(config_fp)
 
 
-app_args: AppArgs = get_args()
+if __name__ == "__main__":
+    app_args: AppArgs = get_args()

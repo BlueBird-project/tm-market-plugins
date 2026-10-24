@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from ke_client.utils import time_utils
 
-from tm_capacity_pl.models.contract import CapacityPower
+from tm_capacity_pl.models.contract import ConsumptionPower
 from tm_capacity_pl.notification.modules.market.message_parser import CapacityMarketNotification
 
 sample_consumption_data = {
@@ -45,12 +45,12 @@ sample_consumption_data = {
 sample_notifications = [CapacityMarketNotification(date="20.01.2021", start_time=11, end_time=12, ratio=1.0)]
 
 
-def init_consumption_timeseries(tz: ZoneInfo) -> List[CapacityPower]:
+def init_consumption_timeseries(tz: ZoneInfo) -> List[ConsumptionPower]:
     d = {datetime.strptime(k, "%Y-%m-%d").replace(tzinfo=tz): v for k, v in sample_consumption_data.items()}
     res = []
     for k in sorted(d.keys()):
-        res += [CapacityPower(ts=time_utils.to_timestamp(k.replace(hour=h))
-                              , granularity_ms=3600000, value=v).set_timezone(tzinfo=tz) for h, v in enumerate(d[k])]
+        res += [ConsumptionPower(ts=time_utils.to_timestamp(k.replace(hour=h))
+                                 , granularity_ms=3600000, value=v).set_timezone(tzinfo=tz) for h, v in enumerate(d[k])]
 
     return res
 
