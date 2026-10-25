@@ -4,7 +4,7 @@ from typing import List, Tuple
 from ke_client import KIHolder
 from ke_client.ki_model import KIAskResponse, KIPostResponse
 
-from tm_capacity_pl.contract.modules.ke_interaction.interactions.fm_model import *
+from tm_capacity_pl.shared.ke_interaction.fm_model import *
 from tm_capacity_pl.utils import TimeSpan
 
 ki = KIHolder()

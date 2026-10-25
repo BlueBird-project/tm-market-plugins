@@ -1,20 +1,19 @@
-from collections import defaultdict
-from typing import List, Dict, Callable, Union
+from typing import List
 
 from effi_onto_tools.utils import time_utils
-from rdflib import URIRef, Literal
+from rdflib import Literal
 
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import FlexRequestUri, \
     BaselineUri, BaselineDPUri, BaselineDPRUri
-from tm_capacity_pl.contract.modules.ke_interaction.interactions.fm_model import FMPnt, BaselineFlexibilityRequest
-from tm_capacity_pl.models.contract import CapacityPowerDAO, ContractDAO
+from tm_capacity_pl.shared.ke_interaction.fm_model import FMPnt, BaselineFlexibilityRequest
+from tm_capacity_pl.models.contract import ConsumptionPowerDAO, ContractDAO
 
 
 def process_data_points(granularity_ms: int, power_ts: List[FMPnt]):
     from tm_capacity_pl.contract.core.db.postgresql import dao_manager
     # sorted_power_list=  sorted(power_ts, key=lambda x: x.ts_ms)
     # p:FMPnt
-    power_history = [CapacityPowerDAO(ts=p.ts_ms, granularity_ms=granularity_ms, value=p.get_value(), )
+    power_history = [ConsumptionPowerDAO(ts=p.ts_ms, granularity_ms=granularity_ms, value=p.get_value(), )
                      for p in power_ts]
     inserted = dao_manager.power_api.log_power(power_history=power_history)
     assert inserted == len(power_history)

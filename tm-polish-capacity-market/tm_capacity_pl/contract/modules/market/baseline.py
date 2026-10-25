@@ -2,12 +2,12 @@ from collections import defaultdict
 from typing import List, Dict
 
 from tm_capacity_pl.contract.modules.market.utils import get_hour_offset, get_hour_from_ts
-from tm_capacity_pl.models.contract import CapacityPowerDAO,  BaselineValueDAO
+from tm_capacity_pl.models.contract import ConsumptionPowerDAO,  BaselineValueDAO
 
 
-def calc_baseline(baseline_id: int, power_history: List[CapacityPowerDAO]) -> List[BaselineValueDAO]:
+def calc_baseline(baseline_id: int, power_history: List[ConsumptionPowerDAO]) -> List[BaselineValueDAO]:
     hour_offset = get_hour_offset()
-    grouped_power: Dict[int, List[CapacityPowerDAO]] = defaultdict(list)
+    grouped_power: Dict[int, List[ConsumptionPowerDAO]] = defaultdict(list)
 
     for p in power_history:
         grouped_power[get_hour_from_ts(p.ts, hour_offset=hour_offset)].append(p)
