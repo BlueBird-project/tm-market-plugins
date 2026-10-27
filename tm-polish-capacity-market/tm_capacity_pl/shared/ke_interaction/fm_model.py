@@ -66,11 +66,12 @@ class FMPnt(BindingsBase):
 @ki_object("flex-request")
 class BaselineFlexibilityRequest(BindingsBase):
     flex_request: URIRef
+    ts:  Literal
+    market: URIRef
     baseline_uri: URIRef
-    dp: URIRef
-    ts: Literal
-    dpr: URIRef
-    value: Optional[Literal]
+    offer_period: URIRef
+    ts_date_from:  Literal
+    ts_date_to:  Literal
 
     def __init__(self, **kwargs):
         super().__init__(bindings=kwargs)
@@ -78,9 +79,14 @@ class BaselineFlexibilityRequest(BindingsBase):
     @property
     def ts_ms(self) -> int:
         return time_utils.xsd_to_ts(self.ts)
+    @property
+    def ts_date_from_ms(self) -> int:
+        return time_utils.xsd_to_ts(self.ts_date_from)
+    @property
+    def ts_date_to_ms(self) -> int:
+        return time_utils.xsd_to_ts(self.ts_date_to)
 
-    def get_value(self) -> Optional[float]:
-        return self.convert_value(self.value, float)
+
 
 
 @ki_split_uri(uri_template="http://ke.bluebird.com/interval/${ts_from}/${ts_to}")

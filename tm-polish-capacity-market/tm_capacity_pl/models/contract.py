@@ -23,7 +23,7 @@ class ContractDAO:
     capacity_obligation: Optional[float] = None
     offer_ack_mwh: Optional[float] = None
     capacity_ack_obligation: Optional[float] = None
-    current_baseline_id: Optional[int] = None
+    # current_baseline_id: Optional[int] = None
     # contract_ack: bool = False
     ack_ts: Optional[int] = None
 
@@ -31,6 +31,7 @@ class ContractDAO:
 @dataclass
 class BaselineDAO:
     baseline_id: int
+    baseline_date:str
     # contract_id: Optional[int] = None
     update_time: Optional[int] = None
 
@@ -62,19 +63,19 @@ class BaselineValue:
 class Baseline:
     baseline_id: int
     values: List[BaselineValueDAO]
-    contract_id: Optional[int] = None
+    # contract_id: Optional[int] = None
     update_time: Optional[int] = None
 
 
 @dataclass
-class CapacityPowerDAO:
+class ConsumptionPowerDAO:
     ts: int
     granularity_ms: int
     value: Optional[float] = None
 
 
 @dataclass
-class CapacityPower(CapacityPowerDAO):
+class ConsumptionPower(ConsumptionPowerDAO):
     _datetime: Optional[datetime] = field(default=None, repr=False, compare=False)
     _tz: Optional[ZoneInfo] = field(default=None, repr=False, compare=False)
 

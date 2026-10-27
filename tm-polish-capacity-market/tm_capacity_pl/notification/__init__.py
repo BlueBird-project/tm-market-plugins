@@ -4,65 +4,64 @@ from typing import Optional, Tuple
 
 from fastapi import FastAPI
 
-if __name__ == "__main__":
-    # ke_endpoint = os.environ.get( "KE_ENDPOINT")
-    os.environ.setdefault("SERVICE_LOG_DIR", "d:/tmp/logs/")
-
-from pydantic import BaseModel
-
-
-class AppArgs(BaseModel):
-    config_path: Optional[str]
-    env: Optional[str] = None
-    hash_pg_schema: bool = False
-
-    @property
-    def env_path(self) -> str:
-        return self.env if self.env is not None else ".env"
-
-    # hash_pg_schema: bool = False
-
-    def __init__(self, args):
-        super().__init__(**args)
-
-
-def get_args() -> AppArgs:
-    parser = argparse.ArgumentParser()
-    # parser.add_argument('-d', '--debug', help='enable debug logs', action='store_true')
-    parser.add_argument('-c', '--config-path', help='YAML config path', default='./resources/config.yaml')
-    parser.add_argument('--env', help='env path', default='.env')
-    # parser.add_argument('--hash-pg-schema', help='generate db hash', default=False, action='store_true')
-    parsed_args = parser.parse_args()
-    return AppArgs(args=parsed_args.__dict__)
+# if __name__ == "__main__":
+#     # ke_endpoint = os.environ.get( "KE_ENDPOINT")
+#     os.environ.setdefault("SERVICE_LOG_DIR", "d:/tmp/logs/")
+#
+# from pydantic import BaseModel
+#
+#
+# class AppArgs(BaseModel):
+#     config_path: Optional[str]
+#     env: Optional[str] = None
+#     hash_pg_schema: bool = False
+#
+#     @property
+#     def env_path(self) -> str:
+#         return self.env if self.env is not None else ".env"
+#
+#     # hash_pg_schema: bool = False
+#
+#     def __init__(self, args):
+#         super().__init__(**args)
 
 
-app_args: Optional[AppArgs] = None
-rest_app: FastAPI
+# def get_args() -> AppArgs:
+#     parser = argparse.ArgumentParser()
+#     # parser.add_argument('-d', '--debug', help='enable debug logs', action='store_true')
+#     parser.add_argument('-c', '--config-path', help='YAML config path', default='./resources/config.yaml')
+#     parser.add_argument('--env', help='env path', default='.env')
+#     # parser.add_argument('--hash-pg-schema', help='generate db hash', default=False, action='store_true')
+#     parsed_args = parser.parse_args()
+#     return AppArgs(args=parsed_args.__dict__)
+#
+# def init_args() -> AppArgs:
+#     global app_args
+#     app_args = get_args()
+#     return app_args
+#
+# app_args:  AppArgs
+# rest_app: FastAPI
 
 
-def init_args() -> AppArgs:
-    global app_args
-    app_args = get_args()
-    return app_args
 
-
-def set_logging():
-    global app_args
-    from io import StringIO
-    import logging.config
-    from logging.handlers import RotatingFileHandler
-
-    from tm_capacity_pl.core import app_settings
-    with open(app_settings.logging_conf_path) as f:
-        ini_text = os.path.expandvars(f.read())
-        config_fp = StringIO(ini_text)
-        logging.config.fileConfig(config_fp)
-
-    root_logger = logging.getLogger()
-
-    for handler in root_logger.handlers:
-        if isinstance(handler, RotatingFileHandler):
-            handler.doRollover()
+# def set_logging():
+#     # global app_args
+#     from io import StringIO
+#     import logging.config
+#     from logging.handlers import RotatingFileHandler
+#
+#     from tm_capacity_pl.core import app_settings
+#     with open(app_settings.logging_conf_path) as f:
+#         ini_text = os.path.expandvars(f.read())
+#         config_fp = StringIO(ini_text)
+#         logging.config.fileConfig(config_fp)
+#
+#     root_logger = logging.getLogger()
+#
+#     for handler in root_logger.handlers:
+#         if isinstance(handler, RotatingFileHandler):
+#             handler.doRollover()
 
 
 def init_service():
@@ -75,7 +74,7 @@ def init_service():
 
         from tm_capacity_pl.notification.modules.ke_interaction.interactions.capacity_market_interactions import \
             ki as cm_ki
-        from tm_capacity_pl.core import init_sc
+        from tm_capacity_pl.core import init_sc,app_args
         smart_client = init_sc(env_path=app_args.env_path)
         smart_client.include(cm_ki)
     if app_settings.use_scheduler:

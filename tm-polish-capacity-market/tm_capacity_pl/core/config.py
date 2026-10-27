@@ -4,7 +4,7 @@ from effi_onto_tools.utils import DictBaseSettings
 from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 
-from tm_capacity_pl import app_args
+
 
 
 class APPSettings(DictBaseSettings):
@@ -17,7 +17,9 @@ class APPSettings(DictBaseSettings):
 
     @classmethod
     def load(cls, **kwargs):
-        return super().load(app_args.config_path, "APP".lower())
+
+        from tm_capacity_pl.core import app_args
+        return super().load( app_args.config_path, "APP".lower())
 
 
 class ServiceSettings(DictBaseSettings):
@@ -30,4 +32,5 @@ class ServiceSettings(DictBaseSettings):
 
     @classmethod
     def load(cls, **kwargs):
+        from tm_capacity_pl.core import app_args
         return super().load(app_args.config_path, "SERVICE".lower())

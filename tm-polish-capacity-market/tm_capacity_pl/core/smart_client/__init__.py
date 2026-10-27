@@ -9,9 +9,9 @@ class KIVars(BaseEnum):
     DAY_DURATION = "DAY_DURATION"
 
 
-def setup_ke():
+def setup_ke( ):
     import ke_client
-    from tm_capacity_pl import app_args
+    from tm_capacity_pl.core import app_args
     ke_client.VERIFY_SERVER_CERT = False
     from ke_client import configure_ke_client
     configure_ke_client(app_args.config_path)

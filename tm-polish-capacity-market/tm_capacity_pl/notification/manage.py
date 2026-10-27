@@ -1,6 +1,6 @@
 import logging
 
-from tm_capacity_pl.core import service_settings
+import tm_capacity_pl.core as core
 
 if __name__ == "__main__":
     ###
@@ -8,11 +8,12 @@ if __name__ == "__main__":
     ###
     import tm_capacity_pl.notification as notification_service
 
-    notification_service.init_args()
+    app_args: core.AppArgs =  core.app_configure()
+    core.set_logging()
+    from tm_capacity_pl.core import service_settings
     from effi_onto_tools import utils
 
-    utils.ENV_FILE = notification_service.app_args.env_path
-    notification_service.set_logging()
+    utils.ENV_FILE = core.app_args.env_path
     logging.info(f"START {service_settings.name}")
     ###
     # setup DB TODO:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -20,8 +21,6 @@ if __name__ == "__main__":
     # from tm.core.db import setup_db
     #
     # setup_db()
-
-    from tm_capacity_pl.core import app_settings
 
     notification_service.init_service()
     notification_service.start_service()

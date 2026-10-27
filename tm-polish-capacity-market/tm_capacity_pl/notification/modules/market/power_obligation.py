@@ -1,10 +1,11 @@
+import logging
 from collections import defaultdict
 from datetime import datetime
 from typing import List, Dict, Optional
 
 from ke_client.utils import time_utils
 
-from tm_capacity_pl.models.contract import CapacityPowerDAO, CapacityPower, BaselineValue
+from tm_capacity_pl.models.contract import ConsumptionPowerDAO, ConsumptionPower, BaselineValue
 from tm_capacity_pl.models.demand import PowerDemandDAO
 from tm_capacity_pl.notification.modules.market.message_parser import CapacityMarketNotification
 from tm_capacity_pl.shared import POLAND_TZ
@@ -13,7 +14,7 @@ from tm_capacity_pl.shared.baseline import ReferenceProfileStream
 
 class PowerList:
     date_key: str
-    data: List[CapacityPower]
+    data: List[ConsumptionPower]
     _sorted = False
 
     def __init__(self):
@@ -51,7 +52,7 @@ def dt_key(dt: datetime):
     return int(datetime(year=dt.year, month=dt.month, day=dt.day).timestamp())
 
 
-def calc_obligation(notification: List[CapacityMarketNotification], power_history: List[CapacityPower],
+def calc_obligation(notification: List[CapacityMarketNotification], power_history: List[ConsumptionPower],
                     contracted_capacity: float = 0) -> Dict[int, List[Optional[PowerDemandDAO]]]:
     notification_grouped: Dict[int, NotificationList] = defaultdict(NotificationList)
     power_history_grouped: Dict[int, PowerList] = defaultdict(PowerList)
@@ -78,7 +79,10 @@ def calc_obligation(notification: List[CapacityMarketNotification], power_histor
     else:
         day_key = sorted(power_history_grouped.keys())
         for k, n in notification_grouped.items():
-            i = day_key.index(k) - 1
+            try:
+                i = day_key.index(k) - 1
+            except ValueError:
+                raise ValueError("not enough data to calculate power demand")
             ref_value = None
             rps = ReferenceProfileStream()
             while i >= 0 and (ref_value is None or (not rps.profile_exists())):
@@ -93,6 +97,8 @@ def calc_obligation(notification: List[CapacityMarketNotification], power_histor
             raise ValueError(f"missing power data for: {d}")
         p = power_history_grouped[d]
         ref_p = baseline_grouped[d]
+        if len(ref_p) == 0:
+            logging.warning("Empty reference profile, has current power usage timeseries enough data ? ")
         notifications = None
         if d in notification_grouped:
             notifications = notification_grouped[d]

@@ -7,6 +7,7 @@ from email.parser import Parser
 from typing import Optional, Tuple
 
 from bs4 import BeautifulSoup
+from ke_client.utils import time_utils
 from rdflib import Literal, XSD
 from zoneinfo import ZoneInfo
 
@@ -82,6 +83,20 @@ class CapacityMarketNotification:
         return self._datetime
 
     @property
+    def start_ts(self) -> int:
+        """
+        :return: unix timestamp ms for the call start time
+        """
+        return time_utils.to_timestamp(self.dt.replace(hour=self.start_time))
+
+    @property
+    def end_ts(self) -> int:
+        """
+        :return: unix timestamp ms for the call end time
+        """
+        return time_utils.to_timestamp(self.dt.replace(hour=self.end_time))
+
+    @property
     def xsd_start_time(self):
         t = time(self.start_time, 0).isoformat()
         return Literal(t, datatype=XSD.time)
@@ -119,9 +134,12 @@ def get_html_content(email: str):
         raise Exception("TODO:")
 
 
-def process_message(email: str) -> CapacityMarketNotification:
+def process_message(email: str, tz: Optional[ZoneInfo] = None) -> CapacityMarketNotification:
     html_content = get_html_content(email=email)
     bs_page = BeautifulSoup(html_content, features="lxml")
     date, start_time, end_time = _get_time(bs_page=bs_page)
     ratio = _get_ratio(bs_page=bs_page)
-    return CapacityMarketNotification(date=date, start_time=start_time, end_time=end_time, ratio=ratio)
+    if tz is None:
+        return CapacityMarketNotification(date=date, start_time=start_time, end_time=end_time, ratio=ratio)
+    return CapacityMarketNotification(
+        date=date, start_time=start_time, end_time=end_time, ratio=ratio).set_timezone(tzinfo=tz)
