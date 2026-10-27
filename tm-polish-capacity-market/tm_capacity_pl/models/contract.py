@@ -29,9 +29,32 @@ class ContractDAO:
 
 
 @dataclass
+class FlexContract:
+    asset_manager_uri: str
+    flex_request_uri: str
+    contract_uri: str
+    market_uri: str
+
+    flex_dp_uri: str
+    cost_dp_uri: str
+    flex_dpr_uri: str
+    cost_dpr_uri: str
+    flex_value: float
+    cost_value: float
+
+    period_uri_uri: str
+    ts_date_from: int
+    ts_date_to: int
+    ack: bool = False
+    ack_ts: Optional[int] = None
+    ts:Optional[int]=None
+    update_ts:Optional[int]=None
+
+
+@dataclass
 class BaselineDAO:
     baseline_id: int
-    baseline_date:str
+    baseline_date: str
     # contract_id: Optional[int] = None
     update_time: Optional[int] = None
 
