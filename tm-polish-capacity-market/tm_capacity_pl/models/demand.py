@@ -3,6 +3,12 @@ from typing import Optional
 
 
 @dataclass
+class AssetManager:
+    asset_manager_uri: str
+    asset_manager_id: Optional[int] = None
+
+
+@dataclass
 class PowerDemandDAO:
     # date timestamp in milliseconds
     ts: int
@@ -31,10 +37,16 @@ class PowerDemandDAO:
 
 @dataclass
 class DeliveredCapacity:
-    demand_id: int
-    baseline: float
+    asset_manager_id: int
+    flex_instruction: str
+    flex_offer: str
+    flex_profile: str
+    power_limit: str
+    max_consumption: str
+    ts: int
     expected_capacity: float
     delivered_capacity: float
+    max_consumption_value: float
 
 
 @dataclass
@@ -48,7 +60,7 @@ class MarketNotification:
 
 @dataclass
 class KECapacityNotification:
-    asset_manager_uri: str
+    asset_manager_id: int
     flex_instruction_uri: str
     flex_offer_uri: str
     flex_profile_uri: str

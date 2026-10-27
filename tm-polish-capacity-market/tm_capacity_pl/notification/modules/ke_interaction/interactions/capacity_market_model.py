@@ -88,8 +88,9 @@ class KECapacityNotification(BindingsBase):
     max_consumption_value: Literal
 
 
-@ki_split_uri(uri_template="/demand/${ts}")
+@ki_split_uri(uri_template="/demand/${ts}/${asset_manager_id}")
 class FlexInstructionUri(SplitURIBase):
+    asset_manager_id: int
     ts: int
 
     def power_limit_uri(self):

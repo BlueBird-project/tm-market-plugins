@@ -1,6 +1,7 @@
 from typing import Optional, List, Dict, Any
 
 from fastapi import APIRouter
+from starlette.responses import PlainTextResponse
 
 from tm_capacity_pl.notification.modules.ke_interaction.interactions.capacity_market_model import KECapacityNotification
 from tm_capacity_pl.models.contract import ContractDAO
@@ -31,3 +32,10 @@ async def send_sample_message() -> Any:
     email = service.sample_email()
     from tm_capacity_pl.notification.modules.market.service import message_handler
     await message_handler(email=email)
+
+
+@router.post("/sample/email",response_class=PlainTextResponse)
+@router.get("/sample/email",response_class=PlainTextResponse)
+async def send_sample_message() -> Any:
+    from tm_capacity_pl.notification.modules.rest import service
+    return service.sample_email()

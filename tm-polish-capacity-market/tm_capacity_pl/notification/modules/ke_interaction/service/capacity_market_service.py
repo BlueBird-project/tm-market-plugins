@@ -65,9 +65,11 @@ def init_ke_notification(day_ts: int, demands: List[PowerDemandDAO]):
 
     # flex_offer = todo get asset manager (entity e.g. flex manager who sets and controls flexibility)
     asset_manager_uri = URIRef("example.org/assetmanager")
+    asset_manager_id =0 #TODO: store asset manager in the db and red here its id
+    # dao_manager.
     for demand in demands:
         if demand is not None:
-            fi = FlexInstructionUri(ts=day_ts)
+            fi = FlexInstructionUri(asset_manager_id=asset_manager_id,ts=day_ts)
             # TODO: verify timestamp
             n = KECapacityNotification(asset_manager=asset_manager_uri, flex_instruction=fi.uri_ref,
                                        flex_offer=flex_offer_uri,
