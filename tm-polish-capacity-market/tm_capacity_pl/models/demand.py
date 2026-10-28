@@ -68,4 +68,4 @@ class KECapacityNotification:
     ts: int
     max_consumption_uri: str
     max_consumption_value: float
-    update_ts: int
+    update_ts: Optional[int] = None
