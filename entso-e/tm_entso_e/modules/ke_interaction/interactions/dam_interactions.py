@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from effi_onto_tools.db import TimeSpan
+
 from ke_client import KIHolder, is_nil
 from ke_client.ki_model import KIPostResponse
 
