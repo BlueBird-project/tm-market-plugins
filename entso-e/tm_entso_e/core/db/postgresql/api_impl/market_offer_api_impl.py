@@ -45,7 +45,7 @@ class MarketOfferQueries:
           AND ( :sequence is NULL OR  :sequence = offer_details.sequence ) 
           group by offer_details.market_id , offer_details.sequence
     ) _max_t on _max_t.max_ts = offer_details."ts_end" and offer_details.market_id = _max_t.market_id 
-        and offer_details.sequence = _max_t.sequence 
+        and (offer_details.sequence = _max_t.sequence or (offer_details.sequence is null and  _max_t.sequence is null) )
       """
     LIST_ON_GOING_OFFER_DETAILS = """SELECT offer_details."offer_id",offer_details."market_id",offer_details."offer_uri",
      offer_details."sequence",offer_details."currency_unit", offer_details."volume_unit", offer_details."ts_start", 

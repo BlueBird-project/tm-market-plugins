@@ -1,7 +1,7 @@
 from typing import Callable, Optional, Union
 
 import yaml
-from pydantic import PrivateAttr
+from pydantic import PrivateAttr, BaseModel
 from pydantic_settings import BaseSettings, InitSettingsSource, PydanticBaseSettingsSource, SettingsConfigDict
 
 ENV_FILE = ".env"
@@ -120,52 +120,78 @@ DAY_MS = 24 * 3600 * 1000
 WEEK_MS = 7 * DAY_MS
 
 
-class TimeSpan:
+class TimeSpan(BaseModel):
     ts_from: Optional[int] = None
     ts_to: Optional[int] = None
 
     def __init__(self, ts_from: Optional[int] = None, ts_to: Optional[int] = None):
         if ts_from is None and ts_to is None:
-            from tm_entso_e.utils import time_utils
-            ts_to = time_utils.current_timestamp()
-        self.ts_from = ts_from if ts_from is not None else ts_to - DAY_MS
-        self.ts_to = ts_to if ts_to is not None else ts_from + DAY_MS
-        if self.ts_to < self.ts_from:
+            from ke_client.utils import time_utils
+            ts_to = time_utils.current_timestamp() + DAY_MS
+            ts_from = ts_to - 2 * DAY_MS
+        ts_from = ts_from if ts_from is not None else ts_to - DAY_MS
+        ts_to = ts_to if ts_to is not None else ts_from + DAY_MS
+        if ts_to < ts_from:
             raise ValueError("Time from cannot be after time to")
-
-    def __str__(self):
-        if self.ts_from is None:
-            ts_from_str = "..."
-        else:
-            from tm_entso_e.utils import time_utils
-            ts_from_str = time_utils.ts_to_str(self.ts_from)
-        if self.ts_to is None:
-            ts_to_str = "..."
-        else:
-            from tm_entso_e.utils import time_utils
-            ts_to_str = time_utils.ts_to_str(self.ts_to)
-        return f" {ts_from_str} - {ts_to_str} "
-
-    def __repr__(self):
-        return self.__str__()
+        super().__init__(ts_from=ts_from, ts_to=ts_to)
 
     @staticmethod
     def last_week():
-        from tm_entso_e.utils import time_utils
+        from ke_client.utils import time_utils
         ts_to = time_utils.current_timestamp()
         ts_from = ts_to - WEEK_MS
         return TimeSpan(ts_from=ts_from, ts_to=ts_to)
 
     @staticmethod
     def last_day():
-        from tm_entso_e.utils import time_utils
+        from ke_client.utils import time_utils
         ts_to = time_utils.current_timestamp()
         ts_from = ts_to - DAY_MS
         return TimeSpan(ts_from=ts_from, ts_to=ts_to)
 
     @staticmethod
-    def last_48h():
-        from tm_entso_e.utils import time_utils
-        ts_to = time_utils.current_timestamp()
-        ts_from = ts_to - 2 * DAY_MS
+    def two_day():
+        from ke_client.utils import time_utils
+        cur = time_utils.current_timestamp()
+        ts_to = cur + DAY_MS
+        ts_from = cur - DAY_MS
         return TimeSpan(ts_from=ts_from, ts_to=ts_to)
+
+    @staticmethod
+    def next_day():
+        from ke_client.utils import time_utils
+        ts_from = time_utils.current_timestamp()
+        ts_to = ts_from + DAY_MS
+        return TimeSpan(ts_from=ts_from, ts_to=ts_to)
+
+    def __len__(self):
+        try:
+            span = self.ts_to - self.ts_from
+            if span < 0:
+                raise ValueError("Negative time interval")
+            return span
+        except AttributeError | TypeError:
+            return None
+
+    @staticmethod
+    def non_empty(ts: Optional['TimeSpan'] = None) -> 'TimeSpan':
+        if ts is None or len(ts) == 0:
+            from ke_client.utils import time_utils
+            cur_ts = time_utils.current_timestamp()
+            return TimeSpan(ts_from=cur_ts - DAY_MS, ts_to=cur_ts + DAY_MS)
+        return ts
+
+    @property
+    def time_span_ms(self):
+        return self.ts_to - self.ts_from
+
+    @property
+    def time_span_day(self):
+        m = (self.ts_to - self.ts_from) % DAY_MS
+        if m == 0:
+            return (self.ts_to - self.ts_from) / DAY_MS
+        return (self.ts_to - self.ts_from) / DAY_MS + 1
+
+    @property
+    def time_span_min(self):
+        return self.time_span_ms / 60000

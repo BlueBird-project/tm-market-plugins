@@ -25,7 +25,7 @@ class RESTClient(BaseModel):
     # verify KE certificate if SSL is on
     _verify_cert_: bool = True
     # state of client
-    _timeout_: int = 30
+    _timeout_: int = 60
     _token_: str
     _endpoint_: str
 

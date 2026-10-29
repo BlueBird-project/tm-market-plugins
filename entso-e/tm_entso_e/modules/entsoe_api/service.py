@@ -5,13 +5,14 @@ from typing import List, Optional, Dict
 from zoneinfo import ZoneInfo
 
 from apscheduler.job import Job
-from effi_onto_tools.db import TimeSpan
+from tm_entso_e.utils import  TimeSpan
 from fastapi import HTTPException
 
 from tm_entso_e.core.task_manager import service_job_scheduler
 from tm_entso_e.modules.entso_e_web_api.model import SubscribedEIC
 from tm_entso_e.modules.entso_e_web_api.service import subscribe_eic_area
-from tm_entso_e.schemas.market import MarketOfferDetails, Market, MarketOfferValues, MarketOfferValuesState
+from tm_entso_e.schemas.market import MarketOfferDetails, Market, MarketOfferValues, MarketOfferValuesState, \
+    MarketOfferDetailsResponse
 
 day_ts = 24 * 3600 * 1000
 __TIME_ZONE__ = ZoneInfo("Europe/Warsaw")
@@ -23,9 +24,9 @@ def list_markets() -> List[Market]:
     return [Market(**vars(m)) for m in dao_manager.market_api.list_market()]
 
 
-def list_recent_offer() -> List[MarketOfferDetails]:
+def list_recent_offer() -> List[MarketOfferDetailsResponse]:
     from tm_entso_e.core.db.postgresql import dao_manager
-    return [MarketOfferDetails(**vars(mo)) for mo in dao_manager.offer_api.get_recent_market_details()]
+    return [MarketOfferDetailsResponse.init(MarketOfferDetails(**vars(mo))) for mo in dao_manager.offer_api.get_recent_market_details()]
 
 
 #

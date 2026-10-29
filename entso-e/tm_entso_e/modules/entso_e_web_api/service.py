@@ -51,10 +51,21 @@ def init_service(market_prefix: str, load_data: bool, days_to_load: int = 31):
 
 def subscribe_data(ti: TimeSpan):
     global market_api
-    logging.info(f"Subscribe data for :{ti}")
+    logging.info(
+        f"Subscribe data for :{ti.ts_from}-{ti.ts_to}. ({time_utils.from_timestamp(ti.ts_from)}-{time_utils.from_timestamp(ti.ts_to)})")
+
     from tm_entso_e.modules.entso_e_web_api.config import api_settings
 
     for s_eic_area in api_settings.subscribed_eic:
+        # from tm_entso_e.core.db.postgresql import dao_manager
+        # todo check if the data is actual - if yes - then don't scan
+        # check every hour
+        # market_uri = MarketURI(eic_area=s_eic_area.code, market_code=market_code).uri
+        # market_type_info = s_eic_area.get_market_type_info(code=market_code)
+        # dao_manager.market_api.get_market_uri()
+        DAY_MS = 24 * 3600 * 1000
+        MAX_DAYS = 32
+        # d
         subscribe_eic_area(s_eic_area=s_eic_area, ti=ti)
         # try:
         #     result = market_api.get_energy_prices(eic=s_eic_area, ti=ti)
@@ -93,7 +104,7 @@ def subscribe_offer(eic_code: str, market_type_code: str, ti: TimeSpan):
 
         from tm_entso_e.modules.entso_e_web_api.config import api_settings
         area = api_settings.get_subscribed_area_by_code(eic_area_code=eic_code)
-        market_type_info = area.get_market_type(market_type_code=market_type_code)
+        market_type_info = area.get_market_type(market_type_name=area.get_market_type_name(code=market_type_code))
         if isinstance(market_type_info, str):
             market_type_info = None
         store_offers(market_uri=market_uri, market_offer=market_offer, market_type_info=market_type_info)
@@ -104,7 +115,7 @@ def subscribe_offer(eic_code: str, market_type_code: str, ti: TimeSpan):
 
 def store_offers(market_uri: str, market_offer: MarketDocument, market_type_info: List[MarketTypeInfo]):
     from tm_entso_e.core.db.postgresql import dao_manager
-    logging.info(f"Store offers for: {market_uri}")
+    logging.info(f"Store offers for market_uri: {market_uri}")
     market = dao_manager.market_api.get_market_uri(market_uri=market_uri)
     if market is None:
         logging.error(f"Market has not been registered: {market_uri}")

@@ -1,9 +1,10 @@
 from typing import List, Optional, Dict
 
-from effi_onto_tools.db import TimeSpan
+from tm_entso_e.utils import  TimeSpan
 from fastapi import APIRouter
 
-from tm_entso_e.schemas.market import Market, MarketOfferDetails, MarketOfferValues, MarketOfferValuesState
+from tm_entso_e.schemas.market import Market, MarketOfferDetails, MarketOfferValues, MarketOfferValuesState, \
+    MarketOfferDetailsResponse
 
 router = APIRouter(prefix="")
 
@@ -71,7 +72,7 @@ async def update_market_offer_bg() -> Optional[Dict]:
 
 
 @router.get("/current/offerinfo")
-async def get_current_offer_info() -> List[MarketOfferDetails]:
+async def get_current_offer_info() -> List[MarketOfferDetailsResponse]:
     from tm_entso_e.modules.entsoe_api import service
     return service.list_recent_offer()
 

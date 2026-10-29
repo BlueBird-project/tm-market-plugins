@@ -16,7 +16,7 @@ class ENTSOEServiceSettings(DictBaseSettings):
     # knowledge_base_id: str = Field(...)
     endpoint: str = Field(default="https://web-api.tp.entsoe.eu/api")
     token: str = Field()
-    api_timeout: int = Field(default=30, description="Timeout in seconds")
+    api_timeout: int = Field(default=60, description="Timeout in seconds")
     api_config_path: Optional[str] = Field(default=None)
 
     model_config = SettingsConfigDict(env_prefix=__CONFIG_SECTION__ + "_", env_file=app_variables.ENV_FILE,

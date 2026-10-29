@@ -5,7 +5,7 @@ from typing import List, Optional, Dict, Iterable, Type, Union
 
 from pydantic import BaseModel, ConfigDict
 from rdflib import URIRef
-import ubflex.rdf as  ubflex
+import ubflex.rdf as ubflex
 
 from tm_entso_e.utils import time_utils
 from tm_entso_e.utils.enum_utils import BaseEnum
@@ -96,17 +96,23 @@ class SubscribedEIC(BaseModel):
             return None
         return type_info
 
-    def get_market_type(self, market_type_code: str, default: bool = False) -> Union[List[MarketTypeInfo], str]:
+    def get_market_type(self, market_type_name: str, default: bool = False) -> Union[List[MarketTypeInfo], str]:
         if isinstance(self.market_types, dict):
             try:
-                return self.market_types[market_type_code]
+                return self.market_types[market_type_name.lower()]
             except KeyError:
-                raise KeyError(f"Missing market type code: {market_type_code}, for market: {self.code}")
+                raise KeyError(f"Missing market type : {market_type_name}, for market code: {self.code}")
 
-        if market_type_code in self.market_types:
-            return market_type_code
+        if market_type_name.lower() in self.market_types:
+            return market_type_name
         else:
-            raise KeyError(f"Missing market type code: {market_type_code}, for market: {self.code}")
+            raise KeyError(f"Missing market type : {market_type_name}, for market code: {self.code}")
+
+    def number_of_types(self, market_type_name: str, ):
+        market_type_info = self.get_market_type(market_type_name=market_type_name)
+        if isinstance(market_type_info, str):
+            return 1
+        return len(market_type_info)
 
 
 class EICArea(BaseModel):

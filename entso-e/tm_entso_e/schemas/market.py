@@ -4,8 +4,6 @@ from pydantic import BaseModel, ConfigDict
 from rdflib import URIRef
 
 
-
-
 class _BaseModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -34,6 +32,21 @@ class MarketOfferDetails(_BaseModel):
     @property
     def is_measured_in(self) -> str:
         return f"{self.currency_unit}Per{self.volume_unit}"
+
+
+class MarketOfferDetailsResponse(MarketOfferDetails):
+    dt_start: str
+    dt_end: str
+    measured_in: str
+
+    @staticmethod
+    def init(md: MarketOfferDetails) -> 'MarketOfferDetailsResponse':
+        from ke_client.utils import time_utils
+        return MarketOfferDetailsResponse(
+            dt_start=time_utils.datetime_to_str(time_utils.from_timestamp(md.ts_start)),
+            dt_end=time_utils.datetime_to_str(time_utils.from_timestamp(md.ts_end)),
+            measured_in=f"{md.currency_unit}Per{md.volume_unit}",
+            **vars(md))
 
 
 class MarketOffer(_BaseModel):
