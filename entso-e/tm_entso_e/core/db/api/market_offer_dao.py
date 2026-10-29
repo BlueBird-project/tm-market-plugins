@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import List, Optional, Dict, Any
 
-from effi_onto_tools.db import TimeSpan
+from tm_entso_e.utils import  TimeSpan
 from effi_onto_tools.db.dao import DAO
 
 from tm_entso_e.schemas.market import MarketOfferValues, MarketOfferValuesState
@@ -34,6 +34,11 @@ class MarketOfferAPI(DAO):
 
     @abstractmethod
     def get_recent_dayahead_details(self, sequence: Optional[str] = None) -> List[MarketOfferDetailsDAO]:
+        pass
+
+    @abstractmethod
+    def get_ongoing_market_offer(self, ti: TimeSpan, market_id: Optional[int] = None, sequence: Optional[str] = None,
+                                 market_type: Optional[str] = None) -> List[MarketOfferDetailsDAO]:
         pass
 
     @abstractmethod

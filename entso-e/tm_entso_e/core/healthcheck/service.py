@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Any, List
 
-from effi_onto_tools.db import TimeSpan
+from tm_entso_e.utils import  TimeSpan
 from effi_onto_tools.utils import time_utils
 
 __DAY_MS__ = 24 * 3600 * 1000

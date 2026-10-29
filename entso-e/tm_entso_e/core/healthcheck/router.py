@@ -1,6 +1,6 @@
 from typing import Optional
 
-from effi_onto_tools.db import TimeSpan
+from tm_entso_e.utils import  TimeSpan
 from fastapi import APIRouter
 
 from tm_entso_e.core.healthcheck import service

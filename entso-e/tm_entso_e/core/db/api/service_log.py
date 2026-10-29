@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Optional, Dict, Any, List
 
-from effi_onto_tools.db import TimeSpan
+from tm_entso_e.utils import  TimeSpan
 from effi_onto_tools.db.dao import DAO
 
 from tm_entso_e.schemas.service_log import ServiceLogDAO

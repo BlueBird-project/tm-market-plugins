@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
 
-from effi_onto_tools.db import TimeSpan
+from tm_entso_e.utils import  TimeSpan
 from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 
 from tm_entso_e.core.db.api.market_offer_dao import MarketOfferAPI
@@ -37,15 +37,30 @@ class MarketOfferQueries:
      offer_details."ts_end", offer_details."isp_unit", offer_details."created_ts", offer_details."update_ts", offer_details."ext" 
     FROM "${table_prefix}market_offer_details" as offer_details
     JOIN "${table_prefix}market_details" as md ON md.market_id = offer_details.market_id 
-     WHERE COALESCE(:market_id = md.market_id,TRUE) AND COALESCE(:market_type = md.market_type,TRUE)
-      AND ( :sequence is NULL OR  :sequence = offer_details.sequence )  
-      AND coalesce (:max_ts=offer_details."ts_end") """
-
-    GET_MARKET_OFFER_DETAILS_LAST_TS = """SELECT  max(offer_details."ts_end") as max_ts
+    JOIN ( 
+        SELECT  max(offer_details."ts_end") as max_ts, offer_details.market_id , offer_details.sequence
+        FROM "${table_prefix}market_offer_details" as offer_details
+        JOIN "${table_prefix}market_details" as md ON md.market_id = offer_details.market_id 
+         WHERE COALESCE(:market_id = md.market_id,TRUE) AND COALESCE(:market_type = md.market_type,TRUE)
+          AND ( :sequence is NULL OR  :sequence = offer_details.sequence ) 
+          group by offer_details.market_id , offer_details.sequence
+    ) _max_t on _max_t.max_ts = offer_details."ts_end" and offer_details.market_id = _max_t.market_id 
+        and offer_details.sequence = _max_t.sequence 
+      """
+    LIST_ON_GOING_OFFER_DETAILS = """SELECT offer_details."offer_id",offer_details."market_id",offer_details."offer_uri",
+     offer_details."sequence",offer_details."currency_unit", offer_details."volume_unit", offer_details."ts_start", 
+     offer_details."ts_end", offer_details."isp_unit", offer_details."created_ts", offer_details."update_ts", offer_details."ext" 
     FROM "${table_prefix}market_offer_details" as offer_details
     JOIN "${table_prefix}market_details" as md ON md.market_id = offer_details.market_id 
      WHERE COALESCE(:market_id = md.market_id,TRUE) AND COALESCE(:market_type = md.market_type,TRUE)
-      AND ( :sequence is NULL OR  :sequence = offer_details.sequence )  """
+      AND ( :sequence is NULL OR  :sequence = offer_details.sequence )  
+      AND   offer_details."ts_start"  > :ts_from AND offer_details."ts_start" <= :ts_to  """
+
+    # GET_MARKET_OFFER_DETAILS_LAST_TS = """SELECT  max(offer_details."ts_end") as max_ts
+    # FROM "${table_prefix}market_offer_details" as offer_details
+    # JOIN "${table_prefix}market_details" as md ON md.market_id = offer_details.market_id
+    #  WHERE COALESCE(:market_id = md.market_id,TRUE) AND COALESCE(:market_type = md.market_type,TRUE)
+    #   AND ( :sequence is NULL OR  :sequence = offer_details.sequence )  """
 
     SELECT_MARKET_OFFER_BY_ID = """SELECT "ts","offer_id", "isp_start","isp_len", "cost"  ,"update_ts" 
     FROM "${table_prefix}market_offer" WHERE offer_id = :offer_id   """
@@ -109,12 +124,20 @@ class MarketOfferAPIImpl(MarketOfferAPI):
                                   market_type: Optional[str] = None) -> List[MarketOfferDetailsDAO]:
         with ConnectionWrapper() as conn:
             args = {"market_id": market_id, "sequence": sequence, "market_type": None}
-            max_ts = conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_LAST_TS, args=args)
-            max_ts = max_ts.max_ts if max_ts is not None else None
-            if max_ts is None or max_ts < time_utils.current_timestamp():
-                return []
-            args["max_ts"] = max_ts
+            # max_ts = conn.get(q=self.queries.GET_MARKET_OFFER_DETAILS_LAST_TS, args=args)
+            # max_ts = max_ts.max_ts if max_ts is not None else None
+            # if max_ts is None or max_ts < time_utils.current_timestamp():
+            #     return []
+            # args["max_ts"] = max_ts
             offers = conn.select(q=self.queries.LIST_MARKET_OFFER_DETAILS, args=args, obj_type=MarketOfferDetailsDAO)
+            return offers
+
+    def get_ongoing_market_offer(self, ti: TimeSpan, market_id: Optional[int] = None, sequence: Optional[str] = None,
+                                 market_type: Optional[str] = None) -> List[MarketOfferDetailsDAO]:
+        with ConnectionWrapper() as conn:
+            args = {"market_id": market_id, "sequence": sequence, "market_type": market_type, "ts_from": ti.ts_from,
+                    "ts_to": ti.ts_to}
+            offers = conn.select(q=self.queries.LIST_ON_GOING_OFFER_DETAILS, args=args, obj_type=MarketOfferDetailsDAO)
             return offers
 
     def get_recent_dayahead(self, sequence: Optional[str] = None) -> List[MarketOfferDAO]:
