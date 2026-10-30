@@ -4,8 +4,8 @@ from typing import List, Tuple
 from ke_client import KIHolder
 from ke_client.ki_model import KIPostResponse
 
-from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import MarketPrice, TMContract, \
-    TMContractACK, BaselineRequest, Baseline, BaselineDateResponse, BaselineDateRequest, FlexRequest, FlexOffer, \
+from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import MarketPrice, \
+    BaselineRequest, Baseline, BaselineDateResponse, BaselineDateRequest, FlexRequest, FlexOffer, \
     FlexPriceOffer, FlexContract, FlexContractRequest, FlexContractACK
 
 ki = KIHolder()
@@ -77,6 +77,7 @@ def _answer_contract(ki_id, bindings: List[FlexContractRequest]):
         res += get_contract(kb_id=ki.get_kb_id(), asset_uri=b.asset_manager)
     return res
 
+
 @ki.react("contract-ack")
 def _on_flex_offer(kb_id, bindings: List[FlexContractACK]) -> List:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import process_contract_ack
@@ -85,7 +86,7 @@ def _on_flex_offer(kb_id, bindings: List[FlexContractACK]) -> List:
     return []
 
 
-#verify market interaction todo:
+# verify market interaction todo:
 @ki.post("capacity-market-price")
 def _post_market_price():
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_prices
@@ -110,7 +111,7 @@ def post_market_price():
     # todo:
 
 
-def post_market_contract(contract_ack: List[TMContractACK]):
+def post_market_contract(contract_ack: List[FlexContractACK]):
     resp_bindings: KIPostResponse = _post_contract(contract_ack)
     # resp_bindings.exchangeInfo[0].knowledgeBaseId
     # todo: verify if all have acknowledged the contract

@@ -3,8 +3,7 @@ from typing import List
 from effi_onto_tools.utils import time_utils
 from rdflib import Literal
 
-from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import FlexRequestUri, \
-    BaselineUri, BaselineDPUri, BaselineDPRUri
+from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import FlexRequestUri
 from tm_capacity_pl.shared.ke_interaction.fm_model import FMPnt, BaselineFlexibilityRequest
 from tm_capacity_pl.models.contract import ConsumptionPowerDAO, ContractDAO
 

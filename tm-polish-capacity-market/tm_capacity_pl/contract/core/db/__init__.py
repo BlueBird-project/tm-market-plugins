@@ -2,11 +2,10 @@ from effi_onto_tools.db.dao_exception import DeprecatedSchemaException
 
 
 def setup_db():
-    from tm_capacity_pl import app_args
+    from tm_capacity_pl.notification import app_args
     from effi_onto_tools.db.postgresql import configure_pg
     configure_pg(app_args.config_path)
-
-    from tm_entso_e.core.db.postgresql import dao_manager
+    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
 
     def pg_check_db():
         from effi_onto_tools.db.postgresql.dbconnection import connection_manager

@@ -6,7 +6,7 @@ from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 from tm_capacity_pl.contract.core.db.api.contract_api import ContractAPI
 from tm_capacity_pl.contract.core.db.api.power_usage_api import PowerUsageAPI
 from tm_capacity_pl.contract.core.db.postgresql.api_impl import QueryObject
-from tm_capacity_pl.models.contract import ContractDAO, CapacityPowerDAO
+from tm_capacity_pl.models.contract import ContractDAO, ConsumptionPowerDAO
 
 
 class PowerQueries(QueryObject):
@@ -29,13 +29,13 @@ class PowerUsageAPIImpl(PowerUsageAPI):
         super(PowerUsageAPI, self).__init__(table_prefix=table_prefix)
         self.queries: PowerQueries = self.build_queries(PowerQueries)
 
-    def list_power(self, ts: TimeSpan) -> List[CapacityPowerDAO]:
+    def list_power(self, ts: TimeSpan) -> List[ConsumptionPowerDAO]:
         with ConnectionWrapper() as conn:
             args = {"ts_from": ts.ts_from, "ts_to": ts.ts_to}
-            power_usage = conn.get(q=self.queries.LIST_POWER_USAGE, args=args, obj_type=CapacityPowerDAO)
+            power_usage = conn.get(q=self.queries.LIST_POWER_USAGE, args=args, obj_type=ConsumptionPowerDAO)
             return power_usage
 
-    def log_power(self, power_history: List[CapacityPowerDAO]) -> int:
+    def log_power(self, power_history: List[ConsumptionPowerDAO]) -> int:
         with ConnectionWrapper() as conn:
             inserted = conn.insert_batch(q=self.queries.INSERT_USAGE,
                                          arg_list=[vars(p) for p in power_history],

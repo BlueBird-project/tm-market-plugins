@@ -16,7 +16,7 @@ class ContractAPI(DAO):
         pass
 
     @abstractmethod
-    def get_current(self, contract_ack: bool) -> Optional[ContractDAO]:
+    def get_current(self, contract_ack: bool) -> List[ContractDAO]:
         pass
 
     @abstractmethod

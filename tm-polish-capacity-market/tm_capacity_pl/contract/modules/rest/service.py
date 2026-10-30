@@ -9,7 +9,7 @@ from effi_onto_tools.db import TimeSpan
 from fastapi import HTTPException
 
 from tm_capacity_pl.models import DEFAULT_MARKET_UPDATE_RATE_MS
-from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO, CapacityPowerDAO, Baseline
+from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO, ConsumptionPowerDAO, Baseline
 
 
 #
@@ -60,7 +60,7 @@ def init_contract(contract_ts: int) -> ContractDAO:
     ts_from = ts_now - 24 * 3600 * 100 * 10
     dp_info, datapoints = request_data(ts=TimeSpan(ts_from=ts_from, ts_to=ts_now))
 
-    power_history = [CapacityPowerDAO(ts=dp.ts_ms, granularity_ms=DEFAULT_MARKET_UPDATE_RATE_MS, value=dp.get_value())
+    power_history = [ConsumptionPowerDAO(ts=dp.ts_ms, granularity_ms=DEFAULT_MARKET_UPDATE_RATE_MS, value=dp.get_value())
                      for dp in datapoints]
     inserted = dao_manager.power_api.log_power(power_history=power_history)
     if inserted != len(power_history):

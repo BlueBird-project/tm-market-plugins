@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.base import BaseScheduler
 
-# TODO: set time zone
+# TODO: set time zone in config ?
 __TIME_ZONE__ = ZoneInfo("Europe/Warsaw")
 
 
