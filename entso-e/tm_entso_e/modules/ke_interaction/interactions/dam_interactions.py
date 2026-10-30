@@ -22,7 +22,6 @@ def answer_offer_values(ki_id, bindings: List[MarketOfferRequest]) -> List[Marke
     logging.debug(f"Ask offer arrived {ki_id}, {bindings}")
     accu = []
     for b in bindings:
-        # TODO: maybe include market_id in some generic offer uri
         # market_uri is prefix
         market_uri = OfferUri.get_prefix(uri=b.offer_uri)
         # print(OfferUri.parse(b.offer_uri, market_uri))

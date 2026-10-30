@@ -74,7 +74,9 @@ class MarketTypeInfo:
 
 class SubscribedEIC(BaseModel):
     code: str
+    # market_name=> market_type_info
     market_types: Union[Dict[str, List[MarketTypeInfo]], List[str]]
+    # market_code=>market_name
     _market_codes_: Dict[str, str]
 
     def __init__(self, **kwargs):
@@ -84,9 +86,17 @@ class SubscribedEIC(BaseModel):
 
     @property
     def market_codes(self) -> Iterable[str]:
+        """
+        :return: subscribed marked codes
+        """
         return self._market_codes_.keys()
 
     def get_market_type_name(self, code: str) -> str:
+        """
+
+        :param code: entsoe market type code, e.g. 'A01'
+        :return: market_type_name e.g. 'day_ahead'
+        """
         return self._market_codes_[code]
 
     def get_market_type_info(self, code: str) -> Optional[List[MarketTypeInfo]]:

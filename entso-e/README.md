@@ -3,7 +3,8 @@
 Retrieving API TOKEN (
 ENTSOE_TOKEN) - [acquire token](https://www.amsleser.no/blog/post/21-obtaining-api-token-from-entso-e)
 
-News [website](https://transparency.entsoe.eu/news) - in case of API problems or missing data   
+News [website](https://transparency.entsoe.eu/news) - in case of API problems or missing data
+
 ## REST API
 
 ### Description
@@ -33,8 +34,8 @@ POST: {service_location}/api/market/country/job/{country_name}
 # set 'override_running_job' arg to True in order to ignore previous state - for instance when the previous job didn't finish successfully   
 # The country_name can be obtained from {endpoint}/api/market.  
 ```
-The maximum time span is **180 days**.
 
+The maximum time span is **180 days**.
 
 Check running job state:
 
@@ -48,10 +49,6 @@ Verify data (for 15 minutes day/intraday offer total_isp_span should be 96 or 48
 GET: {service_location}/api/market/verify 
 ```
 
-
-
- 
-
 ### Samples
 
 Get markets
@@ -63,18 +60,23 @@ curl -X 'GET'   'http://localhost:11001/api/market'   -H 'accept: application/js
 ```
 
 Get data for a market with an id  '1' (all timestamps are UNIX timestamp in milliseconds ):
+
 ```shell
 
 curl -X 'GET'   'http://localhost:11001/api/market/1/offer?ts_from=1776075237000&ts_to=1788674437000'   -H 'accept: application/json'
 
 ````
 
-Start data acquisition  job  for given country (gets data for all configured markets related with that country here 'Poland' ) for a given period  ( Maximum time range is 180 days).
+Start data acquisition job for given country (gets data for all configured markets related with that country here '
+Poland' ) for a given period  ( Maximum time range is 180 days).
+
 ```shell 
 curl -X 'POST'   'http://localhost:11001/api/market/country/job/Poland?ts_from=1776075237000&ts_to=1788674437000&override_running_job=false'   -H 'accept: application/json'   -d ''
 ```
 
-Check the state of running job.  If entsoe_job_progress is '100.0' - job should be finished and all data should be collected
+Check the state of running job. If entsoe_job_progress is '100.0' - job should be finished and all data should be
+collected
+
 ```shell 
 
 curl -X 'GET'  'http://localhost:11001/api/market/country/job/state' -H 'accept: application/json'
@@ -89,13 +91,13 @@ curl -X 'GET'  'http://localhost:11001/api/market/country/job/state' -H 'accept:
 
 ```
 
-## ENTSO-E 
+## ENTSO-E
 
-* Area List with Energy Identification Code (EIC) [here](https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC)
+* Area List with Energy Identification Code (
+  EIC) [here](https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC)
 * Main price portal [here](https://transparency.entsoe.eu/)
-* REST API [docs](https://transparencyplatform.zendesk.com/hc/en-us/articles/15692855254548-Sitemap-for-Restful-API-Integration)
-
-
+* REST
+  API [docs](https://transparencyplatform.zendesk.com/hc/en-us/articles/15692855254548-Sitemap-for-Restful-API-Integration)
 
 ## Docker
 
@@ -127,7 +129,7 @@ docker load -i d:/tmp/tm-entsoe-service-latest-0.5.3.tar
 - entsoe_api - `yaml`'s file section
     - subscribed_eic - list of markets to read the data
         - code - region EIC code
-        - market_types - list of markets types: `intraday`|`day_ahead`
+        - market_types - list of markets types with optional configuration: `intraday`|`day_ahead`
     - eic_codes - list of EIC codes with country/area names. Additional area codes can be
       found [here](https://transparencyplatform.zendesk.com/hc/en-us/articles/15885757676308-Area-List-with-Energy-Identification-Code-EIC)
 
@@ -138,8 +140,22 @@ entsoe_api:
   subscribed_eic:
     - code: 10YES-REE------0
       market_types:
-        - "intraday"
-        - "day_ahead"
+        day_ahead:
+          - sequence: null
+            #exected time 
+            publish: "15:00"
+            #how many many market units there are in the single offer (15 minutes in a day -> 96) 
+            offer_length: 96
+            max_delay: PT1H
+        intraday:
+          - sequence: "1"
+            publish: "17:00"
+            offer_length: 96
+            max_delay: PT2H
+          - sequence: "2"
+            publish: "20:00"
+            offer_length: 96
+            max_delay: PT2H
   eic_codes:
     10Y1001A1001A82H:
       code: "10Y1001A1001A82H"
@@ -156,6 +172,11 @@ entsoe_api:
         - "Spain"
         - "ES" 
 ```
+
+#### KE interactions
+
+Graph patterns reused across BlueBird services: https://github.com/BlueBird-project/UBFlex/tree/main/ke.graph-patterns
+(`KE_KI_CONFIG_PATH=...\github\UBFlex\ke.graph-patterns\entso-e\entso-e-config.yaml`)
 
 ## Running the service
 

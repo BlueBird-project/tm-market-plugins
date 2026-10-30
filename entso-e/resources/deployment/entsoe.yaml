@@ -18,18 +18,18 @@ entsoe_api:
         - "day_ahead"
     - code: 10YES-REE------0
       market_types:
-        intraday:
-          - sequence: "1"
-            publish: "14:00"
+        day_ahead:
+          - sequence:  null
+            publish: "15:00"
             offer_length: 96
             max_delay: PT1H
-        day_ahead:
+        intraday:
           - sequence: "1"
-            publish: "13:00"
+            publish: "17:00"
             offer_length: 96
             max_delay: PT2H
           - sequence: "2"
-            publish: "15:00"
+            publish: "20:00"
             offer_length: 96
             max_delay: PT2H
           - sequence: "3"

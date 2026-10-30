@@ -1,4 +1,5 @@
 import logging
+import random
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import timedelta, datetime
@@ -12,10 +13,12 @@ __TIME_ZONE__ = ZoneInfo("Europe/Warsaw")
 
 from ke_client.utils import to_json
 
-from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode, SubscribedEIC, MarketTypeInfo
+from tm_entso_e.modules.entso_e_web_api.model import MarketAgreementTypeCode, MarketTypeInfo
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import MarketURI
 from tm_entso_e.schemas.service_log import ServiceLogDAO, ERROR_TAG
-from tm_entso_e.utils import time_utils, DAY_MS, TimeSpan
+from tm_entso_e.utils import time_utils, TimeSpan
+
+max_attempts = 3
 
 
 @dataclass(frozen=True)
@@ -27,6 +30,54 @@ class JobMeta:
     ts_to: int
 
 
+# region helpers
+def hash_set(objects: Set[JobMeta]):
+    return hash(frozenset(objects))
+
+
+def _init_retry_check_offer_job(attempt, scheduler: BaseScheduler, job_meta: Iterable[JobMeta]):
+    logging.info("Start init_retry_check_offer_job")
+
+    def retry_check_offer_job():
+        from tm_entso_e.core.db.postgresql import dao_manager
+
+        logging.info(f"Start retry_check_offer_job({attempt})")
+        dao_manager.log_api.log(ServiceLogDAO(log_tag="INFO", log_message="START: retry offer check",
+                                              log_ts=time_utils.current_timestamp()))
+        errors = check_offer(job_meta=job_meta)
+        if errors:
+            if attempt >= max_attempts:
+                dao_manager.log_api.log(
+                    ServiceLogDAO(log_tag=ERROR_TAG, log_message=f"Missing markets: Max retries exhausted",
+                                  log_ts=time_utils.current_timestamp(),
+                                  log_obj_json=to_json({"missing_markets": [f"{x.market_eic_code}:{x.market_eic_code}"
+                                                                            for x in errors]})))
+                logging.error(
+                    f"missing markets: [{",".join([x.market_eic_code for x in errors])}]. Max retries exhausted")
+                return
+            start_retry_job(attempt=attempt, scheduler=scheduler, errors=errors)
+        else:
+            logging.info(f"Start retry_check_offer_job({attempt}) finished successfully ")
+
+    return retry_check_offer_job
+
+
+def _init_check_offer_job(job_meta: Iterable[JobMeta], scheduler: BaseScheduler):
+    def check_offer_job():
+        # current_ts = time_utils.current_timestamp()
+        # last_day = TimeSpan.last_day()
+        # current_day = TimeSpan(ts_from=last_day.ts_to, ts_to=last_day.ts_to + DAY_MS)
+        errors: Set[JobMeta] = check_offer(job_meta=job_meta)
+        # errors_current: Set[JobMeta] = check_offer(job_meta=job_meta )
+        # errors.update(errors_current)
+        if errors:
+            start_retry_job(attempt=0, scheduler=scheduler, errors=errors)
+
+    return check_offer_job
+
+
+# endregion
+
 def check_offer(job_meta: Iterable[JobMeta]) -> Set[JobMeta]:
     from tm_entso_e.core.db.postgresql import dao_manager
     from tm_entso_e.modules.entso_e_web_api.config import api_settings
@@ -35,7 +86,6 @@ def check_offer(job_meta: Iterable[JobMeta]) -> Set[JobMeta]:
     dao_manager.log_api.log(ServiceLogDAO(log_tag="INFO", log_message="START: check_offer",
                                           log_ts=time_utils.current_timestamp()))
     logging.info("START: check_offer")
-    # TODO check what time interval requries ENTSOE api (past or future) for the day ahead offer
     # next day
     for market_metadata in job_meta:
         try:
@@ -46,12 +96,14 @@ def check_offer(job_meta: Iterable[JobMeta]) -> Set[JobMeta]:
             market = dao_manager.market_api.get_market_uri(market_uri)
             offers = dao_manager.offer_api.get_ongoing_market_offer(ti=time_interval, market_id=market.market_id)
             area = api_settings.get_subscribed_area_by_code(eic_area_code=market_metadata.market_eic_code)
-            number_of_types = area.number_of_types(market_type_name=area.get_market_type_name(market_metadata.market_type_code))
+            number_of_types = area.number_of_types(
+                market_type_name=area.get_market_type_name(market_metadata.market_type_code))
             expected_offer_count = time_interval.time_span_day * number_of_types
             # TODO check timezone
             if expected_offer_count == len(offers):
-                logging.info(f"market:{market.market_id} - expected_offer_count == len(offers) continue checking offers")
-                continue    # market is up to date
+                logging.info(
+                    f"market:{market.market_id} - expected_offer_count == len(offers) continue checking offers")
+                continue  # market is up to date
             else:
                 if market_metadata.market_type_info.is_publish_timeout:
                     dao_manager.log_api.log(ServiceLogDAO(log_tag="WARNING", log_message="Market offer is delayed",
@@ -83,52 +135,17 @@ def check_offer(job_meta: Iterable[JobMeta]) -> Set[JobMeta]:
     return err_markets
 
 
-max_attempts = 3
-
-
-def start_retry_job(attempt: int, scheduler: BaseScheduler, errors: Set[JobMeta] ):
+def start_retry_job(attempt: int, scheduler: BaseScheduler, errors: Set[JobMeta]):
     logging.info(f"Start retry job ({attempt})")
     logging.info(f"Start retry job ( [{",".join([x.market_eic_code for x in errors])}])")
-    f = init_retry_check_offer_job(attempt=attempt + 1, scheduler=scheduler, job_meta=errors)
-    if attempt==0:
+    f = _init_retry_check_offer_job(attempt=attempt + 1, scheduler=scheduler, job_meta=errors)
+    if attempt == 0:
         next_run = datetime.now(pytz.utc) + timedelta(seconds=15)
     else:
         next_run = datetime.now(pytz.utc) + timedelta(seconds=900)
     # next_run = datetime.now(pytz.utc) + timedelta(seconds=15)
-
-    scheduler.add_job(
-        f,
-        trigger="date",
-        next_run_time=next_run,
-        id=f"{hash_set(errors)}_{attempt}",
-        replace_existing=True,
-        coalesce=True
-    )
-
-
-def init_retry_check_offer_job(attempt, scheduler: BaseScheduler, job_meta: Iterable[JobMeta]):
-    logging.info("Start init_retry_check_offer_job")
-
-    def retry_check_offer_job():
-        from tm_entso_e.core.db.postgresql import dao_manager
-
-        logging.info(f"Start retry_check_offer_job({attempt})")
-        dao_manager.log_api.log(ServiceLogDAO(log_tag="INFO", log_message="START: retry offer check",
-                                              log_ts=time_utils.current_timestamp()))
-        errors = check_offer(job_meta=job_meta)
-        if errors:
-            if attempt >= max_attempts:
-                dao_manager.log_api.log(
-                    ServiceLogDAO(log_tag=ERROR_TAG, log_message=f"Missing markets: Max retries exhausted",
-                                  log_ts=time_utils.current_timestamp(),
-                                  log_obj_json=to_json({"missing_markets": [f"{x.market_eic_code}:{x.market_eic_code}"
-                                                                            for x in errors]})))
-                logging.error(
-                    f"missing markets: [{",".join([x.market_eic_code for x in errors])}]. Max retries exhausted")
-                return
-            start_retry_job(attempt=attempt, scheduler=scheduler, errors=errors)
-
-    return retry_check_offer_job
+    scheduler.add_job(f, trigger="date", next_run_time=next_run, id=f"{hash_set(errors)}_{attempt}",
+                      replace_existing=True, coalesce=True)
 
 
 def trigger_check_offer(service_job_scheduler: BaseScheduler):
@@ -153,24 +170,6 @@ def trigger_check_offer(service_job_scheduler: BaseScheduler):
     # TODO: make thread safe lock starting new task?
     service_job_scheduler.add_job(_init_check_offer_job(job_meta=jobs, scheduler=service_job_scheduler), trigger='date',
                                   max_instances=1, id="trigger_check_offer", run_date=run_time)
-
-
-def _init_check_offer_job(job_meta: Iterable[JobMeta], scheduler: BaseScheduler):
-    def check_offer_job():
-        # current_ts = time_utils.current_timestamp()
-        # last_day = TimeSpan.last_day()
-        # current_day = TimeSpan(ts_from=last_day.ts_to, ts_to=last_day.ts_to + DAY_MS)
-        errors: Set[JobMeta] = check_offer(job_meta=job_meta )
-        # errors_current: Set[JobMeta] = check_offer(job_meta=job_meta )
-        # errors.update(errors_current)
-        if errors:
-            start_retry_job(attempt=0, scheduler=scheduler, errors=errors  )
-
-    return check_offer_job
-
-
-def hash_set(objects: Set[JobMeta]):
-    return hash(frozenset(objects))
 
 
 def add_jobs(service_job_scheduler: BaseScheduler):
@@ -200,7 +199,6 @@ def add_jobs(service_job_scheduler: BaseScheduler):
                                       trigger="cron", day_of_week='*',
                                       hour=hour_str, minute=minutes_str, month='*', year='*', day='*', max_instances=1,
                                       coalesce=True, misfire_grace_time=30)
-        # # todo: remove call
         # _init_check_offer_job(job_meta=job_meta, scheduler=service_job_scheduler)()
 
     from datetime import datetime, timedelta
