@@ -34,13 +34,25 @@ class FlexContractQueries(QueryObject):
       ${table_alias}."ts_date_from",  ${table_alias}."ts_date_to",  ${table_alias}."ts",  ${table_alias}."ack",
         ${table_alias}."ack_ts",  ${table_alias}."update_ts"  """
     LIST = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias}     
+    LEFT JOIN  ""${table_prefix}""" + AssetManagerQueries.__TABLE_NAME__ + """" as _asset_manager 
+    on _asset_manager.asset_manager_id = ${table_alias}."asset_manager_id" 
         WHERE COALESCE (  ${table_alias}.ts_date_to > :ts_from, TRUE ) AND 
-         COALESCE (  ${table_alias}.ts_date_from < :ts_to, TRUE ) AND COALESCE ( ${table_alias}."ack" =:ack,TRUE)  """
+         COALESCE (  ${table_alias}.ts_date_from < :ts_to, TRUE ) AND COALESCE ( ${table_alias}."ack" =:ack,TRUE)
+           AND COALESCE ( ${table_alias}."asset_manager_id" =:asset_manager_id,TRUE)   """
 
     GET_MAX_TS = """SELECT max(ts) FROM "${table_prefix}${table_name}" as ${table_alias} WHERE
         COALESCE(ack = :ack,TRUE) """
     GET_CURRENT = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias}     
-        WHERE ts = :max_ts """
+      JOIN  ""${table_prefix}""" + AssetManagerQueries.__TABLE_NAME__ + """" as _asset_manager 
+    on _asset_manager.asset_manager_id = ${table_alias}."asset_manager_id" 
+    JOIN (
+    SELECT max(ts) as max_ts , ${table_alias}."asset_manager_id" FROM "${table_prefix}${table_name}" as ${table_alias}     
+      JOIN  ""${table_prefix}""" + AssetManagerQueries.__TABLE_NAME__ + """" as _asset_manager 
+    on _asset_manager.asset_manager_id = ${table_alias}."asset_manager_id" WHERE
+     COALESCE ( ${table_alias}."ack" =:ack,TRUE) 
+     AND COALESCE ( ${table_alias}."asset_manager_id" =:asset_manager_id,TRUE) 
+     GROUP BY  ${table_alias}."asset_manager_id"
+    ) _t1   on  ${table_alias}.ts = _t1=max_ts and _t1.asset_manager_id = ${table_alias}."asset_manager_id" """
     GET = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias}     
         WHERE contract_uri = :contract_uri """
     GET_ID = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE
@@ -69,17 +81,18 @@ class ContractAPIImpl(ContractAPI):
     def list_contracts(self, ts: TimeSpan, contract_ack: bool) -> List[FlexContract]:
         with ConnectionWrapper() as conn:
             contracts = conn.select(q=self.contract_queries.LIST,
-                                    args={"ts_from": ts.ts_from, "ts_to": ts.ts_to, "ack": contract_ack},
+                                    args={"ts_from": ts.ts_from, "ts_to": ts.ts_to, "ack": contract_ack,
+                                          "asset_manager_id": None},
                                     obj_type=FlexContract)
             return contracts
 
     def get_current(self, contract_ack: bool) -> List[FlexContract]:
         with ConnectionWrapper() as conn:
-            max_ts = conn.get(q=self.contract_queries.GET_MAX_TS,
-                              args={"ack": contract_ack},
-                              obj_type=FlexContract)
+            # max_ts = conn.get(q=self.contract_queries.GET_MAX_TS,
+            #                   args={"ack": contract_ack},
+            #                   obj_type=FlexContract)
             contracts = conn.select(q=self.contract_queries.GET_CURRENT,
-                                    args={"max_ts": max_ts},
+                                    args={"contract_ack": contract_ack,     "asset_manager_id": None},
                                     obj_type=FlexContract)
             return contracts
 
@@ -111,7 +124,6 @@ class ContractAPIImpl(ContractAPI):
                                            return_id_col=["asset_manager_id"])
             asset_manager.asset_manager_id = asset_manager_id
             return asset_manager
-
 
     def ack_contract(self, contract_uri: str) -> FlexContract:
         with ConnectionWrapper() as conn:

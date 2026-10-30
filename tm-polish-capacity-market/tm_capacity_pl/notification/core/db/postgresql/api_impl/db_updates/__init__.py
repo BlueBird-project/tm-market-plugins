@@ -29,5 +29,5 @@
 #         processed_versions.add(cur_version)
 #         cur_version = dao_manager.settings_api.get("db_version")
 #         logging.info(f"db updated to: '{cur_version}'")
-#     #     TODO log stages
+
 #     logging.info("Finished update")

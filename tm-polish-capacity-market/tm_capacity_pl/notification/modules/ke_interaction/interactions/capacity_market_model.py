@@ -95,6 +95,8 @@ class FlexInstructionUri(SplitURIBase):
 
     def power_limit_uri(self):
         return URIRef(self.append("powerlimit"))
+    def profile_uri(self):
+        return URIRef(self.append("profile"))
 
     def power_limit_max_uri(self):
         return URIRef(self.append("powerlimit/max"))

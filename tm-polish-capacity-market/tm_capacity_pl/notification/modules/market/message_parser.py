@@ -14,6 +14,13 @@ from zoneinfo import ZoneInfo
 time_pattern = r"(\d{1,2}\.\d{1,2}\.\d{4})\s+od godziny\s+(\d{1,2}:\d{2})\s+do godziny\s+(\d{1,2}:\d{2})"
 ratio_pattern = r"SOMi\s*=\s*([0-9]+,[0-9]+)\s*\*\s*OMi"
 
+notification_date_pattern = "%Y-%m-%d"
+market_notification_date_pattern = "%d.%m.%Y"
+
+
+def _convert_date(date_str: str) -> str:
+    return datetime.strptime(date_str, market_notification_date_pattern).strftime(notification_date_pattern)
+
 
 def _get_time(bs_page: BeautifulSoup) -> Optional[Tuple[str, int, int]]:
     span_list = bs_page.select("span")
@@ -49,15 +56,16 @@ class CapacityMarketNotification:
 
     @property
     def xsd_date(self):
-        value = self.date.strip().strip("*")
-        dt = datetime.strptime(value, "%d.%m.%Y")
+        # value = self.date.strip().strip("*")
+        # dt = datetime.strptime(value, "%d.%m.%Y")
+        dt = datetime.strptime(self.date, notification_date_pattern)
 
         return Literal(dt.isoformat(), datatype=XSD.dateTime)
 
     @property
     def xsd_start_datetime(self):
         value = self.date.strip().strip("*")
-        dt = datetime.strptime(value, "%d.%m.%Y")
+        dt = datetime.strptime(value, market_notification_date_pattern)
 
         return Literal(datetime(dt.year, dt.month, dt.day, self.start_time, minute=0).isoformat(),
                        datatype=XSD.dateTime)
@@ -76,9 +84,9 @@ class CapacityMarketNotification:
         if self._datetime is None:
             value = self.date.strip().strip("*")
             if self._tz is None:
-                dt = datetime.strptime(value, "%d.%m.%Y")
+                dt = datetime.strptime(value, notification_date_pattern)
             else:
-                dt = datetime.strptime(value, "%d.%m.%Y").replace(tzinfo=self._tz)
+                dt = datetime.strptime(value, notification_date_pattern).replace(tzinfo=self._tz)
             self._datetime = dt
         return self._datetime
 
@@ -140,6 +148,7 @@ def process_message(email: str, tz: Optional[ZoneInfo] = None) -> CapacityMarket
     date, start_time, end_time = _get_time(bs_page=bs_page)
     ratio = _get_ratio(bs_page=bs_page)
     if tz is None:
-        return CapacityMarketNotification(date=date, start_time=start_time, end_time=end_time, ratio=ratio)
+        return CapacityMarketNotification(date=_convert_date(date), start_time=start_time, end_time=end_time,
+                                          ratio=ratio)
     return CapacityMarketNotification(
-        date=date, start_time=start_time, end_time=end_time, ratio=ratio).set_timezone(tzinfo=tz)
+        date=_convert_date(date), start_time=start_time, end_time=end_time, ratio=ratio).set_timezone(tzinfo=tz)

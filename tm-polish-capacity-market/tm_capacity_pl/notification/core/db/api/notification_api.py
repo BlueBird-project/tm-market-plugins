@@ -4,7 +4,7 @@ from typing import List, Optional
 from effi_onto_tools.db import TimeSpan
 from effi_onto_tools.db.dao import DAO
 
-from tm_capacity_pl.models.demand import MarketNotification
+from tm_capacity_pl.models.demand import MarketNotificationEntity
 
 from tm_capacity_pl.notification.modules.ke_interaction.interactions.capacity_market_model import KECapacityNotification
 
@@ -14,19 +14,19 @@ class NotificationAPI(DAO):
         super(NotificationAPI, self).__init__(table_prefix=table_prefix)
 
     @abstractmethod
-    def list(self, ts: Optional[TimeSpan] = None) -> List[MarketNotification]:
+    def list(self, ts: Optional[TimeSpan] = None) -> List[MarketNotificationEntity]:
         pass
 
     @abstractmethod
-    def get_by_date(self, date: str) -> List[MarketNotification]:
+    def get_by_date(self, date: str) -> List[MarketNotificationEntity]:
         pass
 
     @abstractmethod
-    def get_current(self, ) -> List[MarketNotification]:
+    def get_current(self, ) -> List[MarketNotificationEntity]:
         pass
 
     @abstractmethod
-    def add(self, notification: MarketNotification) -> MarketNotification:
+    def add(self, notification: MarketNotificationEntity) -> MarketNotificationEntity:
         pass
 
     @abstractmethod

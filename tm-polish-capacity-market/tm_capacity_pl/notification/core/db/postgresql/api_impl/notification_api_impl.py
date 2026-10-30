@@ -6,7 +6,7 @@ from effi_onto_tools.db import TimeSpan
 
 from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 from tm_capacity_pl.core.db.postgresql.api_impl import QueryObject
-from tm_capacity_pl.models.demand import MarketNotification, KECapacityNotification
+from tm_capacity_pl.models.demand import MarketNotificationEntity, KECapacityNotification
 from tm_capacity_pl.notification.core.db.api.notification_api import NotificationAPI
 
 
@@ -30,16 +30,16 @@ class KeNotificationQueries(QueryObject):
 class MarketNotificationQueries(QueryObject):
     __TABLE_NAME__ = "market_notification"
     __PROJECTION__ = """ ${table_alias}."notification_id",${table_alias}."email" ,
-    ${table_alias}."date"  ,${table_alias}."isp"  ,   ${table_alias}."ts"     """
+    ${table_alias}."date"  ,${table_alias}."isp"  ,   ${table_alias}."ts" ,   ${table_alias}."ratio"     """
     LIST = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias}  WHERE
-     COALESCE(ts >= :ts_from, TRUE) and COALESCE(ts <= :ts_to, TRUE)      """
+     COALESCE(ts >= :ts_from, TRUE) and COALESCE(ts <= :ts_to, TRUE) order by ts ASC ,isp ASC     """
     GET_BY_DATE = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE
         date = :date"""
     GET_CURRENT_DATE = """SELECT  ${table_alias}."date"  FROM "${table_prefix}${table_name}" as ${table_alias} WHERE
         ts = (SELECT  max("ts") FROM "${table_prefix}${table_name}") """
 
-    INSERT = """INSERT INTO "${table_prefix}${table_name}" (email,  date,    isp,   ts) 
-     VALUES (  :email,  :date,  :isp,    :ts )    """
+    INSERT = """INSERT INTO "${table_prefix}${table_name}" (email,  date,    isp, ratio,  ts) 
+     VALUES (  :email,  :date,  :isp,  :ratio,   :ts )    """
 
 
 class NotificationAPIImpl(NotificationAPI):
@@ -48,34 +48,29 @@ class NotificationAPIImpl(NotificationAPI):
         self.queries: KeNotificationQueries = self.build_queries(KeNotificationQueries)
         self.market_queries: MarketNotificationQueries = self.build_queries(MarketNotificationQueries)
 
-   
-    def list(self, ts: Optional[TimeSpan] = None) -> List[MarketNotification]:
+    def list(self, ts: Optional[TimeSpan] = None) -> List[MarketNotificationEntity]:
         with ConnectionWrapper() as conn:
             notifications = conn.select(q=self.market_queries.LIST, args={"ts_from": ts.ts_from, "ts_to": ts.ts_to},
-                                        obj_type=MarketNotification)
+                                        obj_type=MarketNotificationEntity)
             return notifications
 
-   
-    def get_by_date(self, date: str) -> List[MarketNotification]:
+    def get_by_date(self, date: str) -> List[MarketNotificationEntity]:
         with ConnectionWrapper() as conn:
-            notifications = conn.select(q=self.market_queries.LIST, args={"date": date}, obj_type=MarketNotification)
+            notifications = conn.select(q=self.market_queries.LIST, args={"date": date}, obj_type=MarketNotificationEntity)
             return notifications
 
-     
-    def get_current(self, ) -> List[MarketNotification]:
+    def get_current(self, ) -> List[MarketNotificationEntity]:
         with ConnectionWrapper() as conn:
-            max_date = conn.get(q=self.market_queries.GET_CURRENT_DATE, args={}, obj_type=MarketNotification)
+            max_date = conn.get(q=self.market_queries.GET_CURRENT_DATE, args={}, obj_type=MarketNotificationEntity)
             return self.get_by_date(date=max_date)
 
-   
-    def add(self, notification: MarketNotification) -> MarketNotification:
+    def add(self, notification: MarketNotificationEntity) -> MarketNotificationEntity:
         with ConnectionWrapper() as conn:
             notification_id = conn.insert(q=self.market_queries.INSERT, args=vars(notification),
                                           return_id_col=["notification_id"])
             notification.notification_id = notification_id
             return notification
 
-   
     def add_ke_notification(self, ke_notification: KECapacityNotification) -> KECapacityNotification:
         with ConnectionWrapper() as conn:
             update_ts = conn.insert(q=self.queries.INSERT, args=vars(ke_notification),
@@ -83,7 +78,6 @@ class NotificationAPIImpl(NotificationAPI):
             ke_notification.update_ts = update_ts
             return ke_notification
 
-   
     def list_ke_notification(self, ts: Optional[TimeSpan] = None) -> List[KECapacityNotification]:
         with ConnectionWrapper() as conn:
             notifications = conn.select(q=self.queries.LIST, args={"ts_from": ts.ts_from, "ts_to": ts.ts_to},

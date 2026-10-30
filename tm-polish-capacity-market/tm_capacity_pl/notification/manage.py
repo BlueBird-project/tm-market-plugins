@@ -15,12 +15,5 @@ if __name__ == "__main__":
 
     utils.ENV_FILE = core.app_args.env_path
     logging.info(f"START {service_settings.name}")
-    ###
-    # setup DB TODO:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    ###
-    # from tm.core.db import setup_db
-    #
-    # setup_db()
-
     notification_service.init_service()
     notification_service.start_service()
