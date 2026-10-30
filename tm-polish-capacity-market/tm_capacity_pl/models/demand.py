@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 from typing import Optional
+from zoneinfo import ZoneInfo
+
+from capacity_market_utils.model import CapacityMarketNotification
 
 
 @dataclass
@@ -50,12 +53,17 @@ class DeliveredCapacity:
 
 
 @dataclass
-class MarketNotification:
-    notification_id: int
+class MarketNotificationEntity:
     email: str
     date: str
     isp: int
+    ratio: float
     ts: int
+    notification_id: Optional[int] = None
+
+    def convert_to_notification(self, tz_info: ZoneInfo) -> CapacityMarketNotification:
+        return CapacityMarketNotification(date=self.date, start_time=self.isp, end_time=self.isp + 1,
+                                          ratio=self.ratio).set_timezone(tzinfo=tz_info)
 
 
 @dataclass

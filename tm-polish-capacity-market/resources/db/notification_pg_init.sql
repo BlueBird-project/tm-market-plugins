@@ -49,6 +49,7 @@ ALTER TABLE "${table_prefix}flex_contract" ADD FOREIGN KEY ("asset_manager_id") 
      "notification_id" bigint DEFAULT nextval('${table_prefix}notification_id_seq') NOT NULL,
      "email" character varying(20000) NOT NULL,
      "date" character varying(10) NOT NULL,
+     "ratio" DOUBLE PRECISION NOT NULL,
      "isp"  int NOT NULL,
      "ts"  bigint NOT NULL,
 

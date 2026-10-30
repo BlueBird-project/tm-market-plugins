@@ -28,3 +28,6 @@ git+https://github.com/BlueBird-project/ke-pyclient.git@dev
 git+https://github.com/BlueBird-project/UBFlex.git@pyubflex_0.5#subdirectory=ontology/PyUBFlex
 ke_client==0.32.3
 ubflex==0.5
+
+holidays~=0.106
+beautifulsoup4~=4.13.4
