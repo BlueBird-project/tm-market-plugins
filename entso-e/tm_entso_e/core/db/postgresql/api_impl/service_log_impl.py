@@ -10,7 +10,6 @@ from tm_entso_e.schemas.service_log import ServiceLogDAO
 
 
 class ServiceLogQueries:
-    # TODO: list columns instead of *
     LIST_LOG = """SELECT "log_id","log_tag", "log_message", "log_ts", 
     "log_obj_type", "log_obj_json",  "log_context" 
     FROM "${table_prefix}service_log"  

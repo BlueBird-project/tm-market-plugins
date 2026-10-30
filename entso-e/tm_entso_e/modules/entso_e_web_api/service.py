@@ -58,8 +58,6 @@ def subscribe_data(ti: TimeSpan):
 
     for s_eic_area in api_settings.subscribed_eic:
         # from tm_entso_e.core.db.postgresql import dao_manager
-        # todo check if the data is actual - if yes - then don't scan
-        # check every hour
         # market_uri = MarketURI(eic_area=s_eic_area.code, market_code=market_code).uri
         # market_type_info = s_eic_area.get_market_type_info(code=market_code)
         # dao_manager.market_api.get_market_uri()
@@ -199,7 +197,6 @@ def get_data(ti: TimeSpan):
         raise Exception(f"invalid timeinterval: {ti}. Define end and start. Maximum time span is 32 days.")
 
     def _job():
-        # TODO: check if the data is in the db, so we can avoid extra API cal
         subscribe_data(ti=ti)
 
     run_time = datetime.now(tz=pytz.UTC) + timedelta(seconds=5)
