@@ -104,7 +104,7 @@ class SubscribedEIC(BaseModel):
                 raise KeyError(f"Missing market type : {market_type_name}, for market code: {self.code}")
 
         if market_type_name.lower() in self.market_types:
-            return market_type_name
+            return market_type_name.lower()
         else:
             raise KeyError(f"Missing market type : {market_type_name}, for market code: {self.code}")
 

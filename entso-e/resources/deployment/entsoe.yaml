@@ -3,7 +3,7 @@ entsoe_api:
     - code: 10YPL-AREA-----S
       market_types:
         day_ahead:
-          - sequence: None
+          - sequence: null
             publish: "14:00"
             offer_length: 96
             max_delay: PT1H
@@ -31,6 +31,10 @@ entsoe_api:
           - sequence: "2"
             publish: "15:00"
             offer_length: 96
+            max_delay: PT2H
+          - sequence: "3"
+            publish: "23:00"
+            offer_length: 48
             max_delay: PT2H
 #         - intraday
   eic_codes:

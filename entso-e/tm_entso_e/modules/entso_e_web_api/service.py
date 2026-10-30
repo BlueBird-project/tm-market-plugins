@@ -133,7 +133,7 @@ def store_offers(market_uri: str, market_offer: MarketDocument, market_type_info
             expected_length = None
             if market_type_info is not None:
                 for mt in market_type_info:
-                    if mt.sequence == sequence:
+                    if mt.sequence == sequence  :
                         expected_length = mt.offer_length
 
             offer_details = dao_manager.offer_api.get_offer_details(market_id=market.market_id,

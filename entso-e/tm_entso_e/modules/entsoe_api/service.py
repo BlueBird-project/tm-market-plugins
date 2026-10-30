@@ -5,7 +5,7 @@ from typing import List, Optional, Dict
 from zoneinfo import ZoneInfo
 
 from apscheduler.job import Job
-from tm_entso_e.utils import  TimeSpan
+from tm_entso_e.utils import TimeSpan
 from fastapi import HTTPException
 
 from tm_entso_e.core.task_manager import service_job_scheduler
@@ -26,7 +26,8 @@ def list_markets() -> List[Market]:
 
 def list_recent_offer() -> List[MarketOfferDetailsResponse]:
     from tm_entso_e.core.db.postgresql import dao_manager
-    return [MarketOfferDetailsResponse.init(MarketOfferDetails(**vars(mo))) for mo in dao_manager.offer_api.get_recent_market_details()]
+    return [MarketOfferDetailsResponse.init(MarketOfferDetails(**vars(mo))) for mo in
+            dao_manager.offer_api.get_recent_market_details()]
 
 
 #
