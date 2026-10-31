@@ -8,7 +8,6 @@ from tm_entso_e.schemas.market_dao import MarketDAO
 
 
 class MarketQueries:
-    # TODO: list columns instead of *
     LIST_MARKET = """SELECT "market_id","market_uri", "market_name", "market_type", 
     "market_description", "market_location",  "subscribe", "update_ts", "ext"
     FROM "${table_prefix}market_details"    """

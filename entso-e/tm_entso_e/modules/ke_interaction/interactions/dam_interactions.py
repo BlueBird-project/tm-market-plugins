@@ -4,7 +4,7 @@ from typing import List
 
 from ke_client import KIHolder, is_nil
 from ke_client.ki_model import KIPostResponse
-
+from tm_entso_e.utils import  TimeSpan
 from tm_entso_e.modules.ke_interaction.interactions.dam_model import EnergyMarketBindingsQuery, EnergyMarketBindings, \
     MarketOfferInfoBindings, MarketOfferInfoRequest, MarketOfferInfoFilteredRequest, \
     MarketOfferInfoFilteredBindings, MarketOfferRequest, OfferUri
