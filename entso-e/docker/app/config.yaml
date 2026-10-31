@@ -24,7 +24,7 @@ db:
   db_schema_name: "public"
   db_init: false
 ke:
-  ki_config_path: "/app/resources/ke_config.yaml"
+  ki_config_path: "/app/resources/graph-patterns/entso-e/entso-e-config.yaml"
   knowledge_base_id: "https://entsoe.bluebird.com/ke"
   ki_vars:
     DAY_DURATION: '"PT1440M"^^xsd:duration'
