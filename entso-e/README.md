@@ -43,10 +43,16 @@ Check running job state:
 POST: {service_location}/api/market/country/job/state
 ```
 
-Verify data (for 15 minutes day/intraday offer total_isp_span should be 96 or 48 for some of the intraday markets  ) :
+Offer summary:
 
 ```
-GET: {service_location}/api/market/verify 
+GET: {service_location}/api/market/offer_cummary 
+```
+
+Current list of market offers:
+
+```
+GET: {service_location}/current/offerdetails
 ```
 
 ### Samples
@@ -116,7 +122,6 @@ build and export image:
 #### Import/export docker
 
 ```
-#TODO: save with aprpropriate tag  (env variable)
 docker save -o d:/tmp/tm-entsoe-service-latest-0.5.3.tar bluebird.com/bluebird/tm-entsoe-service:latest bluebird.com/bluebird/tm-entsoe-service:0.5.3 
 
 docker load -i d:/tmp/tm-entsoe-service-latest-0.5.3.tar
@@ -144,7 +149,7 @@ entsoe_api:
           - sequence: null
             #exected time 
             publish: "15:00"
-            #how many many market units there are in the single offer (15 minutes in a day -> 96) 
+            #how many  market units there are in the single offer (15 minutes in a day -> 96) 
             offer_length: 96
             max_delay: PT1H
         intraday:
@@ -180,13 +185,13 @@ Graph patterns reused across BlueBird services: https://github.com/BlueBird-proj
 
 ## Running the service
 
-TODO:
+docker-compose -f .\compose\local.yaml --env-file .\resources\.env start
+
+docker-compose -f .\compose\local.yaml --env-file .\resources\.env start entsoe-service
 
 ### TODO:
 
-- define how much data there should apper daily for each market, add download time to the subscribed market setting
 - add rest endpoint which start KI post (market data, offer data)
-- KI -  "service", "start-command","state-command"
 
 ### links:
 
