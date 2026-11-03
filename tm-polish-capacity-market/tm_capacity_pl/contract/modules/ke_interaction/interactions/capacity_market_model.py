@@ -42,6 +42,7 @@ class FlexContract(FlexContractRequest):
     def get_flex_value(self) -> Optional[float]:
         return self.convert_value(self.flex_value, float)
 
+
 @ki_object("baseline-request")
 class BaselineDateRequest(BindingsBase):
     ts_uri: URIRef
@@ -167,8 +168,6 @@ class FlexRequestUri(SplitURIBase):
     ts: int
 
 
-
-
 @ki_split_uri(uri_template="/flex_contract/{ts}")
 class FlexContractUri(SplitURIBase):
     ts: int
@@ -220,4 +219,3 @@ class MarketOfferDPUri(SplitURIBase):
 @ki_split_uri(uri_template="/dpr/${year}/${quarter}")
 class MarketOfferDPRUri(SplitURIBase):
     isp: int
-

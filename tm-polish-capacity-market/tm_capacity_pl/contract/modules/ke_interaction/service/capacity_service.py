@@ -6,6 +6,7 @@ from ke_client import SplitURIBase
 from ke_client.utils import time_utils
 from rdflib import Literal, URIRef
 
+from tm_capacity_pl.contract.core.db.postgresql import dao_manager
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import MarketPrice, \
     MarketOfferUri, MarketOfferDPUri, DurationURI, MarketOfferDPRUri, BaselineRequest, Baseline, \
     FlexRequestUri, FlexRequest, FlexOffer, FlexPriceOffer, FlexContractUri, FlexContract, FlexContractACK
@@ -69,6 +70,7 @@ def calc_baseline(bindings: List[BaselineRequest]) -> List[Baseline]:
 
 def get_flex_request(kb_id):
     # todo get current flexrequest timestamp
+    dao_manager.contract_api.get_current_request
     flex_uri = FlexRequestUri(ts=0, prefix=kb_id)
     ts_from = int(datetime.now().timestamp() * 1000)
     ts_to = int(datetime.fromtimestamp(datetime.now().timestamp() + 3600 * 24 * 30).timestamp() * 1000)

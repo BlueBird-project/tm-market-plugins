@@ -8,6 +8,18 @@ from tm_capacity_pl.contract.core.db.postgresql.api_impl import QueryObject
 from tm_capacity_pl.models.contract import ContractDAO
 
 
+class RequestQueries(QueryObject):
+    __TABLE_NAME__ = "capacity_market_contract_details"
+
+    __PROJECTION__ = """ ${table_alias}."create_time", ${table_alias}."update_time", ${table_alias}."offer_mwh",
+     ${table_alias}."capacity_obligation", ${table_alias}."offer_ack_mwh",, ${table_alias}."capacity_ack_obligation",
+      ${table_alias}."current_baseline_id",  ${table_alias}."ack_ts",    ${table_alias}."ext"  """
+
+    LIST_CONTRACT = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
+    ( coalesce(:ts_from<=${table_alias}."create_time",TRUE) and  coalesce(:ts_to>=${table_alias}."create_time",TRUE))
+    """
+
+
 class ContractQueries(QueryObject):
     __TABLE_NAME__ = "capacity_market_contract_details"
 

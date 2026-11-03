@@ -24,13 +24,13 @@ def _get_required_days(kb_id: str, bindings: List[BaselineDateRequest]) -> List[
 
 
 @ki.post("flex-request")
-def _get_required_days() -> List[FlexRequest]:
+def _post_flex_request() -> List[FlexRequest]:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_flex_request
     return get_flex_request(kb_id=ki.get_kb_id())
 
 
 @ki.answer("flex-request")
-def _get_required_days(kb_id: str, bindings: List) -> List[FlexRequest]:
+def _get_flex_request(kb_id: str, bindings: List) -> List[FlexRequest]:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_flex_request
     return get_flex_request(kb_id=ki.get_kb_id())
 

@@ -74,7 +74,7 @@ class MarketOfferQueries:
         AND ( coalesce(:ts_from<=mod."ts_end",TRUE) and  coalesce(:ts_to>=mod."ts_start",TRUE))
         ORDER BY sequence, ts_start"""
     VERIFY_MARKET_OFFER_VALUES = """ SELECT "${table_prefix}market_offer".offer_id, 
-       count(*) as data_points, (sum(isp_len) = 48 or sum(isp_len) = 96 ) as "state", sum(isp_len) as total_isp_span,
+       count(*) as data_points, sum(isp_len) as total_isp_span,
        "${table_prefix}market_offer_details".ts_start, "${table_prefix}market_offer_details".sequence,
        "${table_prefix}market_offer_details".market_id ,"${table_prefix}market_details"."market_location"
     FROM "${table_prefix}market_offer" 

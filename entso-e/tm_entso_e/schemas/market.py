@@ -73,9 +73,19 @@ class MarketOfferValues(BaseModel):
 class MarketOfferValuesState(BaseModel):
     offer_id: int
     data_points: int
-    state: bool
     total_isp_span: int
     ts_start: int
     sequence: Optional[str]
     market_id: int
     market_location: str
+
+
+class MarketOfferValuesStateResponse(MarketOfferValuesState):
+    dt_start: str
+
+    @staticmethod
+    def init(mo: MarketOfferValuesState) -> 'MarketOfferValuesStateResponse':
+        from ke_client.utils import time_utils
+        return MarketOfferValuesStateResponse(
+            dt_start=time_utils.datetime_to_str(time_utils.from_timestamp(mo.ts_start)),
+            **vars(mo))

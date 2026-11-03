@@ -16,6 +16,15 @@ from ke_client.utils.enum_utils import EnumItem, BaseEnum
 # =====================================================
 
 @dataclass
+class FlexRequest:
+    flex_request_uri: str
+    offer_period_uri: str
+    create_ts: int
+    ts_from: int
+    ts_to: int
+
+
+@dataclass
 class ContractDAO:
     create_time: int
     update_time: Optional[int] = None
@@ -47,8 +56,8 @@ class FlexContract:
     ts_date_to: int
     ack: bool = False
     ack_ts: Optional[int] = None
-    ts:Optional[int]=None
-    update_ts:Optional[int]=None
+    ts: Optional[int] = None
+    update_ts: Optional[int] = None
 
 
 @dataclass
