@@ -5,7 +5,29 @@ from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 
 from tm_capacity_pl.contract.core.db.api.contract_api import ContractAPI
 from tm_capacity_pl.contract.core.db.postgresql.api_impl import QueryObject
-from tm_capacity_pl.models.contract import ContractDAO
+from tm_capacity_pl.models.contract import ContractDAO, FlexRequest
+
+
+class FlexRequestQueries(QueryObject):
+    __TABLE_NAME__ = "flex_request"
+
+    __PROJECTION__ = """ ${table_alias}."create_time", ${table_alias}."update_time", ${table_alias}."offer_mwh",
+     ${table_alias}."capacity_obligation", ${table_alias}."offer_ack_mwh",, ${table_alias}."capacity_ack_obligation",
+      ${table_alias}."current_baseline_id",  ${table_alias}."ack_ts",    ${table_alias}."ext"  """
+
+    LIST_REQUEST = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
+    ( coalesce(:ts_from<=${table_alias}."create_time",TRUE) and  coalesce(:ts_to>=${table_alias}."create_time",TRUE))
+    """
+    GET_REQUEST = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
+     ${table_alias}."create_ts" = :create_ts
+    """
+    CURRENT_REQUEST = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
+      ${table_alias}."create_ts" = (SELECT MAX( ${table_alias}."create_ts") as max_create_ts 
+      FROM "${table_prefix}${table_name}" as ${table_alias}  ) 
+    """
+    INSERT_REQUEST = """
+    INSERT INTO "${table_prefix}${table_name}" (flex_request_uri, offer_period_uri, create_ts, ts_from, ts_to)
+     VALUES (:flex_request_uri, :offer_period_uri, :create_ts, :ts_from, :ts_to)    """
 
 
 class RequestQueries(QueryObject):
@@ -69,7 +91,27 @@ class ContractAPIImpl(ContractAPI):
 
     def __init__(self, table_prefix: str):
         super(ContractAPI, self).__init__(table_prefix=table_prefix)
+        self.flex_request_query: FlexRequestQueries = self.build_queries(FlexRequestQueries)
         self.queries: ContractQueries = self.build_queries(ContractQueries)
+
+    def list_request(self, ts: TimeSpan) -> List[FlexRequest]:
+        with ConnectionWrapper() as conn:
+            args = {"ts_from": ts.ts_from, "ts_to": ts.ts_to}
+            q = self.flex_request_query.LIST_REQUEST
+            requests = conn.select(q=q, args=args, obj_type=FlexRequest)
+            return requests
+
+    def current_request(self, ) -> Optional[FlexRequest]:
+        with ConnectionWrapper() as conn:
+            q = self.flex_request_query.CURRENT_REQUEST
+            return conn.get(q=q, args={}, obj_type=FlexRequest)
+
+    def add_request(self, request: FlexRequest) -> FlexRequest:
+        with ConnectionWrapper() as conn:
+            q = self.flex_request_query.INSERT_REQUEST
+            create_ts = conn.insert(q=q, args=vars(request), return_id_col="create_ts")
+            assert create_ts == request.create_ts
+            return request
 
     def list_contracts(self, ts: TimeSpan, contract_ack: bool) -> List[ContractDAO]:
         with ConnectionWrapper() as conn:
