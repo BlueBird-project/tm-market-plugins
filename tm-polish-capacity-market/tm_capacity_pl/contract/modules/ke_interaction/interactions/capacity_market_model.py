@@ -4,6 +4,8 @@ from ke_client import BindingsBase, ki_object, ki_split_uri, SplitURIBase, Optio
 from ke_client.utils import time_utils
 from rdflib import URIRef, Literal
 
+from capacity_market_utils import POLAND_TZ
+from tm_capacity_pl.models.contract import FlexRequest
 from tm_capacity_pl.shared.ke_interaction.contract import FlexContractRequest
 
 
@@ -43,35 +45,43 @@ class FlexContract(FlexContractRequest):
         return self.convert_value(self.flex_value, float)
 
 
-@ki_object("baseline-request")
+@ki_object("baseline-request", allow_partial=True)
 class BaselineDateRequest(BindingsBase):
+    asset_manager: URIRef
     ts_uri: URIRef
     ts_baseline_from: Literal
     ts_baseline_to: Literal
     baseline_interval_uri: URIRef
 
     @property
-    def from_ts(self) -> int:
+    def baseline_from_ts(self) -> int:
         return time_utils.xsd_to_ts(self.ts_baseline_from)
 
     @property
-    def to_ts(self) -> int:
+    def baseline_to_ts(self) -> int:
         return time_utils.xsd_to_ts(self.ts_baseline_to)
+
+
+@ki_object("baseline-request")
+class BaselineDate(BaselineDateRequest):
+    baseline_ts_uri: URIRef
+    baseline_interval_uri: URIRef
 
 
 @ki_object("baseline-request", result=True)
 class BaselineDateResponse(BindingsBase):
+    ts_uri: URIRef
     day_interval_uri: URIRef
-    ts_day_from: URIRef
-    ts_day_to: URIRef
+    ts_day_from: Literal
+    ts_day_to: Literal
 
     @property
     def from_ts(self) -> int:
-        return time_utils.xsd_to_ts(self.ts_baseline_from)
+        return time_utils.xsd_to_ts(self.ts_day_from)
 
     @property
     def to_ts(self) -> int:
-        return time_utils.xsd_to_ts(self.ts_baseline_to)
+        return time_utils.xsd_to_ts(self.ts_day_to)
 
 
 @ki_object("baseline")
@@ -100,7 +110,7 @@ class Baseline(BindingsBase):
 
 
 @ki_object("flex-request")
-class FlexRequest(BindingsBase):
+class KEFlexRequest(BindingsBase):
     flex_request: URIRef
     offer_period: URIRef
     # s4ener:hasCreationTime
@@ -119,6 +129,14 @@ class FlexRequest(BindingsBase):
     @property
     def to_ts(self) -> int:
         return time_utils.xsd_to_ts(self.ts_baseline_to)
+
+    @staticmethod
+    def init(request: FlexRequest) -> 'KEFlexRequest':
+        return KEFlexRequest(flex_request=URIRef(request.flex_request_uri),
+                             offer_period=URIRef(request.offer_period_uri),
+                             ts=Literal(time_utils.xsd_from_ts(request.create_ts, tz=POLAND_TZ)),
+                             ts_date_from=Literal(time_utils.xsd_from_ts(request.ts_from, tz=POLAND_TZ)),
+                             ts_date_to=Literal(time_utils.xsd_from_ts(request.ts_to, tz=POLAND_TZ)))
 
 
 @ki_split_uri(uri_template="/flex_request/{ts}")
