@@ -2,16 +2,40 @@ from datetime import timedelta, datetime
 from typing import List
 
 from isodate import duration_isoformat
-from ke_client import SplitURIBase
-from ke_client.utils import time_utils
-from rdflib import Literal, URIRef
-
-from tm_capacity_pl.contract.core.db.postgresql import dao_manager
-from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import MarketPrice, \
-    MarketOfferUri, MarketOfferDPUri, DurationURI, MarketOfferDPRUri, BaselineRequest, Baseline, \
-    FlexRequestUri, FlexRequest, FlexOffer, FlexPriceOffer, FlexContractUri, FlexContract, FlexContractACK
+from tm_capacity_pl.shared.baseline import baseline_requirements
+from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import *
 from tm_capacity_pl.models.contract import ConsumptionPowerDAO
 from tm_capacity_pl.shared import POLAND_TZ
+from tm_capacity_pl.shared.ke_interaction.fm_model import KETimeIntervalUri
+from tm_capacity_pl.utils import TimeSpan
+
+
+def get_flex_request(kb_id):
+    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
+    request = dao_manager.contract_api.current_request()
+    if request is not None:
+        return [KEFlexRequest.init(request=request)]
+    else:
+        # TODO: remove sample request
+        flex_uri = FlexRequestUri(ts=0, prefix=kb_id)
+        ts_from = int(datetime.now().timestamp() * 1000)
+        ts_to = int(datetime.fromtimestamp(datetime.now().timestamp() + 3600 * 24 * 30).timestamp() * 1000)
+        return [KEFlexRequest(flex_request=flex_uri.uri_ref, offer_period=flex_uri.append_ref("interval"),
+                              ts=time_utils.xsd_from_ts(ts=0, tz=POLAND_TZ),
+                              ts_date_from=time_utils.xsd_from_ts(ts=ts_from, tz=POLAND_TZ),
+                              ts_date_to=time_utils.xsd_from_ts(ts=ts_to, tz=POLAND_TZ), )]
+
+
+def get_baseline_required_dates(bindings: List[BaselineDateRequest]) -> List[BaselineDateResponse]:
+    reqs = []
+    for b in bindings:
+        req = baseline_requirements(ts=TimeSpan(ts_from=b.baseline_from_ts, ts_to=b.baseline_to_ts))
+        bdr = BaselineDateResponse(ts_uri=b.ts_uri,
+                                   day_interval_uri=KETimeIntervalUri(ts_from=req.ts_from, ts_to=req.ts_to).n3(),
+                                   ts_day_from=Literal(time_utils.xsd_from_ts(req.ts_from)),
+                                   ts_day_to=Literal(time_utils.xsd_from_ts(req.ts_to)))
+        reqs.append(bdr)
+    return reqs
 
 
 def get_prices() -> List[MarketPrice]:
@@ -66,18 +90,6 @@ def calc_baseline(bindings: List[BaselineRequest]) -> List[Baseline]:
                                   ts=time_utils.xsd_from_ts(ts=b.ts, tz=POLAND_TZ),
                                   dpr_baseline=SplitURIBase.uri_append(ts_uri, "dpr_baseline"),
                                   value_baseline=Literal(b.baseline_value)) for b in baseline]
-
-
-def get_flex_request(kb_id):
-    # todo get current flexrequest timestamp
-    dao_manager.contract_api.get_current_request
-    flex_uri = FlexRequestUri(ts=0, prefix=kb_id)
-    ts_from = int(datetime.now().timestamp() * 1000)
-    ts_to = int(datetime.fromtimestamp(datetime.now().timestamp() + 3600 * 24 * 30).timestamp() * 1000)
-    return [FlexRequest(flex_request=flex_uri.uri_ref, offer_period=flex_uri.append_ref("interval"),
-                        ts=time_utils.xsd_from_ts(ts=0, tz=POLAND_TZ),
-                        ts_date_from=time_utils.xsd_from_ts(ts=ts_from, tz=POLAND_TZ),
-                        ts_date_to=time_utils.xsd_from_ts(ts=ts_to, tz=POLAND_TZ), )]
 
 
 def process_offer(offer: List[FlexOffer]):

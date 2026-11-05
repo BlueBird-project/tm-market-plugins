@@ -1,17 +1,13 @@
-from collections import defaultdict, deque
-from typing import List, Dict, Union
-import random
+from collections import deque
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-
-from ke_client.utils import time_utils
-
-from tm_capacity_pl.contract.modules.market.utils import get_hour_offset, get_hour_from_ts
-from tm_capacity_pl.models.contract import ConsumptionPowerDAO, BaselineValueDAO, BaselineValue, ConsumptionPower
+from typing import List, Union
 
 import holidays
+from ke_client.utils import time_utils
 
+from tm_capacity_pl.models.contract import ConsumptionPowerDAO, BaselineValue, ConsumptionPower
 from tm_capacity_pl.shared import POLAND_TZ
+from tm_capacity_pl.utils import TimeSpan
 
 PL_HOLIDAYS = holidays.country_holidays("PL")
 
@@ -26,6 +22,40 @@ def is_working_day(dt: datetime) -> bool:
 
     # Monday = 0, Sunday = 6
     return day.weekday() < 5 and day not in PL_HOLIDAYS
+
+
+def baseline_requirements(ts: TimeSpan) -> TimeSpan:
+    """
+    get required data time range for given baseline time range
+    :return:
+    """
+    current = time_utils.from_timestamp(ts.ts_from).replace(tzinfo=POLAND_TZ)
+    i = 0
+    work_days = 0
+    while i < 1000 and work_days < 11:
+        current -= timedelta(days=1)
+        if is_working_day(current):
+            work_days += 1
+        i += 1
+    ts_from = time_utils.to_timestamp(current)
+    return TimeSpan(ts_from=ts_from, ts_to=ts.ts_to)
+
+
+def list_work_days(ts: TimeSpan) -> List[datetime]:
+    """
+    list work days for given time range
+    :param ts:
+    :return:
+    """
+    res = []
+    current = time_utils.from_timestamp(ts.ts_from).replace(tzinfo=POLAND_TZ)
+    current = datetime(day=current.day, month=current.month, year=current.year)
+    while time_utils.to_timestamp(current) < ts.ts_to:
+        if is_working_day(current):
+            res.append(current)
+        current += timedelta(days=1)
+
+    return res
 
 
 class BaselineBuffer:
@@ -168,10 +198,10 @@ class ReferenceProfileStream:
 
         return None
 
-    def ref_profile(self,dt:datetime):
+    def ref_profile(self, dt: datetime):
         assert all(v is not None for v in self.value_buffer)
-        return [ BaselineValue(ts=time_utils.to_timestamp(dt.replace(hour=i)), baseline_value=b.cur(), baseline_isp=i,
-                               isp_len=60) for i, b in enumerate(self.value_buffer)]
+        return [BaselineValue(ts=time_utils.to_timestamp(dt.replace(hour=i)), baseline_value=b.cur(), baseline_isp=i,
+                              isp_len=60) for i, b in enumerate(self.value_buffer)]
 
     def profile_exists(self):
         return all(v is not None for v in self.value_buffer)

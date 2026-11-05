@@ -5,34 +5,34 @@ from ke_client import KIHolder
 from ke_client.ki_model import KIPostResponse
 
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import MarketPrice, \
-    BaselineRequest, Baseline, BaselineDateResponse, BaselineDateRequest, FlexRequest, FlexOffer, \
+    BaselineRequest, Baseline, BaselineDateResponse, BaselineDateRequest, KEFlexRequest, FlexOffer, \
     FlexPriceOffer, FlexContract, FlexContractRequest, FlexContractACK
 
 ki = KIHolder()
 
 
-@ki.react("baseline")
-def _calc_baseline(kb_id: str, bindings: List[BaselineRequest]) -> List[Baseline]:
-    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import calc_baseline
-    return calc_baseline(bindings=bindings)
-
-
-@ki.react("baseline-request")
-def _get_required_days(kb_id: str, bindings: List[BaselineDateRequest]) -> List[BaselineDateResponse]:
-    # todo get list of days eligible for capacity market
-    return []
-
-
 @ki.post("flex-request")
-def _post_flex_request() -> List[FlexRequest]:
+def _post_flex_request() -> List[KEFlexRequest]:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_flex_request
     return get_flex_request(kb_id=ki.get_kb_id())
 
 
 @ki.answer("flex-request")
-def _get_flex_request(kb_id: str, bindings: List) -> List[FlexRequest]:
+def _get_flex_request(kb_id: str, bindings: List) -> List[KEFlexRequest]:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_flex_request
     return get_flex_request(kb_id=ki.get_kb_id())
+
+
+@ki.react("baseline-request")
+def _get_required_days(kb_id: str, bindings: List[BaselineDateRequest]) -> List[BaselineDateResponse]:
+    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_baseline_required_dates
+    return get_baseline_required_dates(bindings=bindings)
+
+####
+@ki.react("baseline")
+def _calc_baseline(kb_id: str, bindings: List[BaselineRequest]) -> List[Baseline]:
+    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import calc_baseline
+    return calc_baseline(bindings=bindings)
 
 
 @ki.react("flex-offer")
@@ -115,3 +115,9 @@ def post_market_contract(contract_ack: List[FlexContractACK]):
     resp_bindings: KIPostResponse = _post_contract(contract_ack)
     # resp_bindings.exchangeInfo[0].knowledgeBaseId
     # todo: verify if all have acknowledged the contract
+
+
+def post_current_flex_request():
+    resp_bindings: KIPostResponse = _post_flex_request()
+    # resp_bindings.exchangeInfo[0].knowledgeBaseId
+    # todo: process post output
