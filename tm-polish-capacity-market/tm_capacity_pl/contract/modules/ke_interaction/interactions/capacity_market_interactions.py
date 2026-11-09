@@ -6,7 +6,7 @@ from ke_client.ki_model import KIPostResponse
 
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import MarketPrice, \
     BaselineRequest, Baseline, BaselineDateResponse, BaselineDateRequest, KEFlexRequest, KEFlexOffer, \
-    FlexPriceOffer, FlexContract, FlexContractRequest, FlexContractACK, KEFlexOfferQuery
+    KEFlexPriceOffer, FlexContract, FlexContractRequest, FlexContractACK, KEFlexOfferQuery
 
 ki = KIHolder()
 
@@ -42,20 +42,19 @@ def _on_flex_offer(kb_id, bindings: List[KEFlexOffer]) -> List:
     return []
 
 
-@ki.answer("flex-offer")
-def _on_flex_offer_request(kb_id, bindings: List[KEFlexOfferQuery]) -> List[KEFlexOffer]:
-    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_flex_offer
-    get_flex_offer(bindings)
-    return []
+# @ki.answer("flex-offer")
+# def _on_flex_offer_request(kb_id, bindings: List[KEFlexOfferQuery]) -> List[KEFlexOffer]:
+#     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_flex_offer
+#     get_flex_offer(bindings)
+#     return []
 
-
-###############
 @ki.react("price-offer")
-def _on_flex_offer(kb_id, bindings: List[FlexPriceOffer]) -> List:
+def _on_price_offer(kb_id, bindings: List[KEFlexPriceOffer]) -> List:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import process_price_offer
-    # todo:
     process_price_offer(bindings)
     return []
+
+###############
 
 
 @ki.post("contract")

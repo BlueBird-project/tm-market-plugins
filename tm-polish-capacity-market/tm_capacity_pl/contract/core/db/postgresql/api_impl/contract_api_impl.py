@@ -5,7 +5,7 @@ from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 
 from tm_capacity_pl.contract.core.db.api.contract_api import ContractAPI
 from tm_capacity_pl.contract.core.db.postgresql.api_impl import QueryObject
-from tm_capacity_pl.models.contract import ContractDAO, FlexRequest, FlexOffer
+from tm_capacity_pl.models.contract import ContractDAO, FlexRequest, FlexOffer, FlexPriceOffer
 
 
 class FlexRequestQueries(QueryObject):
@@ -35,12 +35,20 @@ class FlexOfferQueries(QueryObject):
 
     __PROJECTION__ = """${table_alias}.flex_request_uri, ${table_alias}.asset_manager_uri,
      ${table_alias}.flex_profile_uri, ${table_alias}.profile_price_uri, ${table_alias}.flex_price,
-      ${table_alias}.ts, ${table_alias}.flex_value, ${table_alias}.update_ts"""
+      ${table_alias}.ts, ${table_alias}.flex_value,${table_alias}.cost_value,
+      ${table_alias}.update_ts, ${table_alias}.cost_update_ts"""
 
     LIST_OFFER = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias}   """
     LIST_REQUEST_OFFER = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
      ${table_alias}."flex_request_uri" = :flex_request_uri
     """
+
+    GET_REQUEST_OFFER = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
+     ${table_alias}."flex_request_uri" = :flex_request_uri AND ${table_alias}.cost_update_ts IS NOT NULL
+      AND ${table_alias}.asset_manager_uri  =:asset_manager_uri """
+
+    LIST_PRICE_OFFER = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
+     ${table_alias}."flex_request_uri" = :flex_request_uri AND ${table_alias}.cost_update_ts IS NOT NULL """
 
     INSERT_OFFER = """INSERT INTO ${table_prefix}${table_name} 
     (flex_request_uri, asset_manager_uri, flex_profile_uri, profile_price_uri, flex_price, ts, flex_value, update_ts)
@@ -48,18 +56,9 @@ class FlexOfferQueries(QueryObject):
      (:flex_request_uri, :asset_manager_uri, :flex_profile_uri, :profile_price_uri, :flex_price, :ts, :flex_value, 
      extract(epoch from now()) * 1000) """
 
-
-#
-# class RequestQueries(QueryObject):
-#     __TABLE_NAME__ = "capacity_market_contract_details"
-#
-#     __PROJECTION__ = """ ${table_alias}."create_time", ${table_alias}."update_time", ${table_alias}."offer_mwh",
-#      ${table_alias}."capacity_obligation", ${table_alias}."offer_ack_mwh",, ${table_alias}."capacity_ack_obligation",
-#       ${table_alias}."current_baseline_id",  ${table_alias}."ack_ts",    ${table_alias}."ext"  """
-#
-#     LIST_CONTRACT = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE
-#     ( coalesce(:ts_from<=${table_alias}."create_time",TRUE) and  coalesce(:ts_to>=${table_alias}."create_time",TRUE))
-#     """
+    UPDATE_OFFER_PRICE = """UPDATE "${table_prefix}${table_name}" 
+    SET cost_value = :cost_value AND cost_update_ts EXTRACT(epoch FROM current_timestamp) *1000) 
+    WHERE flex_request_uri = :flex_request_uri and asset_manager_uri = :asset_manager_uri """
 
 
 class ContractQueries(QueryObject):
@@ -143,17 +142,41 @@ class ContractAPIImpl(ContractAPI):
     def list_flex_offer(self, flex_request_uri: str) -> List[FlexOffer]:
         with ConnectionWrapper() as conn:
             q = self.flex_offer_queries.LIST_REQUEST_OFFER
-            return conn.get(q=q, args={"flex_request_uri": flex_request_uri}, obj_type=FlexOffer)
+            return conn.select(q=q, args={"flex_request_uri": flex_request_uri}, obj_type=FlexOffer)
 
     def add_offer(self, offers: List[FlexOffer]) -> List[FlexOffer]:
         with ConnectionWrapper() as conn:
-            q = self.flex_request_query.INSERT_REQUEST
+            q = self.flex_offer_queries.INSERT_OFFER
             update_ts = conn.insert_batch(q=q, arg_list=[vars(offer) for offer in offers], return_id_col="update_ts")
-            for i,u_ts in enumerate(update_ts):
-                offers[i].update_ts=u_ts
+            for i, u_ts in enumerate(update_ts):
+                offers[i].update_ts = u_ts
+            return offers
+
+    def list_price_offer(self, flex_request_uri: str) -> List[FlexPriceOffer]:
+        with ConnectionWrapper() as conn:
+            q = self.flex_offer_queries.LIST_PRICE_OFFER
+            return conn.select(q=q, args={"flex_request_uri": flex_request_uri}, obj_type=FlexPriceOffer)
+
+    def add_offer_price(self, offers: List[FlexPriceOffer]) -> List[FlexPriceOffer]:
+        with ConnectionWrapper() as conn:
+            for o in offers:
+                flex_offer = conn.get(q=self.flex_offer_queries.GET_REQUEST_OFFER,
+                                      args={"flex_request_uri": o.flex_request_uri,
+                                            "asset_manager_uri": o.asset_manager_uri}, raw=True)
+                if flex_offer is not None:
+                    raise ValueError(f"Offer for {o.flex_request_uri}:{o.asset_manager_uri} not found")
+
+                conn.update(q=self.flex_offer_queries.UPDATE_OFFER_PRICE,
+                            args={"cost_value": o.cost_value})
+                cost_update_ts = conn.get(q=self.flex_offer_queries.GET_REQUEST_OFFER,
+                                          args={"flex_request_uri": o.flex_request_uri,
+                                                "asset_manager_uri": o.asset_manager_uri},
+                                          obj_type=FlexPriceOffer).cost_update_ts
+                o.cost_update_ts = cost_update_ts
             return offers
 
     ###########
+
     def list_contracts(self, ts: TimeSpan, contract_ack: bool) -> List[ContractDAO]:
         with ConnectionWrapper() as conn:
             args = {"ts_from": ts.ts_from, "ts_to": ts.ts_to}
@@ -162,7 +185,6 @@ class ContractAPIImpl(ContractAPI):
             return contracts
 
     def get_current(self, contract_ack: bool) -> Optional[ContractDAO]:
-
         with ConnectionWrapper() as conn:
             if contract_ack:
                 contract = conn.get(q=self.queries.GET_CURRENT_CONTRACT_ACK, args={}, obj_type=ContractDAO)

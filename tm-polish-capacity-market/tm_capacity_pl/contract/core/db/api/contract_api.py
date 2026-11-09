@@ -4,7 +4,7 @@ from typing import List, Optional
 from effi_onto_tools.db import TimeSpan
 from effi_onto_tools.db.dao import DAO
 
-from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO, FlexRequest, FlexOffer
+from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO, FlexRequest, FlexOffer, FlexPriceOffer
 
 
 class ContractAPI(DAO):
@@ -33,6 +33,14 @@ class ContractAPI(DAO):
 
     @abstractmethod
     def add_offer(self, offers: List[FlexOffer]) -> List[FlexOffer]:
+        pass
+
+    @abstractmethod
+    def list_price_offer(self, flex_request_uri: str) -> List[FlexPriceOffer]:
+        pass
+
+    @abstractmethod
+    def add_offer_price(self, offers: List[FlexPriceOffer]) -> List[FlexPriceOffer]:
         pass
 
     #############

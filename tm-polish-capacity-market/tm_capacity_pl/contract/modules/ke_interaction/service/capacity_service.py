@@ -107,19 +107,21 @@ def process_offer(offers: List[KEFlexOffer]):
     dao_manager.contract_api.add_offer(offers=[o.rdf_parse() for o in offers])
 
 
-def get_flex_offer(queries: List[KEFlexOfferQuery]):
+#
+# def get_flex_offer(queries: List[KEFlexOfferQuery]) -> List[KEFlexOffer]:
+#     from tm_capacity_pl.contract.core.db.postgresql import dao_manager
+#     res = []
+#     s = set()
+#     for q in queries:
+#         if q.flex_request.n3() not in s:
+#             s.add(q.flex_request.n3())
+#             res += [KEFlexOffer.to_rdf(o) for o in
+#                     dao_manager.contract_api.list_flex_offer(flex_request_uri=q.flex_request.n3())]
+
+
+def process_price_offer(offers: List[KEFlexPriceOffer]):
     from tm_capacity_pl.contract.core.db.postgresql import dao_manager
-    res = []
-    s = set()
-    for q in queries:
-        if q.flex_request.n3() not in s:
-            s.add(q.flex_request.n3())
-            res += dao_manager.contract_api.list_flex_offer(flex_request_uri=q.flex_request.n3())
-
-
-def process_price_offer(offer: List[FlexPriceOffer]):
-    # todo: process price offer
-    pass
+    dao_manager.contract_api.add_offer_price(offers=[o.rdf_parse() for o in offers])
 
 
 def get_contracts(kb_id):

@@ -19,7 +19,9 @@ CREATE TABLE "${table_prefix}flex_offer" (
         flex_price DOUBLE PRECISION,
         ts BIGINT,
         flex_value DOUBLE PRECISION,
+        cost_value DOUBLE PRECISION,
         update_ts BIGINT,
+        cost_update_ts BIGINT,
         CONSTRAINT uq_flex_offer_request_asset
             UNIQUE (flex_request_uri, asset_manager_uri)
     );
