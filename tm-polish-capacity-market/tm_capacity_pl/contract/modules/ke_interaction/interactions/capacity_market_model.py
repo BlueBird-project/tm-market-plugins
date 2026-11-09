@@ -5,7 +5,7 @@ from ke_client.utils import time_utils
 from rdflib import URIRef, Literal
 
 from capacity_market_utils import POLAND_TZ
-from tm_capacity_pl.models.contract import FlexRequest
+from tm_capacity_pl.models.contract import FlexRequest, FlexOffer
 from tm_capacity_pl.shared.ke_interaction.contract import FlexContractRequest
 
 
@@ -87,6 +87,7 @@ class BaselineDateResponse(BindingsBase):
 @ki_object("baseline")
 class BaselineRequest(BindingsBase):
     ts_uri: URIRef
+    asset_manager: URIRef
     dp: URIRef
     ts: Literal
     dpr: URIRef
@@ -144,8 +145,13 @@ class FlexRequestUri(SplitURIBase):
     ts: int
 
 
+@ki_object("flex-offer", allow_partial=True)
+class KEFlexOfferQuery(BindingsBase):
+    flex_request: URIRef
+
+
 @ki_object("flex-offer")
-class FlexOffer(BindingsBase):
+class KEFlexOffer(BindingsBase):
     flex_request: URIRef
     asset_manager: URIRef
     flex_profile: URIRef
@@ -159,6 +165,20 @@ class FlexOffer(BindingsBase):
     @property
     def ts_ms(self) -> int:
         return time_utils.xsd_to_ts(self.ts)
+
+    # @staticmethod
+    # def init(request: FlexOffer) -> 'KEFlexRequest':
+    #     return KEFlexRequest(flex_request=URIRef(request.flex_request_uri),
+    #                          offer_period=URIRef(request.offer_period_uri),
+    #                          ts=Literal(time_utils.xsd_from_ts(request.create_ts, tz=POLAND_TZ)),
+    #                          ts_date_from=Literal(time_utils.xsd_from_ts(request.ts_from, tz=POLAND_TZ)),
+    #                          ts_date_to=Literal(time_utils.xsd_from_ts(request.ts_to, tz=POLAND_TZ)))
+    def rdf_parse(self) -> FlexOffer:
+        return FlexOffer(
+            flex_request_uri=self.flex_request.n3(), asset_manager_uri=self.asset_manager.n3(),
+            flex_profile_uri=self.flex_profile.n3(), profile_price_uri=self.profile_price.n3(),
+            flex_price=self.convert_value(self.price, float),
+            ts=time_utils.xsd_to_ts(self.ts), flex_value=self.convert_value(self.value, float))
 
 
 @ki_object("price-offer")

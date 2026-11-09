@@ -25,6 +25,18 @@ class FlexRequest:
 
 
 @dataclass
+class FlexOffer:
+    flex_request_uri: str
+    asset_manager_uri: str
+    flex_profile_uri: str
+    profile_price_uri: str
+    flex_price: float
+    ts: int
+    flex_value: float
+    update_ts: Optional[int] = None
+
+
+@dataclass
 class ContractDAO:
     create_time: int
     update_time: Optional[int] = None

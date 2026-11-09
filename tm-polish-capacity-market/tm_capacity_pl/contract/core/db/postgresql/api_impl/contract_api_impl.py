@@ -5,7 +5,7 @@ from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 
 from tm_capacity_pl.contract.core.db.api.contract_api import ContractAPI
 from tm_capacity_pl.contract.core.db.postgresql.api_impl import QueryObject
-from tm_capacity_pl.models.contract import ContractDAO, FlexRequest
+from tm_capacity_pl.models.contract import ContractDAO, FlexRequest, FlexOffer
 
 
 class FlexRequestQueries(QueryObject):
@@ -18,9 +18,9 @@ class FlexRequestQueries(QueryObject):
     LIST_REQUEST = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
     ( coalesce(:ts_from<=${table_alias}."create_time",TRUE) and  coalesce(:ts_to>=${table_alias}."create_time",TRUE))
     """
-    GET_REQUEST = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
-     ${table_alias}."create_ts" = :create_ts
-    """
+    # GET_REQUEST = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE
+    #  ${table_alias}."create_ts" = :create_ts
+    # """
     CURRENT_REQUEST = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
       ${table_alias}."create_ts" = (SELECT MAX( ${table_alias}."create_ts") as max_create_ts 
       FROM "${table_prefix}${table_name}" as ${table_alias}  ) 
@@ -30,16 +30,36 @@ class FlexRequestQueries(QueryObject):
      VALUES (:flex_request_uri, :offer_period_uri, :create_ts, :ts_from, :ts_to)    """
 
 
-class RequestQueries(QueryObject):
-    __TABLE_NAME__ = "capacity_market_contract_details"
+class FlexOfferQueries(QueryObject):
+    __TABLE_NAME__ = "flex_request"
 
-    __PROJECTION__ = """ ${table_alias}."create_time", ${table_alias}."update_time", ${table_alias}."offer_mwh",
-     ${table_alias}."capacity_obligation", ${table_alias}."offer_ack_mwh",, ${table_alias}."capacity_ack_obligation",
-      ${table_alias}."current_baseline_id",  ${table_alias}."ack_ts",    ${table_alias}."ext"  """
+    __PROJECTION__ = """${table_alias}.flex_request_uri, ${table_alias}.asset_manager_uri,
+     ${table_alias}.flex_profile_uri, ${table_alias}.profile_price_uri, ${table_alias}.flex_price,
+      ${table_alias}.ts, ${table_alias}.flex_value, ${table_alias}.update_ts"""
 
-    LIST_CONTRACT = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
-    ( coalesce(:ts_from<=${table_alias}."create_time",TRUE) and  coalesce(:ts_to>=${table_alias}."create_time",TRUE))
+    LIST_OFFER = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias}   """
+    LIST_REQUEST_OFFER = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
+     ${table_alias}."flex_request_uri" = :flex_request_uri
     """
+
+    INSERT_OFFER = """INSERT INTO ${table_prefix}${table_name} 
+    (flex_request_uri, asset_manager_uri, flex_profile_uri, profile_price_uri, flex_price, ts, flex_value, update_ts)
+    VALUES
+     (:flex_request_uri, :asset_manager_uri, :flex_profile_uri, :profile_price_uri, :flex_price, :ts, :flex_value, 
+     extract(epoch from now()) * 1000) """
+
+
+#
+# class RequestQueries(QueryObject):
+#     __TABLE_NAME__ = "capacity_market_contract_details"
+#
+#     __PROJECTION__ = """ ${table_alias}."create_time", ${table_alias}."update_time", ${table_alias}."offer_mwh",
+#      ${table_alias}."capacity_obligation", ${table_alias}."offer_ack_mwh",, ${table_alias}."capacity_ack_obligation",
+#       ${table_alias}."current_baseline_id",  ${table_alias}."ack_ts",    ${table_alias}."ext"  """
+#
+#     LIST_CONTRACT = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE
+#     ( coalesce(:ts_from<=${table_alias}."create_time",TRUE) and  coalesce(:ts_to>=${table_alias}."create_time",TRUE))
+#     """
 
 
 class ContractQueries(QueryObject):
@@ -92,7 +112,7 @@ class ContractAPIImpl(ContractAPI):
     def __init__(self, table_prefix: str):
         super(ContractAPI, self).__init__(table_prefix=table_prefix)
         self.flex_request_query: FlexRequestQueries = self.build_queries(FlexRequestQueries)
-        self.queries: ContractQueries = self.build_queries(ContractQueries)
+        self.flex_offer_queries: FlexOfferQueries = self.build_queries(FlexOfferQueries)
 
     def list_request(self, ts: TimeSpan) -> List[FlexRequest]:
         with ConnectionWrapper() as conn:
@@ -113,6 +133,27 @@ class ContractAPIImpl(ContractAPI):
             assert create_ts == request.create_ts
             return request
 
+    def list_offer(self, ) -> List[FlexOffer]:
+        with ConnectionWrapper() as conn:
+            # args = {"ts_from": ts.ts_from, "ts_to": ts.ts_to}
+            q = self.flex_offer_queries.LIST_OFFER
+            requests = conn.select(q=q, args={}, obj_type=FlexOffer)
+            return requests
+
+    def list_flex_offer(self, flex_request_uri: str) -> List[FlexOffer]:
+        with ConnectionWrapper() as conn:
+            q = self.flex_offer_queries.LIST_REQUEST_OFFER
+            return conn.get(q=q, args={"flex_request_uri": flex_request_uri}, obj_type=FlexOffer)
+
+    def add_offer(self, offers: List[FlexOffer]) -> List[FlexOffer]:
+        with ConnectionWrapper() as conn:
+            q = self.flex_request_query.INSERT_REQUEST
+            update_ts = conn.insert_batch(q=q, arg_list=[vars(offer) for offer in offers], return_id_col="update_ts")
+            for i,u_ts in enumerate(update_ts):
+                offers[i].update_ts=u_ts
+            return offers
+
+    ###########
     def list_contracts(self, ts: TimeSpan, contract_ack: bool) -> List[ContractDAO]:
         with ConnectionWrapper() as conn:
             args = {"ts_from": ts.ts_from, "ts_to": ts.ts_to}

@@ -3,17 +3,38 @@ from typing import List, Optional, Dict
 from effi_onto_tools.db import TimeSpan
 from fastapi import APIRouter
 
-from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO
+from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO, FlexRequest
 
 router = APIRouter(prefix="")
 
 
-@router.post("/contract/init")
-@router.put("/contract/init/{contract_ts}")
-async def contract_init(contract_ts: Optional[int]) -> ContractDAO:
-    # TODO start contract background job
+@router.post("/flex_request/init")
+async def flex_request_init(ts_from: Optional[int] = None, ts_to: Optional[int] = None) -> FlexRequest:
     from tm_capacity_pl.contract.modules.rest import service
-    return service.init_contract(contract_ts=contract_ts)
+    return service.init_flex_request(ts_from=ts_from, ts_to=ts_to)
+
+
+@router.get("/flex_request")
+async def current_request() -> FlexRequest:
+    from tm_capacity_pl.contract.modules.rest import service
+    return service.get_current_request()
+
+
+@router.post("/flex_request/publish", tags=["publish"])
+async def post_current_request() -> FlexRequest:
+    from tm_capacity_pl.contract.modules.rest import service
+    return service.post_current_request()
+
+
+#     return service.init_contract(contract_ts=contract_ts)
+
+
+# @router.post("/contract/init")
+# @router.put("/contract/init/{contract_ts}")
+# async def contract_init(contract_ts: Optional[int]) -> ContractDAO:
+#     # TODO start contract background job
+#     from tm_capacity_pl.contract.modules.rest import service
+#     return service.init_contract(contract_ts=contract_ts)
 
 
 @router.post("/baseline/calc/contract/{contract_ts}")
@@ -22,8 +43,9 @@ async def contract_init(contract_ts: int) -> List[BaselineDAO]:
     from tm_capacity_pl.contract.modules.rest import service
     return service.calc_baseline(contract_id=contract_ts)
 
+
 @router.post("/baseline/calc/contract/{contract_ts}/ack")
-async def contract_init(contract:ContractDAO) -> List[BaselineDAO]:
+async def contract_init(contract: ContractDAO) -> List[BaselineDAO]:
     # TODO start contract background job
     from tm_capacity_pl.contract.modules.rest import service
     return service.ack_contract(contract=contract)

@@ -6,7 +6,7 @@ from tm_capacity_pl.shared.baseline import baseline_requirements
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import *
 from tm_capacity_pl.models.contract import ConsumptionPowerDAO
 from tm_capacity_pl.shared import POLAND_TZ
-from tm_capacity_pl.shared.ke_interaction.fm_model import KETimeIntervalUri
+from tm_capacity_pl.shared.ke_interaction.ke_model import KETimeIntervalUri
 from tm_capacity_pl.utils import TimeSpan
 
 
@@ -37,6 +37,28 @@ def get_baseline_required_dates(bindings: List[BaselineDateRequest]) -> List[Bas
         reqs.append(bdr)
     return reqs
 
+
+def calc_baseline(bindings: List[BaselineRequest]) -> List[Baseline]:
+    from tm_capacity_pl.shared.baseline import calc_reference_profile
+    if len(bindings) < 1:
+        return []
+    # timeseries should be the same
+    # todo: check if there another timeseries uri, group by timeseries
+    ts_uri = bindings[0].ts_uri
+    consumption_data = [ConsumptionPowerDAO(ts=br.ts_ms, granularity_ms=3600000, value=br.get_value())
+                        for br in bindings]
+    baseline = calc_reference_profile(power_history=consumption_data)
+    baseline_bindings = [Baseline(ts_uri=ts_uri,
+                                  dp_baseline=SplitURIBase.uri_append(ts_uri, "dp_baseline"),
+                                  ts=time_utils.xsd_from_ts(ts=b.ts, tz=POLAND_TZ),
+                                  dpr_baseline=SplitURIBase.uri_append(ts_uri, "dpr_baseline"),
+                                  value_baseline=Literal(b.baseline_value)) for b in baseline]
+    return baseline_bindings
+
+
+########################
+########################
+########################
 
 def get_prices() -> List[MarketPrice]:
     from tm_capacity_pl.core import smart_client
@@ -75,26 +97,24 @@ def get_prices() -> List[MarketPrice]:
 #
 
 
-def calc_baseline(bindings: List[BaselineRequest]) -> List[Baseline]:
-    from tm_capacity_pl.shared.baseline import calc_reference_profile
-    if len(bindings) < 1:
-        return []
-    # timeseries should be the same
-    # todo: check if there another timeseries uri, group by timeseries
-    ts_uri = bindings[0].ts_uri
-    consumption_data = [ConsumptionPowerDAO(ts=br.ts_ms, granularity_ms=3600000, value=br.get_value())
-                        for br in bindings]
-    baseline = calc_reference_profile(power_history=consumption_data)
-    baseline_bindings = [Baseline(ts_uri=ts_uri,
-                                  dp_baseline=SplitURIBase.uri_append(ts_uri, "dp_baseline"),
-                                  ts=time_utils.xsd_from_ts(ts=b.ts, tz=POLAND_TZ),
-                                  dpr_baseline=SplitURIBase.uri_append(ts_uri, "dpr_baseline"),
-                                  value_baseline=Literal(b.baseline_value)) for b in baseline]
+def process_offer(offers: List[KEFlexOffer]):
+    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
+    # s=set()
+    # for offer in offers:
+    #     if offer.asset_manager.n3() not in s:
+    #         s.add(offer.asset_manager.n3())
+    #         o=offer.rdf_parse()
+    dao_manager.contract_api.add_offer(offers=[o.rdf_parse() for o in offers])
 
 
-def process_offer(offer: List[FlexOffer]):
-    # todo: process flex offer
-    pass
+def get_flex_offer(queries: List[KEFlexOfferQuery]):
+    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
+    res = []
+    s = set()
+    for q in queries:
+        if q.flex_request.n3() not in s:
+            s.add(q.flex_request.n3())
+            res += dao_manager.contract_api.list_flex_offer(flex_request_uri=q.flex_request.n3())
 
 
 def process_price_offer(offer: List[FlexPriceOffer]):

@@ -9,7 +9,7 @@ from effi_onto_tools.db import TimeSpan
 from fastapi import HTTPException
 
 from tm_capacity_pl.models import DEFAULT_MARKET_UPDATE_RATE_MS
-from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO, ConsumptionPowerDAO, Baseline
+from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO, ConsumptionPowerDAO, Baseline, FlexRequest
 
 
 #
@@ -49,6 +49,35 @@ from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO, Consumption
 #     return dao_manager.offer_api.verify_stored_offers(ti=ts, market_id=market_id, market_location=market_location)
 
 
+def init_flex_request(ts_from: int, ts_to: int) -> FlexRequest:
+    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
+    from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import FlexRequestUri
+    from ke_client.utils import time_utils
+    from tm_capacity_pl.core import smart_client
+    create_ts = time_utils.current_timestamp()
+    ts = TimeSpan(ts_from=ts_from, ts_to=ts_to)
+
+    from tm_capacity_pl.shared.ke_interaction.ke_model import KETimeIntervalUri
+    request = FlexRequest(create_ts=create_ts,
+                          flex_request_uri=FlexRequestUri(ts=create_ts, prefix=smart_client.kb_id).uri,
+                          offer_period_uri=KETimeIntervalUri(ts_from=ts.ts_from, ts_to=ts.ts_to).uri,
+                          ts_from=ts.ts_from,
+                          ts_to=ts.ts_to)
+    request = dao_manager.contract_api.add_request(request=request)
+    return request
+
+
+def get_current_request() -> FlexRequest:
+    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
+    return dao_manager.contract_api.current_request()
+
+
+def post_current_request():
+    from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_interactions import \
+        post_current_flex_request
+    post_current_flex_request()
+
+
 def init_contract(contract_ts: int) -> ContractDAO:
     from tm_capacity_pl.contract.core.db.postgresql import dao_manager
     from ke_client.utils import time_utils
@@ -60,8 +89,9 @@ def init_contract(contract_ts: int) -> ContractDAO:
     ts_from = ts_now - 24 * 3600 * 100 * 10
     dp_info, datapoints = request_data(ts=TimeSpan(ts_from=ts_from, ts_to=ts_now))
 
-    power_history = [ConsumptionPowerDAO(ts=dp.ts_ms, granularity_ms=DEFAULT_MARKET_UPDATE_RATE_MS, value=dp.get_value())
-                     for dp in datapoints]
+    power_history = [
+        ConsumptionPowerDAO(ts=dp.ts_ms, granularity_ms=DEFAULT_MARKET_UPDATE_RATE_MS, value=dp.get_value())
+        for dp in datapoints]
     inserted = dao_manager.power_api.log_power(power_history=power_history)
     if inserted != len(power_history):
         raise Exception("Fail to save power history")

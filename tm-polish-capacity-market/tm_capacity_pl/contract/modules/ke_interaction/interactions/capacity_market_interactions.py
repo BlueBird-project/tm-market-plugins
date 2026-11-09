@@ -5,8 +5,8 @@ from ke_client import KIHolder
 from ke_client.ki_model import KIPostResponse
 
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import MarketPrice, \
-    BaselineRequest, Baseline, BaselineDateResponse, BaselineDateRequest, KEFlexRequest, FlexOffer, \
-    FlexPriceOffer, FlexContract, FlexContractRequest, FlexContractACK
+    BaselineRequest, Baseline, BaselineDateResponse, BaselineDateRequest, KEFlexRequest, KEFlexOffer, \
+    FlexPriceOffer, FlexContract, FlexContractRequest, FlexContractACK, KEFlexOfferQuery
 
 ki = KIHolder()
 
@@ -28,7 +28,7 @@ def _get_required_days(kb_id: str, bindings: List[BaselineDateRequest]) -> List[
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_baseline_required_dates
     return get_baseline_required_dates(bindings=bindings)
 
-####
+
 @ki.react("baseline")
 def _calc_baseline(kb_id: str, bindings: List[BaselineRequest]) -> List[Baseline]:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import calc_baseline
@@ -36,25 +36,20 @@ def _calc_baseline(kb_id: str, bindings: List[BaselineRequest]) -> List[Baseline
 
 
 @ki.react("flex-offer")
-def _on_flex_offer(kb_id, bindings: List[FlexOffer]) -> List:
+def _on_flex_offer(kb_id, bindings: List[KEFlexOffer]) -> List:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import process_offer
     process_offer(bindings)
     return []
 
 
-# @ki.post("flex-offer")
-# def _publish_flex_offer(current_offer: List[FlexOffer]) -> List[FlexOffer]:
-#     return current_offer
-
-
 @ki.answer("flex-offer")
-def _on_flex_offer_request(kb_id, bindings) -> List[FlexOffer]:
-    # TM asks for current flex offer
-    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import process_offer
-    # todo: get current flex offer and publish
+def _on_flex_offer_request(kb_id, bindings: List[KEFlexOfferQuery]) -> List[KEFlexOffer]:
+    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_flex_offer
+    get_flex_offer(bindings)
     return []
 
 
+###############
 @ki.react("price-offer")
 def _on_flex_offer(kb_id, bindings: List[FlexPriceOffer]) -> List:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import process_price_offer
