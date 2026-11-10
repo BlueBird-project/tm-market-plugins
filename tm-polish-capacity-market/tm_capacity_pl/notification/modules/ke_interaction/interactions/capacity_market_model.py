@@ -18,7 +18,7 @@ class FlexContract(FlexContractRequest):
     flex_dpr: URIRef
     cost_dpr: URIRef
     flex_value: Literal
-    cost_value: Literal
+    price_value: Literal
 
     period_uri: URIRef
     ts_date_from: Literal
@@ -35,8 +35,8 @@ class FlexContract(FlexContractRequest):
         return time_utils.xsd_to_ts(self.ts_date_to)
 
 
-    def get_cost_value(self) -> Optional[float]:
-        return self.convert_value(self.cost_value, float)
+    def get_price_value(self) -> Optional[float]:
+        return self.convert_value(self.price_value, float)
 
     def get_flex_value(self) -> Optional[float]:
         return self.convert_value(self.flex_value, float)

@@ -35,7 +35,7 @@ class FlexOfferQueries(QueryObject):
 
     __PROJECTION__ = """${table_alias}.flex_request_uri, ${table_alias}.asset_manager_uri,
      ${table_alias}.flex_profile_uri, ${table_alias}.profile_price_uri, ${table_alias}.flex_price,
-      ${table_alias}.ts, ${table_alias}.flex_value,${table_alias}.cost_value,
+      ${table_alias}.ts, ${table_alias}.flex_value,${table_alias}.price_value,
       ${table_alias}.update_ts, ${table_alias}.cost_update_ts"""
 
     LIST_OFFER = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias}   """
@@ -57,7 +57,7 @@ class FlexOfferQueries(QueryObject):
      extract(epoch from now()) * 1000) """
 
     UPDATE_OFFER_PRICE = """UPDATE "${table_prefix}${table_name}" 
-    SET cost_value = :cost_value AND cost_update_ts EXTRACT(epoch FROM current_timestamp) *1000) 
+    SET price_value = :price_value AND cost_update_ts EXTRACT(epoch FROM current_timestamp) *1000) 
     WHERE flex_request_uri = :flex_request_uri and asset_manager_uri = :asset_manager_uri """
 
 
@@ -160,14 +160,15 @@ class ContractAPIImpl(ContractAPI):
     def add_offer_price(self, offers: List[FlexPriceOffer]) -> List[FlexPriceOffer]:
         with ConnectionWrapper() as conn:
             for o in offers:
-                flex_offer = conn.get(q=self.flex_offer_queries.GET_REQUEST_OFFER,
-                                      args={"flex_request_uri": o.flex_request_uri,
-                                            "asset_manager_uri": o.asset_manager_uri}, raw=True)
-                if flex_offer is not None:
+                flex_offer: Optional[FlexPriceOffer] = conn.get(q=self.flex_offer_queries.GET_REQUEST_OFFER,
+                                                                args={"flex_request_uri": o.flex_request_uri,
+                                                                      "asset_manager_uri": o.asset_manager_uri},
+                                                                obj_type=FlexPriceOffer)
+                if flex_offer is None:
                     raise ValueError(f"Offer for {o.flex_request_uri}:{o.asset_manager_uri} not found")
-
+                assert flex_offer.flex_value == o.flex_value
                 conn.update(q=self.flex_offer_queries.UPDATE_OFFER_PRICE,
-                            args={"cost_value": o.cost_value})
+                            args={"price_value": o.price_value})
                 cost_update_ts = conn.get(q=self.flex_offer_queries.GET_REQUEST_OFFER,
                                           args={"flex_request_uri": o.flex_request_uri,
                                                 "asset_manager_uri": o.asset_manager_uri},

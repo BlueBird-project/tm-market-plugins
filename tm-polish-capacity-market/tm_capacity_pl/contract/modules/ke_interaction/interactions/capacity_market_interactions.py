@@ -6,7 +6,8 @@ from ke_client.ki_model import KIPostResponse
 
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import MarketPrice, \
     BaselineRequest, Baseline, BaselineDateResponse, BaselineDateRequest, KEFlexRequest, KEFlexOffer, \
-    KEFlexPriceOffer, FlexContract, FlexContractRequest, FlexContractACK, KEFlexOfferQuery
+    KEFlexPriceOffer, KEFlexContract, KEFlexOfferQuery, KEFlexContractACK
+from tm_capacity_pl.shared.ke_interaction.contract import KEFlexContractQuery
 
 ki = KIHolder()
 
@@ -54,30 +55,25 @@ def _on_price_offer(kb_id, bindings: List[KEFlexPriceOffer]) -> List:
     process_price_offer(bindings)
     return []
 
-###############
+
+@ki.post("contract-ack")
+def _post_contract_ack(contract_ack: List[KEFlexContractACK]) -> List[KEFlexContractACK]:
+    return contract_ack
 
 
 @ki.post("contract")
-def _post_contract():
+def _post_contract() -> List[KEFlexContract]:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_contracts
     return get_contracts(kb_id=ki.get_kb_id())
 
 
 @ki.answer("contract")
-def _answer_contract(ki_id, bindings: List[FlexContractRequest]):
-    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_contract
-    res = []
-    for b in bindings:
-        res += get_contract(kb_id=ki.get_kb_id(), asset_uri=b.asset_manager)
-    return res
+def _answer_contract(ki_id, bindings: List[KEFlexContractQuery]) -> List[KEFlexContract]:
+    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_contracts
+    return get_contracts(kb_id=ki.get_kb_id(), query=bindings)
 
 
-@ki.react("contract-ack")
-def _on_flex_offer(kb_id, bindings: List[FlexContractACK]) -> List:
-    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import process_contract_ack
-    # todo:
-    process_contract_ack(bindings)
-    return []
+###############
 
 
 # verify market interaction todo:
@@ -93,22 +89,16 @@ def _answer_market_price() -> List[MarketPrice]:
     return get_prices()
 
 
-# def request_flexibility_offer(baseline: List[BaselineFlexRequest]) -> BaselineFlexResponse:
-#     resp_bindings: KIPostResponse = _request_flexibility_offer(baseline=baseline)
-#     flex_offer = [BaselineFlexResponse(**b) for b in resp_bindings.result_binding_set]
-#     assert len(flex_offer) == 1
-#     return flex_offer[0]
-
-
 def post_market_price():
     resp_bindings: KIPostResponse = _post_market_price()
     # todo:
 
 
-def post_market_contract(contract_ack: List[FlexContractACK]):
-    resp_bindings: KIPostResponse = _post_contract(contract_ack)
-    # resp_bindings.exchangeInfo[0].knowledgeBaseId
-    # todo: verify if all have acknowledged the contract
+def post_contract(contract_ack: List[KEFlexContractACK]):
+    ack_resp_bindings: KIPostResponse = _post_contract_ack(contract_ack)
+    resp_bindings: KIPostResponse = _post_contract()
+    pass
+    # todo: implement
 
 
 def post_current_flex_request():
