@@ -59,7 +59,3 @@ class ContractAPI(DAO):
     @abstractmethod
     def ack_contract(self, contract: ContractDAO) -> ContractDAO:
         pass
-
-    @abstractmethod
-    def set_baseline(self, contract_id: int, baseline_id: int) -> ContractDAO:
-        pass

@@ -24,7 +24,7 @@
      "flex_dpr_uri" character varying(250) NOT NULL,
      "cost_dpr_uri" character varying(250) NOT NULL,
      "flex_value" double precision NOT NULL,
-     "cost_value" double precision NOT NULL,
+     "price_value" double precision NOT NULL,
      "period_uri_uri" character varying(250) NOT NULL,
      "ts_date_from" bigint  NOT NULL,
      "ts_date_to" bigint  NOT NULL,

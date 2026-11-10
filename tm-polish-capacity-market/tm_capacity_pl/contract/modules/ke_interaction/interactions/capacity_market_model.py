@@ -5,22 +5,21 @@ from ke_client.utils import time_utils
 from rdflib import URIRef, Literal
 
 from capacity_market_utils import POLAND_TZ
-from tm_capacity_pl.models.contract import FlexRequest, FlexOffer, FlexPriceOffer
-from tm_capacity_pl.shared.ke_interaction.contract import FlexContractRequest
+from tm_capacity_pl.models.contract import FlexRequest, FlexOffer, FlexPriceOffer, FlexContract
 
 
 @ki_object("contract")
-class FlexContract(FlexContractRequest):
+class KEFlexContract(BindingsBase):
     flex_request: URIRef
-    # contract: URIRef
+    contract: URIRef
     asset_manager: URIRef
 
     flex_dp: URIRef
-    cost_dp: URIRef
+    price_dp: URIRef
     flex_dpr: URIRef
-    cost_dpr: URIRef
+    price_dpr: URIRef
     flex_value: Literal
-    cost_value: Literal
+    price_value: Literal
 
     period_uri: URIRef
     ts_date_from: Literal
@@ -38,11 +37,53 @@ class FlexContract(FlexContractRequest):
     def ts_date_to_ms(self) -> int:
         return time_utils.xsd_to_ts(self.ts_date_to)
 
-    def get_cost_value(self) -> Optional[float]:
-        return self.convert_value(self.cost_value, float)
+    def get_price_value(self) -> Optional[float]:
+        return self.convert_value(self.price_value, float)
 
     def get_flex_value(self) -> Optional[float]:
         return self.convert_value(self.flex_value, float)
+
+    @staticmethod
+    def init(flex_request: URIRef, asset_manager: URIRef, contract_uri: URIRef, flex_value: Literal,
+             price_value: Literal,
+             ts_from: int, ts_to: int) -> 'KEFlexContract':
+        return KEFlexContract(flex_request=flex_request, contract=contract_uri,
+                              asset_manager=asset_manager,
+                              flex_dp=SplitURIBase.uri_append_ref(contract_uri, "flex_dp"),
+                              price_dp=SplitURIBase.uri_append_ref(contract_uri, "price_dp"),
+                              flex_dpr=SplitURIBase.uri_append_ref(contract_uri, "flex_dpr"),
+                              price_dpr=SplitURIBase.uri_append_ref(contract_uri, "price_dpr"),
+                              flex_value=flex_value, price_value=price_value,
+                              period_uri=SplitURIBase.uri_append_ref(contract_uri, "period"),
+                              ts_date_from=time_utils.xsd_from_ts(ts=ts_from, tz=POLAND_TZ),
+                              ts_date_to=time_utils.xsd_from_ts(ts=ts_to, tz=POLAND_TZ), )
+
+
+
+
+@ki_object("contract-ack")
+class KEFlexContractACK(BindingsBase):
+    ack_execution: URIRef
+    asset_manager: URIRef
+    flex_request: URIRef
+    contract: URIRef
+    evt: URIRef
+    flex_result: URIRef
+    accepted_flex: Literal
+    price_result: URIRef
+    accepted_price: Literal
+    ack_time: Literal
+
+    @property
+    def ack_time_ms(self) -> int:
+        return time_utils.xsd_to_ts(self.ack_time)
+
+    def rdf_parse(self) -> FlexContract:
+        return FlexContract(
+            contract_uri=self.contract_uri.n3(), flex_request_uri=self.flex_request_uri.n3(),
+            flex_value=self.convert_value(self.accepted_flex, float),
+            price_value=self.convert_value(self.accepted_price, float),
+            ack_ts=time_utils.xsd_to_ts(self.ts), )
 
 
 @ki_object("baseline-request", allow_partial=True)
@@ -194,7 +235,7 @@ class KEFlexOffer(BindingsBase):
     dpr: URIRef
     cost_dp: URIRef
     value: Literal
-    cost_value: Literal
+    price_value: Literal
 
     @property
     def ts_ms(self) -> int:
@@ -227,7 +268,7 @@ class KEFlexPriceOffer(BindingsBase):
     dpr: URIRef
     cost_dpr: URIRef
     value: Literal
-    cost_value: Literal
+    price_value: Literal
 
     @property
     def ts_ms(self) -> int:
@@ -239,7 +280,7 @@ class KEFlexPriceOffer(BindingsBase):
             flex_profile_uri=self.flex_profile.n3(), profile_price_uri=self.profile_price.n3(),
             flex_price=self.convert_value(self.price, float),
             ts=time_utils.xsd_to_ts(self.ts), flex_value=self.convert_value(self.value, float),
-            cost_value=self.convert_value(self.cost_value, float), )
+            price_value=self.convert_value(self.price_value, float), )
     # @staticmethod
     # def to_rdf(o: FlexPriceOffer) -> 'KEFlexPriceOffer':
     #     return KEFlexPriceOffer(
@@ -257,20 +298,6 @@ class FlexRequestUri(SplitURIBase):
 @ki_split_uri(uri_template="/flex_contract/{ts}")
 class FlexContractUri(SplitURIBase):
     ts: int
-
-
-@ki_object("contract-ack")
-class FlexContractACK(BindingsBase):
-    ack_execution: URIRef
-    # contract: URIRef
-    contract: URIRef
-
-    result: URIRef
-    ack_time: URIRef
-
-    @property
-    def ack_time_ms(self) -> int:
-        return time_utils.xsd_to_ts(self.ack_time)
 
 
 @ki_object("capacity-market-price")

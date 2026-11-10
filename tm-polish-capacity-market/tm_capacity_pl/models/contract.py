@@ -45,84 +45,77 @@ class FlexPriceOffer:
     flex_price: float
     ts: int
     flex_value: float
-    cost_value: float
+    price_value: float
     update_ts: Optional[int] = None
     cost_update_ts: Optional[int] = None
 
 
 @dataclass
-class ContractDAO:
-    create_time: int
-    update_time: Optional[int] = None
-    offer_mwh: Optional[float] = None
-    capacity_obligation: Optional[float] = None
-    offer_ack_mwh: Optional[float] = None
-    capacity_ack_obligation: Optional[float] = None
-    # current_baseline_id: Optional[int] = None
-    # contract_ack: bool = False
-    ack_ts: Optional[int] = None
-
-
-@dataclass
 class FlexContract:
-    asset_manager_uri: str
-    flex_request_uri: str
-    contract_uri: str
-    market_uri: str
-
-    flex_dp_uri: str
-    cost_dp_uri: str
-    flex_dpr_uri: str
-    cost_dpr_uri: str
-    flex_value: float
-    cost_value: float
-
-    period_uri_uri: str
-    ts_date_from: int
-    ts_date_to: int
-    ack: bool = False
-    ack_ts: Optional[int] = None
-    ts: Optional[int] = None
+    contract_uri:str
+    flex_request_uri:str
+    ack_ts: int
+    flex_value: Optional[int] = None
+    price_value: Optional[float] = None
     update_ts: Optional[int] = None
 
 
-@dataclass
-class BaselineDAO:
-    baseline_id: int
-    baseline_date: str
-    # contract_id: Optional[int] = None
-    update_time: Optional[int] = None
+#
+# @dataclass
+# class FlexContract:
+#     asset_manager_uri: str
+#     flex_request_uri: str
+#     contract_uri: str
+#     market_uri: str
+#
+#     flex_dp_uri: str
+#     cost_dp_uri: str
+#     flex_dpr_uri: str
+#     cost_dpr_uri: str
+#     flex_value: float
+#     price_value: float
+#
+#     period_uri_uri: str
+#     ts_date_from: int
+#     ts_date_to: int
+#     ack: bool = False
+#     ack_ts: Optional[int] = None
+#     ts: Optional[int] = None
+#     update_ts: Optional[int] = None
+#
+
+# @dataclass
+# class BaselineDAO:
+#     baseline_id: int
+#     baseline_date: str
+#     # contract_id: Optional[int] = None
+#     update_time: Optional[int] = None
 
 
-@dataclass
-class CertifiedBaseline:
-    baseline_id: int
-    contract_id: int
-    update_time: Optional[int] = None
 
-
-@dataclass
-class BaselineValueDAO:
-    baseline_id: int
-    baseline_isp: Optional[int] = None
-    isp_len: Optional[int] = None
-    baseline_value: Optional[float] = None
-
-
+#
+# @dataclass
+# class BaselineValueDAO:
+#     baseline_id: int
+#     baseline_isp: Optional[int] = None
+#     isp_len: Optional[int] = None
+#     baseline_value: Optional[float] = None
+#
+#
 @dataclass
 class BaselineValue:
     ts: int
     baseline_isp: Optional[int]
     baseline_value: Optional[float]
     isp_len: Optional[int]
-
-
-@dataclass
-class Baseline:
-    baseline_id: int
-    values: List[BaselineValueDAO]
-    # contract_id: Optional[int] = None
-    update_time: Optional[int] = None
+#
+#
+# @dataclass
+# class Baseline:
+#     baseline_id: int
+#     values: List[BaselineValueDAO]
+#     # contract_id: Optional[int] = None
+#     update_time: Optional[int] = None
 
 
 @dataclass
