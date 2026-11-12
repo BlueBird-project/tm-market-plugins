@@ -3,9 +3,6 @@ from typing import Optional, List, Dict, Any
 from fastapi import APIRouter
 from starlette.responses import PlainTextResponse
 
-from tm_capacity_pl.notification.modules.ke_interaction.interactions.capacity_market_model import KECapacityNotification
-from tm_capacity_pl.models.contract import ContractDAO
-
 router = APIRouter(prefix="/notification")
 
 

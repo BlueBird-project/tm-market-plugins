@@ -5,6 +5,8 @@ service:
   name: "local-service"
 app:
   logging_conf_path: "./resources/logging.ini"
+market:
+  uri: "http://bluebird.com/capacity-market/pl"
 db:
   db_log_query: false
   db_log_error_query: true

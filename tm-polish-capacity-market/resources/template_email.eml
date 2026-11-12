@@ -1,4 +1,4 @@
-From: Portal Uczestnika Rynku Mocy <powiadomienia@dmkpsrm1.pse.pl>
+From: Portal Uczestnika Rynku Mocy <${email_from}>
 To: "${email_to}" <${email_to}>
 Subject: =?iso-8859-2?Q?Og=B3oszenie_okresu_przywo=B3ania_na_rynku_mocy_-_${date}_godz._${time_from}_-_${time_to}?=
 Thread-Topic: =?iso-8859-2?Q?Og=B3oszenie_okresu_przywo=B3ania_na_rynku_mocy_-_${date}_godz._${time_from}_-_${time_to}?=

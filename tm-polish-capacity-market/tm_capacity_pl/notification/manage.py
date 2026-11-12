@@ -8,7 +8,9 @@ if __name__ == "__main__":
     ###
     import tm_capacity_pl.notification as notification_service
 
-    app_args: core.AppArgs =  core.app_configure()
+    app_args: core.AppArgs = core.app_configure()
+    import tm_capacity_pl.notification.config as config
+    config.configure()
     core.set_logging()
     from tm_capacity_pl.core import service_settings
     from effi_onto_tools import utils

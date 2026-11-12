@@ -4,19 +4,18 @@ from ke_client import BindingsBase, ki_object, ki_split_uri, SplitURIBase
 from ke_client.utils import time_utils
 from rdflib import URIRef, Literal
 
-from tm_capacity_pl.shared.ke_interaction.contract import FlexContractRequest
 
 @ki_object("contract")
-class FlexContract(FlexContractRequest):
+class FlexContract(BindingsBase):
     flex_request: URIRef
     contract: URIRef
     market: URIRef
     asset_manager: URIRef
 
     flex_dp: URIRef
-    cost_dp: URIRef
+    price_dp: URIRef
     flex_dpr: URIRef
-    cost_dpr: URIRef
+    price_dpr: URIRef
     flex_value: Literal
     price_value: Literal
 

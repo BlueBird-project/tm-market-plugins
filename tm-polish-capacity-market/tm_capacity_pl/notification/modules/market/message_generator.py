@@ -23,11 +23,13 @@ def init_message(day: int, month: int, year: int, time_from: int, time_to: int, 
         time_to = f"{_validate_time(time_to)}:00"
         ratio = str(_validate_ratio(ratio)).replace(".", ",")
         email_to = "tm@bluebird.com"
+        from tm_capacity_pl.notification.config import market_settings
         result = template.substitute(
             date=date,
             time_from=time_from,
             time_to=time_to,
             ratio=ratio,
             email_to=email_to,
+            email_from=market_settings.email
         )
         return result

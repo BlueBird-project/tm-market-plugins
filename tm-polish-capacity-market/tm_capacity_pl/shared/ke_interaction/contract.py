@@ -6,6 +6,7 @@ from rdflib import URIRef, Literal
 from rdflib.plugins.sparql.sparql import Bindings
 
 from tm_capacity_pl.models.contract import FlexContract
+from tm_capacity_pl.notification.config import   market_settings
 from tm_capacity_pl.shared import POLAND_TZ
 
 
@@ -17,6 +18,7 @@ class KEFlexContractQuery(BindingsBase):
 
 @ki_object("contract")
 class KEFlexContract(BindingsBase):
+    market: URIRef = URIRef(market_settings.uri)
     flex_request: URIRef
     contract: URIRef
     asset_manager: URIRef

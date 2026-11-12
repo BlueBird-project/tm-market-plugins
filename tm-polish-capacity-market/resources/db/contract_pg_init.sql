@@ -5,8 +5,8 @@
   CREATE TABLE "public"."${table_prefix}asset_manager" (
       "asset_manager_id" bigint DEFAULT nextval('${table_prefix}asset_manager_id_seq') NOT NULL,
       "asset_manager_uri" character varying(250) NOT NULL,
-
-      CONSTRAINT "${table_prefix}asset_manager_pk" PRIMARY KEY ("asset_manager_id")
+      CONSTRAINT "${table_prefix}asset_manager_pk" PRIMARY KEY ("asset_manager_id"),
+      CONSTRAINT  "${table_prefix}asset_manager_uri_key"  UNIQUE (asset_manager_uri)
   )
   WITH (oids = false);
 
@@ -34,12 +34,14 @@ CREATE TABLE "${table_prefix}flex_offer" (
         price_value DOUBLE PRECISION,
         update_ts BIGINT,
         cost_update_ts BIGINT,
-        CONSTRAINT uq_flex_offer_request_asset
+        CONSTRAINT "${table_prefix}flex_offer_request_asset_unique"
             UNIQUE (flex_request_uri, asset_manager_uri),
 
         CONSTRAINT "${table_prefix}fk_asset_manager" FOREIGN KEY (asset_manager_uri)
         REFERENCES "${table_prefix}asset_manager" (asset_manager_uri)
-        ON DELETE RESTRICT ON UPDATE CASCADE
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+        CONSTRAINT "${table_prefix}fk_flex_offer_flex_request" FOREIGN KEY (flex_request_uri)
+        REFERENCES "${table_prefix}flex_request" (request_uri)
     );
 
 
@@ -51,7 +53,7 @@ CREATE TABLE "${table_prefix}flex_contract" (
         flex_value DOUBLE PRECISION,
         price_value DOUBLE PRECISION,
         CONSTRAINT "${table_prefix}fk_flex_contract_offer" FOREIGN KEY (flex_request_uri)
-        REFERENCES "${table_prefix}flex_offer" (flex_request_uri)
+        REFERENCES "${table_prefix}flex_request" (request_uri)
         ON DELETE RESTRICT ON UPDATE CASCADE
     );
 

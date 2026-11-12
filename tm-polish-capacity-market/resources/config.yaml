@@ -8,12 +8,6 @@ app:
   use_scheduler: false
   use_rest_api: true
   use_ke_api: true
-  country_list:
-    - "Poland"
-    - "Spain"
-    - "Germany"
-    - "Belgium"
-#    - "Austria"
 db:
   db_host: "postgres"
   db_user: "postgres"
@@ -27,6 +21,7 @@ db:
   db_table_prefix: ""
   db_schema_name: "public"
   db_init: true
+market:
 ke:
   #  rest_endpoint:
   allow_partial_ki: true

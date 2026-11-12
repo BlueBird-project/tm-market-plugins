@@ -7,11 +7,12 @@ from ke_client.ki_model import KIPostResponse, KIAskResponse
 from ke_client.utils import time_utils
 from rdflib import Literal, URIRef
 
-from tm_capacity_pl.shared.ke_interaction.fm_model import KETimeIntervalUri, FMPntQuery, FMPnt, FMTSResponse, \
+from tm_capacity_pl.models.contract import FlexContract
+from tm_capacity_pl.models.demand import KECapacityNotification
+from tm_capacity_pl.shared.ke_interaction.fm_model import   FMPntQuery, FMPnt, FMTSResponse, \
     FMTSRequest
-from tm_capacity_pl.notification.modules.ke_interaction.interactions.capacity_market_model import \
-    KECapacityNotification, \
-    FlexContract
+
+from tm_capacity_pl.shared.ke_interaction.ke_model import KETimeIntervalUri
 from tm_capacity_pl.utils import TimeSpan
 
 ki = KIHolder()
