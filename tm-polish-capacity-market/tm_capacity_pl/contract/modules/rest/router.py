@@ -3,7 +3,7 @@ from typing import List, Optional, Dict
 from effi_onto_tools.db import TimeSpan
 from fastapi import APIRouter
 
-from tm_capacity_pl.models.contract import ContractDAO, BaselineDAO, FlexRequest
+from tm_capacity_pl.models.contract import  FlexRequest
 
 router = APIRouter(prefix="")
 
@@ -26,6 +26,11 @@ async def post_current_request() -> FlexRequest:
     return service.post_current_request()
 
 
+@router.get("/contract_ack", tags=["publish"])
+async def post_current_request() -> FlexRequest:
+    from tm_capacity_pl.contract.modules.market.contract import confirm_current_offer
+    return confirm_current_offer()
+
 #     return service.init_contract(contract_ts=contract_ts)
 
 
@@ -37,18 +42,18 @@ async def post_current_request() -> FlexRequest:
 #     return service.init_contract(contract_ts=contract_ts)
 
 
-@router.post("/baseline/calc/contract/{contract_ts}")
-async def contract_init(contract_ts: int) -> List[BaselineDAO]:
-    # TODO start contract background job
-    from tm_capacity_pl.contract.modules.rest import service
-    return service.calc_baseline(contract_id=contract_ts)
-
-
-@router.post("/baseline/calc/contract/{contract_ts}/ack")
-async def contract_init(contract: ContractDAO) -> List[BaselineDAO]:
-    # TODO start contract background job
-    from tm_capacity_pl.contract.modules.rest import service
-    return service.ack_contract(contract=contract)
+# @router.post("/baseline/calc/contract/{contract_ts}")
+# async def contract_init(contract_ts: int) -> List[BaselineDAO]:
+#     # TODO start contract background job
+#     from tm_capacity_pl.contract.modules.rest import service
+#     return service.calc_baseline(contract_id=contract_ts)
+#
+#
+# @router.post("/baseline/calc/contract/{contract_ts}/ack")
+# async def contract_init(contract: ContractDAO) -> List[BaselineDAO]:
+#     # TODO start contract background job
+#     from tm_capacity_pl.contract.modules.rest import service
+#     return service.ack_contract(contract=contract)
 
 # @router.get("/market/{market_id}/offer")
 # async def get_market_offer(market_id: int, ts_from: Optional[int] = None, ts_to: Optional[int] = None,
