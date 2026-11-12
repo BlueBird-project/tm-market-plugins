@@ -4,7 +4,7 @@ from typing import List, Optional
 from effi_onto_tools.db import TimeSpan
 from effi_onto_tools.db.dao import DAO
 
-from tm_capacity_pl.models.contract import FlexRequest, FlexOffer, FlexPriceOffer, FlexContract
+from tm_capacity_pl.models.contract import FlexRequest, FlexOffer, FlexPriceOffer, FlexContract, FlexAssetContract
 
 
 class ContractAPI(DAO):
@@ -44,7 +44,7 @@ class ContractAPI(DAO):
         pass
 
     @abstractmethod
-    def get_current(self, asset_manager_uri: Optional[str] = None) -> List[FlexContract]:
+    def get_current_contracts(self, asset_manager_uri: Optional[str] = None) -> List[FlexAssetContract]:
         pass
 
     @abstractmethod

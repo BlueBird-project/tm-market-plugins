@@ -6,8 +6,8 @@ from ke_client.ki_model import KIPostResponse
 
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import MarketPrice, \
     BaselineRequest, Baseline, BaselineDateResponse, BaselineDateRequest, KEFlexRequest, KEFlexOffer, \
-    KEFlexPriceOffer, KEFlexContract, KEFlexOfferQuery, KEFlexContractACK
-from tm_capacity_pl.shared.ke_interaction.contract import KEFlexContractQuery
+    KEFlexPriceOffer
+from tm_capacity_pl.shared.ke_interaction.contract import KEFlexContractQuery, KEFlexContractACK, KEFlexContract
 
 ki = KIHolder()
 
@@ -79,6 +79,7 @@ def _answer_contract(ki_id, bindings: List[KEFlexContractQuery]) -> List[KEFlexC
 # verify market interaction todo:
 @ki.post("capacity-market-price")
 def _post_market_price():
+    #todo: move to other service?
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_prices
     return get_prices()
 
@@ -91,6 +92,7 @@ def _answer_market_price() -> List[MarketPrice]:
 
 def post_market_price():
     resp_bindings: KIPostResponse = _post_market_price()
+    todo
     # todo:
 
 
@@ -98,7 +100,7 @@ def post_contract(contract_ack: List[KEFlexContractACK]):
     ack_resp_bindings: KIPostResponse = _post_contract_ack(contract_ack)
     resp_bindings: KIPostResponse = _post_contract()
     pass
-    # todo: implement
+    # todo: implement , check KE response
 
 
 def post_current_flex_request():

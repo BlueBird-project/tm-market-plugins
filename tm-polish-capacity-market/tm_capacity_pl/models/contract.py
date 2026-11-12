@@ -61,6 +61,18 @@ class FlexContract:
     update_ts: Optional[int] = None
 
 
+@dataclass
+class FlexAssetContract:
+    contract_uri: str
+    flex_request_uri: str
+    ack_ts: int
+    asset_manager_id: int
+    asset_manager_uri: str
+    ts_from: int
+    ts_to: int
+    flex_value: Optional[int] = None
+    price_value: Optional[float] = None
+    update_ts: Optional[int] = None
 
 
 #

@@ -6,16 +6,14 @@ from effi_onto_tools.db.postgresql.connection_wrapper import ConnectionWrapper
 from tm_capacity_pl.contract.core.db.api.contract_api import ContractAPI
 from tm_capacity_pl.contract.core.db.postgresql.api_impl import QueryObject
 from tm_capacity_pl.contract.core.db.postgresql.api_impl.asset_manager_api_impl import AssetManagerQueries
-from tm_capacity_pl.models.contract import FlexRequest, FlexOffer, FlexPriceOffer, FlexContract
+from tm_capacity_pl.models.contract import FlexRequest, FlexOffer, FlexPriceOffer, FlexContract, FlexAssetContract
 
 
 class FlexRequestQueries(QueryObject):
     __TABLE_NAME__ = "flex_request"
 
-    __PROJECTION__ = """ ${table_alias}."create_time", ${table_alias}."update_time", ${table_alias}."offer_mwh",
-     ${table_alias}."capacity_obligation", ${table_alias}."offer_ack_mwh",, ${table_alias}."capacity_ack_obligation",
-      ${table_alias}."current_baseline_id",  ${table_alias}."ack_ts",    ${table_alias}."ext"  """
-
+    __PROJECTION__ = """ ${table_alias}."flex_request_uri", ${table_alias}."offer_period_uri",
+     ${table_alias}."create_ts",    ${table_alias}."create_ts", ${table_alias}."ts_from",${table_alias}."ts_to"  """
     LIST_REQUEST = """SELECT ${projection} FROM "${table_prefix}${table_name}" as ${table_alias} WHERE 
     ( coalesce(:ts_from<=${table_alias}."create_time",TRUE) and  coalesce(:ts_to>=${table_alias}."create_time",TRUE))
     """
@@ -71,7 +69,7 @@ class ContractQueries(QueryObject):
      ${table_alias}."update_ts", ${table_alias}."flex_value", ${table_alias}."price_value" """
 
     FIND_CURRENT_CONTRACT = """SELECT ${projection} , asset_table.asset_manager_uri  ,asset_table.asset_manager_id
-        FROM "${table_prefix}${table_name}" as ${table_alias} 
+        FROM "${table_prefix}${table_name}" as ${table_alias} , request_table.ts_from, request_table.ts_to
         LEFT JOIN  "${table_prefix}""" + AssetManagerQueries.__TABLE_NAME__ + """ as asset_table 
         on ${table_prefix}.asset_manager_id = asset_table.asset_manager_id = 
         LEFT JOIN  "${table_prefix}""" + FlexRequestQueries.__TABLE_NAME__ + """ as request_table 
@@ -160,10 +158,10 @@ class ContractAPIImpl(ContractAPI):
                 o.cost_update_ts = cost_update_ts
             return offers
 
-    def get_current(self, asset_manager_uri: Optional[str] = None) -> List[FlexContract]:
+    def get_current_contracts(self, asset_manager_uri: Optional[str] = None) -> List[FlexAssetContract]:
         with ConnectionWrapper() as conn:
             contract = conn.get(q=self.contract_queries.FIND_CURRENT_CONTRACT,
-                                args={"asset_manager_uri": asset_manager_uri}, obj_type=FlexContract)
+                                args={"asset_manager_uri": asset_manager_uri}, obj_type=FlexAssetContract)
 
             return contract
 

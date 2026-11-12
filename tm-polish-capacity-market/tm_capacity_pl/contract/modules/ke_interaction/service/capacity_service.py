@@ -4,7 +4,7 @@ from typing import List
 from isodate import duration_isoformat
 from tm_capacity_pl.shared.baseline import baseline_requirements
 from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_model import *
-from tm_capacity_pl.models.contract import ConsumptionPowerDAO
+from tm_capacity_pl.models.contract import ConsumptionPowerDAO, FlexAssetContract
 from tm_capacity_pl.shared import POLAND_TZ
 from tm_capacity_pl.shared.ke_interaction.contract import KEFlexContractQuery, KEFlexContract
 from tm_capacity_pl.shared.ke_interaction.ke_model import KETimeIntervalUri
@@ -57,6 +57,58 @@ def calc_baseline(bindings: List[BaselineRequest]) -> List[Baseline]:
     return baseline_bindings
 
 
+def process_offer(offers: List[KEFlexOffer]):
+    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
+    # s=set()
+    # for offer in offers:
+    #     if offer.asset_manager.n3() not in s:
+    #         s.add(offer.asset_manager.n3())
+    #         o=offer.rdf_parse()
+    dao_manager.contract_api.add_offer(offers=[o.rdf_parse() for o in offers])
+
+
+def process_price_offer(offers: List[KEFlexPriceOffer]):
+    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
+    dao_manager.contract_api.add_offer_price(offers=[o.rdf_parse() for o in offers])
+
+
+def get_contracts(query: Optional[List[KEFlexContractQuery]] = None) -> List[KEFlexContract]:
+    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
+    acc: List[FlexAssetContract] = []
+    if query is None:
+        acc = dao_manager.contract_api.get_current_contracts()
+    for q in query:
+        acc += dao_manager.contract_api.get_current_contracts(asset_manager_uri=q.asset_manager.n3())
+
+    res = [KEFlexContract.init(flex_request=URIRef(c.flex_request_uri),
+                               contract_uri=URIRef(c.contract_uri),
+                               asset_manager=URIRef(c.asset_manager_uri),
+                               flex_value=Literal(c.flex_value),
+                               price_value=Literal(c.price_value),
+                               ts_from=c.ts_from, ts_to=c.ts_to) for c in acc]
+    return res
+
+
+def get_contract(kb_id, asset_uri: URIRef):
+    flex_uri: str = FlexRequestUri(ts=0, prefix=kb_id).uri  # Todo: get current flex uri
+    flex_value = 0.0
+    cost_value = 0.0
+    flex_uri: FlexRequestUri = FlexRequestUri.parse(flex_uri)
+    # init contract timestamp ?
+    fc_uri = FlexContractUri(ts=flex_uri.ts, prefix=kb_id)
+
+    ts_from = int(datetime.now().timestamp() * 1000)
+    ts_to = int(datetime.fromtimestamp(datetime.now().timestamp() + 3600 * 24 * 120).timestamp() * 1000)
+    return [KEFlexContract(flex_request=flex_uri.uri_ref, contract=fc_uri.uri_ref,
+                           asset_manager=asset_uri,
+                           flex_dp=fc_uri.append_ref("flex_dp"), cost_dp=fc_uri.append_ref("cost_dp"),
+                           flex_dpr=fc_uri.append_ref("flex_dpr"), cost_dpr=fc_uri.append_ref("cost_dpr"),
+                           flex_value=Literal(flex_value), cost_value=Literal(cost_value),
+                           period_uri=fc_uri.append_ref("period"),
+                           ts_date_from=time_utils.xsd_from_ts(ts=ts_from, tz=POLAND_TZ),
+                           ts_date_to=time_utils.xsd_from_ts(ts=ts_to, tz=POLAND_TZ), )]
+
+
 ########################
 ########################
 ########################
@@ -83,84 +135,3 @@ def get_prices() -> List[MarketPrice]:
                                )
 
     return [market_price]
-
-
-#
-# def process_contract(contracts: List[TMContract]):
-#     # todo:
-#     # intearact with market and post ACK
-#     def publish_job():
-#         # todo:
-#         # market_contract_ack =
-#         post_market_ack([])
-#
-#     return
-#
-
-
-def process_offer(offers: List[KEFlexOffer]):
-    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
-    # s=set()
-    # for offer in offers:
-    #     if offer.asset_manager.n3() not in s:
-    #         s.add(offer.asset_manager.n3())
-    #         o=offer.rdf_parse()
-    dao_manager.contract_api.add_offer(offers=[o.rdf_parse() for o in offers])
-
-
-#
-# def get_flex_offer(queries: List[KEFlexOfferQuery]) -> List[KEFlexOffer]:
-#     from tm_capacity_pl.contract.core.db.postgresql import dao_manager
-#     res = []
-#     s = set()
-#     for q in queries:
-#         if q.flex_request.n3() not in s:
-#             s.add(q.flex_request.n3())
-#             res += [KEFlexOffer.to_rdf(o) for o in
-#                     dao_manager.contract_api.list_flex_offer(flex_request_uri=q.flex_request.n3())]
-
-def init_contract(kb_id, offer: KEFlexPriceOffer):
-    fc_uri = FlexContractUri(ts=offer.ts_ms, prefix=kb_id)
-
-    ts_from = int(datetime.now().timestamp() * 1000)
-    ts_to = int(datetime.fromtimestamp(datetime.now().timestamp() + 3600 * 24 * 120).timestamp() * 1000)
-    return KEFlexContract.init(flex_request=offer.flex_request, contract=fc_uri.uri_ref,
-                               asset_manager=offer.asset_manager,
-                               flex_dp=fc_uri.append_ref("flex_dp"), cost_dp=fc_uri.append_ref("cost_dp"),
-                               flex_dpr=fc_uri.append_ref("flex_dpr"), cost_dpr=fc_uri.append_ref("cost_dpr"),
-                               flex_value=offer.value, cost_value=offer.cost_value,
-                               period_uri=fc_uri.append_ref("period"),
-                               ts_date_from=time_utils.xsd_from_ts(ts=ts_from, tz=POLAND_TZ),
-                               ts_date_to=time_utils.xsd_from_ts(ts=ts_to, tz=POLAND_TZ), )
-
-
-def process_price_offer(offers: List[KEFlexPriceOffer]):
-    from tm_capacity_pl.contract.core.db.postgresql import dao_manager
-    dao_manager.contract_api.add_offer_price(offers=[o.rdf_parse() for o in offers])
-
-
-def get_contracts(kb_id, query: Optional[List[KEFlexContractQuery]] = None):
-    # for contract in contracts: todo
-    todo
-    asset_manager_uri = URIRef("example.org/assetmanager")
-    return get_contract(kb_id, asset_uri=asset_manager_uri)
-
-
-def get_contract(kb_id, asset_uri: URIRef):
-    flex_uri: str = FlexRequestUri(ts=0, prefix=kb_id).uri  # Todo: get current flex uri
-    flex_value = 0.0
-    cost_value = 0.0
-    flex_uri: FlexRequestUri = FlexRequestUri.parse(flex_uri)
-    # init contract timestamp ?
-    fc_uri = FlexContractUri(ts=flex_uri.ts, prefix=kb_id)
-
-    ts_from = int(datetime.now().timestamp() * 1000)
-    ts_to = int(datetime.fromtimestamp(datetime.now().timestamp() + 3600 * 24 * 120).timestamp() * 1000)
-    return [KEFlexContract(flex_request=flex_uri.uri_ref, contract=fc_uri.uri_ref,
-                           asset_manager=asset_uri,
-                           flex_dp=fc_uri.append_ref("flex_dp"), cost_dp=fc_uri.append_ref("cost_dp"),
-                           flex_dpr=fc_uri.append_ref("flex_dpr"), cost_dpr=fc_uri.append_ref("cost_dpr"),
-                           flex_value=Literal(flex_value), cost_value=Literal(cost_value),
-                           period_uri=fc_uri.append_ref("period"),
-                           ts_date_from=time_utils.xsd_from_ts(ts=ts_from, tz=POLAND_TZ),
-                           ts_date_to=time_utils.xsd_from_ts(ts=ts_to, tz=POLAND_TZ), )]

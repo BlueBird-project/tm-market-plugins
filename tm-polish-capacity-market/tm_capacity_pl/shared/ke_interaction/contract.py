@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ke_client import ki_object, BindingsBase, SplitURIBase
+from ke_client import ki_object, BindingsBase, SplitURIBase, ki_split_uri
 from ke_client.utils import time_utils
 from rdflib import URIRef, Literal
 from rdflib.plugins.sparql.sparql import Bindings
@@ -52,8 +52,7 @@ class KEFlexContract(BindingsBase):
 
     @staticmethod
     def init(flex_request: URIRef, asset_manager: URIRef, contract_uri: URIRef, flex_value: Literal,
-             price_value: Literal,
-             ts_from: int, ts_to: int) -> 'KEFlexContract':
+             price_value: Literal, ts_from: int, ts_to: int) -> 'KEFlexContract':
         return KEFlexContract(flex_request=flex_request, contract=contract_uri,
                               asset_manager=asset_manager,
                               flex_dp=SplitURIBase.uri_append_ref(contract_uri, "flex_dp"),
@@ -83,9 +82,21 @@ class KEFlexContractACK(BindingsBase):
     def ack_time_ms(self) -> int:
         return time_utils.xsd_to_ts(self.ack_time)
 
-    def rdf_parse(self) -> FlexContract:
+    def rdf_parse(self, kb_id: str) -> FlexContract:
         return FlexContract(
             contract_uri=self.contract_uri.n3(), flex_request_uri=self.flex_request_uri.n3(),
+            asset_manager_id=ACKContractUri.parse(self.contract_uri, prefix=kb_id).asset_manager_id,
             flex_value=self.convert_value(self.accepted_flex, float),
             price_value=self.convert_value(self.accepted_price, float),
             ack_ts=time_utils.xsd_to_ts(self.ts), )
+
+
+@ki_split_uri(uri_template="/contract_ack/${ack_time}")
+class ACKExecutionUri(SplitURIBase):
+    ack_time: int
+
+
+@ki_split_uri(uri_template="/contract/${asset_manager_id}/${ack_time}")
+class ACKContractUri(SplitURIBase):
+    asset_manager_id: int
+    ack_time: int
