@@ -1,3 +1,15 @@
+  DROP TABLE IF EXISTS "${table_prefix}asset_manager";
+  DROP SEQUENCE IF EXISTS ${table_prefix}asset_manager_id_seq;
+  CREATE SEQUENCE ${table_prefix}asset_manager_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;
+
+  CREATE TABLE "public"."${table_prefix}asset_manager" (
+      "asset_manager_id" bigint DEFAULT nextval('${table_prefix}asset_manager_id_seq') NOT NULL,
+      "asset_manager_uri" character varying(250) NOT NULL,
+
+      CONSTRAINT "${table_prefix}asset_manager_pk" PRIMARY KEY ("asset_manager_id")
+  )
+  WITH (oids = false);
+
  DROP TABLE IF EXISTS "${table_prefix}flex_request";
 CREATE TABLE "${table_prefix}flex_request" (
     request_uri VARCHAR(250) PRIMARY KEY,
@@ -23,8 +35,14 @@ CREATE TABLE "${table_prefix}flex_offer" (
         update_ts BIGINT,
         cost_update_ts BIGINT,
         CONSTRAINT uq_flex_offer_request_asset
-            UNIQUE (flex_request_uri, asset_manager_uri)
+            UNIQUE (flex_request_uri, asset_manager_uri),
+
+        CONSTRAINT "${table_prefix}fk_asset_manager" FOREIGN KEY (asset_manager_uri)
+        REFERENCES "${table_prefix}asset_manager" (asset_manager_uri)
+        ON DELETE RESTRICT ON UPDATE CASCADE
     );
+
+
 CREATE TABLE "${table_prefix}flex_contract" (
         contract_uri VARCHAR(250) PRIMARY KEY,
         flex_request_uri VARCHAR(250) NOT NULL,

@@ -52,9 +52,20 @@ class FlexPriceOffer:
 
 @dataclass
 class FlexContract:
-    contract_uri:str
-    flex_request_uri:str
+    contract_uri: str
+    flex_request_uri: str
     ack_ts: int
+    flex_value: Optional[int] = None
+    price_value: Optional[float] = None
+    update_ts: Optional[int] = None
+
+
+@dataclass
+class FlexAssetContract:
+    contract_uri: str
+    flex_request_uri: str
+    ack_ts: int
+    asset_manager_uri: str
     flex_value: Optional[int] = None
     price_value: Optional[float] = None
     update_ts: Optional[int] = None
@@ -92,7 +103,6 @@ class FlexContract:
 #     update_time: Optional[int] = None
 
 
-
 #
 # @dataclass
 # class BaselineValueDAO:
@@ -108,6 +118,8 @@ class BaselineValue:
     baseline_isp: Optional[int]
     baseline_value: Optional[float]
     isp_len: Optional[int]
+
+
 #
 #
 # @dataclass
