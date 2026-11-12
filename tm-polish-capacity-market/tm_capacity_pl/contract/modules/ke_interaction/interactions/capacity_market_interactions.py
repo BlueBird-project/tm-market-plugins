@@ -1,4 +1,4 @@
-import logging
+
 from typing import List, Tuple
 
 from ke_client import KIHolder
@@ -76,7 +76,7 @@ def _answer_contract(ki_id, bindings: List[KEFlexContractQuery]) -> List[KEFlexC
 ###############
 
 
-# verify market interaction todo:
+#  todo: market prices
 @ki.post("capacity-market-price")
 def _post_market_price():
     #todo: move to other service?
@@ -90,20 +90,20 @@ def _answer_market_price() -> List[MarketPrice]:
     return get_prices()
 
 
-def post_market_price():
-    resp_bindings: KIPostResponse = _post_market_price()
-    todo
-    # todo:
+# def post_market_price():
+#     resp_bindings: KIPostResponse = _post_market_price()
+#     todo
+#     # todo:
 
 
 def post_contract(contract_ack: List[KEFlexContractACK]):
     ack_resp_bindings: KIPostResponse = _post_contract_ack(contract_ack)
     resp_bindings: KIPostResponse = _post_contract()
     pass
-    # todo: implement , check KE response
+    # todo: implement , check KE response, process post output
 
 
 def post_current_flex_request():
     resp_bindings: KIPostResponse = _post_flex_request()
     # resp_bindings.exchangeInfo[0].knowledgeBaseId
-    # todo: process post output
+    # todo: implement , check KE response, process post output

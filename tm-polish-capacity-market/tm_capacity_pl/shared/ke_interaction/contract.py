@@ -6,7 +6,7 @@ from rdflib import URIRef, Literal
 from rdflib.plugins.sparql.sparql import Bindings
 
 from tm_capacity_pl.models.contract import FlexContract
-from tm_capacity_pl.notification.config import   market_settings
+from tm_capacity_pl.contract.config import   market_settings
 from tm_capacity_pl.shared import POLAND_TZ
 
 

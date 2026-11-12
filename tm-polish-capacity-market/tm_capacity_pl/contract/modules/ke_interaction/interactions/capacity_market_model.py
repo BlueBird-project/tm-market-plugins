@@ -5,12 +5,13 @@ from ke_client.utils import time_utils
 from rdflib import URIRef, Literal
 
 from capacity_market_utils import POLAND_TZ
+from tm_capacity_pl.contract.config import market_settings
 from tm_capacity_pl.models.contract import FlexRequest, FlexOffer, FlexPriceOffer, FlexContract
-
 
 
 @ki_object("baseline-request", allow_partial=True)
 class BaselineDateRequest(BindingsBase):
+    market: URIRef = URIRef(market_settings.uri)
     asset_manager: URIRef
     ts_uri: URIRef
     ts_baseline_from: Literal
@@ -76,6 +77,7 @@ class Baseline(BindingsBase):
 
 @ki_object("flex-request")
 class KEFlexRequest(BindingsBase):
+    market: URIRef = URIRef(market_settings.uri)
     flex_request: URIRef
     offer_period: URIRef
     # s4ener:hasCreationTime
@@ -104,7 +106,7 @@ class KEFlexRequest(BindingsBase):
                              ts_date_to=Literal(time_utils.xsd_from_ts(request.ts_to, tz=POLAND_TZ)))
 
 
-@ki_split_uri(uri_template="/flex_request/{ts}")
+@ki_split_uri(uri_template="/flex_request/${ts}")
 class FlexRequestUri(SplitURIBase):
     ts: int
 
@@ -116,6 +118,7 @@ class KEFlexOfferQuery(BindingsBase):
 
 @ki_object("flex-offer")
 class KEFlexOffer(BindingsBase):
+    market: URIRef = URIRef(market_settings.uri)
     flex_request: URIRef
     asset_manager: URIRef
     flex_profile: URIRef
@@ -146,18 +149,19 @@ class KEFlexOffer(BindingsBase):
 
 
 @ki_object("price-offer")
-class KEFlexOffer(BindingsBase):
+class KEFlexPriceOffer(BindingsBase):
+    market: URIRef = URIRef(market_settings.uri)
     flex_request: URIRef
     asset_manager: URIRef
     flex_profile: URIRef
     profile_price: URIRef
     price: Literal
-    dp: URIRef
-    cost_dp: URIRef
+    flex_dp: URIRef
+    flex_dpr: URIRef
+    flex_value: Literal
     ts: Literal
-    dpr: URIRef
-    cost_dp: URIRef
-    value: Literal
+    price_dp: URIRef
+    price_dpr: URIRef
     price_value: Literal
 
     @property
@@ -168,8 +172,8 @@ class KEFlexOffer(BindingsBase):
         return FlexOffer(
             flex_request_uri=self.flex_request.n3(), asset_manager_uri=self.asset_manager.n3(),
             flex_profile_uri=self.flex_profile.n3(), profile_price_uri=self.profile_price.n3(),
-            flex_price=self.convert_value(self.price, float),
-            ts=time_utils.xsd_to_ts(self.ts), flex_value=self.convert_value(self.value, float))
+            flex_price=self.convert_value(self.price_value, float),
+            ts=time_utils.xsd_to_ts(self.ts), flex_value=self.convert_value(self.flex_value, float))
 
 
 @ki_object("price-offer", allow_partial=True)
@@ -180,17 +184,18 @@ class KEFlexPriceOfferQuery(BindingsBase):
 
 @ki_object("price-offer")
 class KEFlexPriceOffer(BindingsBase):
+    market: URIRef = URIRef(market_settings.uri)
     flex_request: URIRef
     flex_profile: URIRef
     asset_manager: URIRef
     profile_price: URIRef
     price: Literal
-    dp: URIRef
-    cost_dp: URIRef
+    flex_dp: URIRef
+    flex_dpr: URIRef
     ts: Literal
-    dpr: URIRef
-    cost_dpr: URIRef
-    value: Literal
+    price_dp: URIRef
+    price_dpr: URIRef
+    flex_value: Literal
     price_value: Literal
 
     @property
@@ -213,18 +218,19 @@ class KEFlexPriceOffer(BindingsBase):
     #         ts=time_utils.xsd_from_ts(o.ts), value=Literal(o.flex_value),)
 
 
-@ki_split_uri(uri_template="/flex_request/{ts}")
+@ki_split_uri(uri_template="/flex_request/${ts}")
 class FlexRequestUri(SplitURIBase):
     ts: int
 
 
-@ki_split_uri(uri_template="/flex_contract/{ts}")
+@ki_split_uri(uri_template="/flex_contract/${ts}")
 class FlexContractUri(SplitURIBase):
     ts: int
 
 
 @ki_object("capacity-market-price")
 class MarketPrice(BindingsBase):
+    market: URIRef = URIRef(market_settings.uri)
     offer_uri: URIRef
     dp: URIRef
     ts: Literal
@@ -252,6 +258,6 @@ class MarketOfferDPUri(SplitURIBase):
     quarter: int = 0
 
 
-@ki_split_uri(uri_template="/dpr/${year}/${quarter}")
+@ki_split_uri(uri_template="/dpr/${isp}")
 class MarketOfferDPRUri(SplitURIBase):
     isp: int

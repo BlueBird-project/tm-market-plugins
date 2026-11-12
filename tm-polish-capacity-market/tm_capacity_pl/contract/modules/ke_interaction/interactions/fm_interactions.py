@@ -5,6 +5,7 @@ from ke_client import KIHolder
 from ke_client.ki_model import KIAskResponse, KIPostResponse
 
 from tm_capacity_pl.shared.ke_interaction.fm_model import *
+from tm_capacity_pl.shared.ke_interaction.ke_model import KETimeIntervalUri
 from tm_capacity_pl.utils import TimeSpan
 
 ki = KIHolder()
@@ -19,17 +20,17 @@ def _ask_request_flexibility_info(request: FMTSRequest):
 def _request_data(ts_uris: List[FMPntQuery]):
     return ts_uris
 
-
-@ki.post("flex-request")
-def _post_flex_request(flex_request: List[BaselineFlexibilityRequest]):
-    return flex_request
-
-
-@ki.answer("flex-request")
-def _post_flex_request(ki_id: str, ):
-    from tm_capacity_pl.contract.modules.ke_interaction.service import fm_service
-    flex_request = fm_service.get_flex_request(kb_id=ki.get_kb_id())
-    return flex_request
+#
+# @ki.post("flex-request")
+# def _post_flex_request(flex_request: List[BaselineFlexibilityRequest]):
+#     return flex_request
+#
+#
+# @ki.answer("flex-request")
+# def _post_flex_request(ki_id: str, ):
+#     from tm_capacity_pl.contract.modules.ke_interaction.service import fm_service
+#     flex_request = fm_service.get_flex_request(kb_id=ki.get_kb_id())
+#     return flex_request
 
 
 def request_data(ts: TimeSpan) -> Tuple[List[FMTSResponse], List[FMPnt]]:
@@ -46,10 +47,10 @@ def request_data(ts: TimeSpan) -> Tuple[List[FMTSResponse], List[FMPnt]]:
     bindings: KIAskResponse = _request_data(ts_uris=ts_uri_refs)
     return fm_info, [FMPnt(**b) for b in bindings.binding_set]
 
-
-def post_flex_request( ):
-    logging.info("request flex")
-    from tm_capacity_pl.contract.modules.ke_interaction.service import fm_service
-    flex_request = fm_service.get_flex_request(kb_id=ki.get_kb_id())
-    resp_bindings: KIPostResponse = _post_flex_request(flex_request=flex_request)
-    return
+#
+# def post_flex_request( ):
+#     logging.info("request flex")
+#     from tm_capacity_pl.contract.modules.ke_interaction.service import fm_service
+#     flex_request = fm_service.get_flex_request(kb_id=ki.get_kb_id())
+#     resp_bindings: KIPostResponse = _post_flex_request(flex_request=flex_request)
+#     return
