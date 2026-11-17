@@ -75,8 +75,8 @@ class FlexContractQueries(QueryObject):
 class ContractAPIImpl(ContractAPI):
     def __init__(self, table_prefix: str):
         super(ContractAPI, self).__init__(table_prefix=table_prefix)
-        self.asset_queries: AssetManagerQueries = self.build_queries(AssetManagerQueries)
-        self.contract_queries: FlexContractQueries = self.build_queries(FlexContractQueries)
+        self.asset_queries: AssetManagerQueries = AssetManagerQueries.build(table_prefix=table_prefix)
+        self.contract_queries: FlexContractQueries = FlexContractQueries.build(table_prefix=table_prefix)
 
     def list_contracts(self, ts: TimeSpan, contract_ack: bool) -> List[FlexContract]:
         with ConnectionWrapper() as conn:
@@ -92,7 +92,7 @@ class ContractAPIImpl(ContractAPI):
             #                   args={"ack": contract_ack},
             #                   obj_type=FlexContract)
             contracts = conn.select(q=self.contract_queries.GET_CURRENT,
-                                    args={"contract_ack": contract_ack,     "asset_manager_id": None},
+                                    args={"contract_ack": contract_ack, "asset_manager_id": None},
                                     obj_type=FlexContract)
             return contracts
 

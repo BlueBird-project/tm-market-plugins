@@ -45,8 +45,8 @@ class MarketNotificationQueries(QueryObject):
 class NotificationAPIImpl(NotificationAPI):
     def __init__(self, table_prefix: str):
         super(NotificationAPI, self).__init__(table_prefix=table_prefix)
-        self.queries: KeNotificationQueries = self.build_queries(KeNotificationQueries)
-        self.market_queries: MarketNotificationQueries = self.build_queries(MarketNotificationQueries)
+        self.queries: KeNotificationQueries = KeNotificationQueries.build(table_prefix=table_prefix)
+        self.market_queries: MarketNotificationQueries = MarketNotificationQueries.build(table_prefix=table_prefix)
 
     def list(self, ts: Optional[TimeSpan] = None) -> List[MarketNotificationEntity]:
         with ConnectionWrapper() as conn:
@@ -56,7 +56,8 @@ class NotificationAPIImpl(NotificationAPI):
 
     def get_by_date(self, date: str) -> List[MarketNotificationEntity]:
         with ConnectionWrapper() as conn:
-            notifications = conn.select(q=self.market_queries.LIST, args={"date": date}, obj_type=MarketNotificationEntity)
+            notifications = conn.select(q=self.market_queries.LIST, args={"date": date},
+                                        obj_type=MarketNotificationEntity)
             return notifications
 
     def get_current(self, ) -> List[MarketNotificationEntity]:

@@ -3,7 +3,7 @@ from typing import List, Optional, Dict
 from effi_onto_tools.db import TimeSpan
 from fastapi import APIRouter
 
-from tm_capacity_pl.models.contract import  FlexRequest
+from tm_capacity_pl.models.contract import FlexRequest, FlexPriceOffer
 
 router = APIRouter(prefix="")
 
@@ -19,9 +19,15 @@ async def current_request() -> FlexRequest:
     from tm_capacity_pl.contract.modules.rest import service
     return service.get_current_request()
 
+@router.get("/flex_offer")
+async def get_current_offer() -> List[FlexPriceOffer]:
+    from tm_capacity_pl.contract.modules.market.contract import current_offer
+
+    return current_offer()
+
 
 @router.post("/flex_request/publish", tags=["publish"])
-async def post_current_request() -> FlexRequest:
+async def post_current_request() -> List[str]:
     from tm_capacity_pl.contract.modules.rest import service
     return service.post_current_request()
 

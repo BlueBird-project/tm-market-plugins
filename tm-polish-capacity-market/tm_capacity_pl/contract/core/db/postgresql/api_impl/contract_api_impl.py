@@ -30,7 +30,7 @@ class FlexRequestQueries(QueryObject):
 
 
 class FlexOfferQueries(QueryObject):
-    __TABLE_NAME__ = "flex_request"
+    __TABLE_NAME__ = "flex_offer"
 
     __PROJECTION__ = """${table_alias}.flex_request_uri, ${table_alias}.asset_manager_uri,
      ${table_alias}.flex_profile_uri, ${table_alias}.profile_price_uri, ${table_alias}.flex_price,
@@ -91,9 +91,9 @@ class ContractAPIImpl(ContractAPI):
 
     def __init__(self, table_prefix: str):
         super(ContractAPI, self).__init__(table_prefix=table_prefix)
-        self.flex_request_query: FlexRequestQueries = self.build_queries(FlexRequestQueries)
-        self.flex_offer_queries: FlexOfferQueries = self.build_queries(FlexOfferQueries)
-        self.contract_queries: ContractQueries = self.build_queries(ContractQueries)
+        self.flex_request_query: FlexRequestQueries = FlexRequestQueries.build(table_prefix=table_prefix)
+        self.flex_offer_queries: FlexOfferQueries =FlexOfferQueries.build(table_prefix=table_prefix)
+        self.contract_queries: ContractQueries = ContractQueries.build(table_prefix=table_prefix)
 
     def list_request(self, ts: TimeSpan) -> List[FlexRequest]:
         with ConnectionWrapper() as conn:

@@ -14,6 +14,7 @@ def current_offer() -> List[FlexPriceOffer]:
     return dao_manager.contract_api.list_price_offer(current_request.flex_request_uri)
 
 
+
 def confirm_current_offer(ratio: float = 1.0):
     from tm_capacity_pl.contract.core.db.postgresql import dao_manager
     from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_interactions import \

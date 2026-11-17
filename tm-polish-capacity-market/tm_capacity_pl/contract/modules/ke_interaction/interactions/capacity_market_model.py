@@ -27,18 +27,20 @@ class BaselineDateRequest(BindingsBase):
         return time_utils.xsd_to_ts(self.ts_baseline_to)
 
 
+# @ki_object("baseline-request",allow_partial=True)
+# class BaselineDate(BaselineDateRequest):
+#     baseline_ts_uri: URIRef
+#     baseline_interval_uri: URIRef
+
+
 @ki_object("baseline-request")
-class BaselineDate(BaselineDateRequest):
-    baseline_ts_uri: URIRef
-    baseline_interval_uri: URIRef
-
-
-@ki_object("baseline-request", result=True)
-class BaselineDateResponse(BindingsBase):
+class BaselineDateResponse(BaselineDateRequest):
+    baseline_ts_uri:URIRef
     ts_uri: URIRef
     day_interval_uri: URIRef
     ts_day_from: Literal
     ts_day_to: Literal
+
 
     @property
     def from_ts(self) -> int:
@@ -49,7 +51,23 @@ class BaselineDateResponse(BindingsBase):
         return time_utils.xsd_to_ts(self.ts_day_to)
 
 
-@ki_object("baseline")
+# @ki_object("baseline-request", result=True)
+# class BaselineDateResponse(BindingsBase):
+#     ts_uri: URIRef
+#     day_interval_uri: URIRef
+#     ts_day_from: Literal
+#     ts_day_to: Literal
+#
+#     @property
+#     def from_ts(self) -> int:
+#         return time_utils.xsd_to_ts(self.ts_day_from)
+#
+#     @property
+#     def to_ts(self) -> int:
+#         return time_utils.xsd_to_ts(self.ts_day_to)
+
+
+@ki_object("baseline",allow_partial=True)
 class BaselineRequest(BindingsBase):
     ts_uri: URIRef
     asset_manager: URIRef
@@ -66,7 +84,7 @@ class BaselineRequest(BindingsBase):
         return self.convert_value(self.value, float)
 
 
-@ki_object("baseline", result=True)
+@ki_object("baseline-response" )
 class Baseline(BindingsBase):
     ts_uri: URIRef
     dp_baseline: URIRef
@@ -111,9 +129,9 @@ class FlexRequestUri(SplitURIBase):
     ts: int
 
 
-@ki_object("flex-offer", allow_partial=True)
-class KEFlexOfferQuery(BindingsBase):
-    flex_request: URIRef
+# @ki_object("flex-offer", allow_partial=True)
+# class KEFlexOfferQuery(BindingsBase):
+#     flex_request: URIRef
 
 
 @ki_object("flex-offer")
@@ -122,8 +140,8 @@ class KEFlexOffer(BindingsBase):
     flex_request: URIRef
     asset_manager: URIRef
     flex_profile: URIRef
-    profile_price: URIRef
-    price: Literal
+    profile_price: Optional[URIRef]=None
+    price: OptionalLiteral=None
     dp: URIRef
     ts: Literal
     dpr: URIRef
@@ -141,10 +159,14 @@ class KEFlexOffer(BindingsBase):
     #                          ts_date_from=Literal(time_utils.xsd_from_ts(request.ts_from, tz=POLAND_TZ)),
     #                          ts_date_to=Literal(time_utils.xsd_from_ts(request.ts_to, tz=POLAND_TZ)))
     def rdf_parse(self) -> FlexOffer:
+        if self.price is None:
+            flex_price = 0.0
+        else:
+            flex_price=self.convert_value(self.price, float)
         return FlexOffer(
             flex_request_uri=self.flex_request.n3(), asset_manager_uri=self.asset_manager.n3(),
             flex_profile_uri=self.flex_profile.n3(), profile_price_uri=self.profile_price.n3(),
-            flex_price=self.convert_value(self.price, float),
+            flex_price=flex_price,
             ts=time_utils.xsd_to_ts(self.ts), flex_value=self.convert_value(self.value, float))
 
 
@@ -216,6 +238,12 @@ class KEFlexPriceOffer(BindingsBase):
     #         flex_profile_uri=URIRef(o.flex_profile_uri), profile_price_uri=URIRef(o.profile_price_uri),
     #         price=Literal(o.flex_price),
     #         ts=time_utils.xsd_from_ts(o.ts), value=Literal(o.flex_value),)
+
+
+@ki_split_uri(uri_template="/baseline/${ts_from}/${ts_to}")
+class BaselineUri(SplitURIBase):
+    ts_from :int
+    ts_to :int
 
 
 @ki_split_uri(uri_template="/flex_request/${ts}")

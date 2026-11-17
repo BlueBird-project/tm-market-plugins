@@ -2,11 +2,11 @@ from fastapi import FastAPI
 
 
 def create_app():
-    from tm_capacity_pl.contract.modules.rest.router import router as notification_router
+    from tm_capacity_pl.contract.modules.rest.router import router as contract_router
 
     new_app = FastAPI(docs_url="/api",
                       openapi_url="/openapi.json", redoc_url="/redoc")
-    new_app.include_router(router=notification_router, prefix="/api")
+    new_app.include_router(router=contract_router, prefix="/api")
     # app.include_router(router=ki_router, prefix="/ki")
 
     # healthcheck_app = FastAPI(docs_url="/docs",

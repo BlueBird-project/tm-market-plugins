@@ -12,7 +12,7 @@
 
  DROP TABLE IF EXISTS "${table_prefix}flex_request";
 CREATE TABLE "${table_prefix}flex_request" (
-    request_uri VARCHAR(250) PRIMARY KEY,
+    flex_request_uri VARCHAR(250) PRIMARY KEY,
     offer_period_uri VARCHAR(250) NOT NULL,
     create_ts BIGINT NOT NULL,
     ts_from BIGINT NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE "${table_prefix}flex_offer" (
         REFERENCES "${table_prefix}asset_manager" (asset_manager_uri)
         ON DELETE RESTRICT ON UPDATE CASCADE,
         CONSTRAINT "${table_prefix}fk_flex_offer_flex_request" FOREIGN KEY (flex_request_uri)
-        REFERENCES "${table_prefix}flex_request" (request_uri)
+        REFERENCES "${table_prefix}flex_request" (flex_request_uri)
     );
 
 
@@ -53,7 +53,7 @@ CREATE TABLE "${table_prefix}flex_contract" (
         flex_value DOUBLE PRECISION,
         price_value DOUBLE PRECISION,
         CONSTRAINT "${table_prefix}fk_flex_contract_offer" FOREIGN KEY (flex_request_uri)
-        REFERENCES "${table_prefix}flex_request" (request_uri)
+        REFERENCES "${table_prefix}flex_request" (flex_request_uri)
         ON DELETE RESTRICT ON UPDATE CASCADE
     );
 

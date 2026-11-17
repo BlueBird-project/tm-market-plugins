@@ -1,5 +1,6 @@
+from collections import defaultdict
 from datetime import timedelta, datetime
-from typing import List
+from typing import List, Dict
 
 from isodate import duration_isoformat
 from tm_capacity_pl.shared.baseline import baseline_requirements
@@ -27,11 +28,13 @@ def get_flex_request(kb_id):
                               ts_date_to=time_utils.xsd_from_ts(ts=ts_to, tz=POLAND_TZ), )]
 
 
-def get_baseline_required_dates(bindings: List[BaselineDateRequest]) -> List[BaselineDateResponse]:
+def get_baseline_required_dates(kb_id: str, bindings: List[BaselineDateRequest]) -> List[BaselineDateResponse]:
     reqs = []
     for b in bindings:
         req = baseline_requirements(ts=TimeSpan(ts_from=b.baseline_from_ts, ts_to=b.baseline_to_ts))
-        bdr = BaselineDateResponse(ts_uri=b.ts_uri,
+        bdr = BaselineDateResponse(**vars(b),
+                                   baseline_ts_uri=BaselineUri(ts_from=b.baseline_from_ts, ts_to=b.baseline_to_ts,
+                                                               prefix=kb_id).uri_ref,
                                    day_interval_uri=KETimeIntervalUri(ts_from=req.ts_from, ts_to=req.ts_to).n3(),
                                    ts_day_from=Literal(time_utils.xsd_from_ts(req.ts_from)),
                                    ts_day_to=Literal(time_utils.xsd_from_ts(req.ts_to)))
@@ -51,7 +54,7 @@ def calc_baseline(bindings: List[BaselineRequest]) -> List[Baseline]:
     baseline = calc_reference_profile(power_history=consumption_data)
     baseline_bindings = [Baseline(ts_uri=ts_uri,
                                   dp_baseline=SplitURIBase.uri_append(ts_uri, "dp_baseline"),
-                                  ts=time_utils.xsd_from_ts(ts=b.ts, tz=POLAND_TZ),
+                                  ts=Literal(time_utils.xsd_from_ts(ts=b.ts, tz=POLAND_TZ)),
                                   dpr_baseline=SplitURIBase.uri_append(ts_uri, "dpr_baseline"),
                                   value_baseline=Literal(b.baseline_value)) for b in baseline]
     return baseline_bindings
@@ -59,12 +62,13 @@ def calc_baseline(bindings: List[BaselineRequest]) -> List[Baseline]:
 
 def process_offer(offers: List[KEFlexOffer]):
     from tm_capacity_pl.contract.core.db.postgresql import dao_manager
-    # s=set()
-    # for offer in offers:
-    #     if offer.asset_manager.n3() not in s:
-    #         s.add(offer.asset_manager.n3())
-    #         o=offer.rdf_parse()
-    dao_manager.contract_api.add_offer(offers=[o.rdf_parse() for o in offers])
+    grouped_offers: Dict[str, List[FlexOffer]] = defaultdict(list)
+    for offer in offers:
+        parsed_offer = offer.rdf_parse()
+        dao_manager.asset_api.get_or_init(asset_manager_uri=parsed_offer.asset_manager_uri)
+        grouped_offers[offer.asset_manager].append(parsed_offer)
+    for asset_uri, parsed_offers in grouped_offers.items():
+        dao_manager.contract_api.add_offer(offers=parsed_offers)
 
 
 def process_price_offer(offers: List[KEFlexPriceOffer]):

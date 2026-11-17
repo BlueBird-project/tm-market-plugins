@@ -1,5 +1,6 @@
-
-from typing import List, Tuple
+import logging
+from threading import Thread
+from typing import List
 
 from ke_client import KIHolder
 from ke_client.ki_model import KIPostResponse
@@ -24,16 +25,35 @@ def _get_flex_request(kb_id: str, bindings: List) -> List[KEFlexRequest]:
     return get_flex_request(kb_id=ki.get_kb_id())
 
 
-@ki.react("baseline-request")
+@ki.answer("baseline-request")
 def _get_required_days(kb_id: str, bindings: List[BaselineDateRequest]) -> List[BaselineDateResponse]:
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_baseline_required_dates
-    return get_baseline_required_dates(bindings=bindings)
+    return get_baseline_required_dates(kb_id=ki.get_kb_id(), bindings=bindings)
+
+
+# @ki.react("baseline")
+# def _calc_baseline(kb_id: str, bindings: List[BaselineRequest]) -> List[Baseline]:
+#     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import calc_baseline
+#     return calc_baseline(bindings=bindings)
+
+@ki.post("baseline-response")
+def _post_baseline(bindings: List[BaselineRequest]) -> List[Baseline]:
+    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import calc_baseline
+    print(f"baseline-response: input biding: {len(bindings)}")
+    baseline = calc_baseline(bindings=bindings)
+    print(f"baseline-response: baseline: {len(baseline)}")
+    return baseline
 
 
 @ki.react("baseline")
-def _calc_baseline(kb_id: str, bindings: List[BaselineRequest]) -> List[Baseline]:
-    from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import calc_baseline
-    return calc_baseline(bindings=bindings)
+def _calc_baseline(kb_id: str, bindings: List[BaselineRequest]):
+    def _t():
+        resp: KIPostResponse = _post_baseline(bindings=bindings)
+        logging.info(f"baseline response {[c.knowledgeBaseId for c in resp.exchangeInfo]}")
+
+    t = Thread(target=_t)
+    t.start()
+    return []
 
 
 @ki.react("flex-offer")
@@ -79,7 +99,7 @@ def _answer_contract(ki_id, bindings: List[KEFlexContractQuery]) -> List[KEFlexC
 #  todo: market prices
 @ki.post("capacity-market-price")
 def _post_market_price():
-    #todo: move to other service?
+    # todo: move to other service?
     from tm_capacity_pl.contract.modules.ke_interaction.service.capacity_service import get_prices
     return get_prices()
 
@@ -103,7 +123,6 @@ def post_contract(contract_ack: List[KEFlexContractACK]):
     # todo: implement , check KE response, process post output
 
 
-def post_current_flex_request():
+def post_current_flex_request() -> List[str]:
     resp_bindings: KIPostResponse = _post_flex_request()
-    # resp_bindings.exchangeInfo[0].knowledgeBaseId
-    # todo: implement , check KE response, process post output
+    return [ei.knowledgeBaseId for ei in resp_bindings.exchangeInfo]

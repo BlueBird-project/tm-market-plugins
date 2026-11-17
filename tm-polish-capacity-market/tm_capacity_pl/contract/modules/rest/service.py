@@ -72,10 +72,11 @@ def get_current_request() -> FlexRequest:
     return dao_manager.contract_api.current_request()
 
 
+
 def post_current_request():
     from tm_capacity_pl.contract.modules.ke_interaction.interactions.capacity_market_interactions import \
         post_current_flex_request
-    post_current_flex_request()
+    return post_current_flex_request()
 
 #
 # def init_contract(contract_ts: int) -> ContractDAO:

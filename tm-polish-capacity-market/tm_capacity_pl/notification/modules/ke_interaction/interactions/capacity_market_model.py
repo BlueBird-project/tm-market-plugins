@@ -75,16 +75,16 @@ class FlexContract(BindingsBase):
 #         return self.convert_value(self.flex_value, float)
 
 
-@ki_object("flex-demand")
-class KECapacityNotification(BindingsBase):
-    asset_manager: URIRef
-    flex_instruction: URIRef
-    flex_offer: URIRef
-    flex_profile: URIRef
-    power_limit: URIRef
-    ts: Literal
-    max_consumption: URIRef
-    max_consumption_value: Literal
+# @ki_object("flex-demand")
+# class KECapacityNotification(BindingsBase):
+#     asset_manager: URIRef
+#     flex_instruction: URIRef
+#     flex_offer: URIRef
+#     flex_profile: URIRef
+#     power_limit: URIRef
+#     ts: Literal
+#     max_consumption: URIRef
+#     max_consumption_value: Literal
 
 
 @ki_split_uri(uri_template="/demand/${ts}/${asset_manager_id}")

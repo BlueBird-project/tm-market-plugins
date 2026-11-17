@@ -24,7 +24,7 @@ class AssetManagerQueries(QueryObject):
 class AssetManagerAPIImpl(AssetManagerAPI):
     def __init__(self, table_prefix: str):
         super(AssetManagerAPI, self).__init__(table_prefix=table_prefix)
-        self.asset_queries: AssetManagerQueries = self.build_queries(AssetManagerQueries)
+        self.asset_queries: AssetManagerQueries = AssetManagerQueries.build(table_prefix=table_prefix)
 
     def list_asset_managers(self, ) -> List[AssetManager]:
         with ConnectionWrapper() as conn:
