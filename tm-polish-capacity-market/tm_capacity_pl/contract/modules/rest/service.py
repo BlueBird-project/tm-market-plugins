@@ -59,8 +59,8 @@ def init_flex_request(ts_from: int, ts_to: int) -> FlexRequest:
 
     from tm_capacity_pl.shared.ke_interaction.ke_model import KETimeIntervalUri
     request = FlexRequest(create_ts=create_ts,
-                          flex_request_uri=FlexRequestUri(ts=create_ts, prefix=smart_client.kb_id).uri,
-                          offer_period_uri=KETimeIntervalUri(ts_from=ts.ts_from, ts_to=ts.ts_to).uri,
+                          flex_request_uri= FlexRequestUri(ts=create_ts, prefix=smart_client.kb_id).n3(),
+                          offer_period_uri=KETimeIntervalUri(ts_from=ts.ts_from, ts_to=ts.ts_to).n3(),
                           ts_from=ts.ts_from,
                           ts_to=ts.ts_to)
     request = dao_manager.contract_api.add_request(request=request)

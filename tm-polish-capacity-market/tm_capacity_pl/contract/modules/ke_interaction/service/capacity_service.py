@@ -11,6 +11,8 @@ from tm_capacity_pl.shared.ke_interaction.contract import KEFlexContractQuery, K
 from tm_capacity_pl.shared.ke_interaction.ke_model import KETimeIntervalUri
 from tm_capacity_pl.utils import TimeSpan
 
+from rdflib.util import from_n3
+
 
 def get_flex_request(kb_id):
     from tm_capacity_pl.contract.core.db.postgresql import dao_manager
@@ -84,9 +86,9 @@ def get_contracts(query: Optional[List[KEFlexContractQuery]] = None) -> List[KEF
     for q in query:
         acc += dao_manager.contract_api.get_current_contracts(asset_manager_uri=q.asset_manager.n3())
 
-    res = [KEFlexContract.init(flex_request=URIRef(c.flex_request_uri),
-                               contract_uri=URIRef(c.contract_uri),
-                               asset_manager=URIRef(c.asset_manager_uri),
+    res = [KEFlexContract.init(flex_request=from_n3(c.flex_request_uri),
+                               contract_uri=from_n3(c.contract_uri),
+                               asset_manager=from_n3(c.asset_manager_uri),
                                flex_value=Literal(c.flex_value),
                                price_value=Literal(c.price_value),
                                ts_from=c.ts_from, ts_to=c.ts_to) for c in acc]

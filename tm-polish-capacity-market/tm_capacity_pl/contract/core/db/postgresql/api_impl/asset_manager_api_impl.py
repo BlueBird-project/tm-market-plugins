@@ -17,7 +17,7 @@ class AssetManagerQueries(QueryObject):
         asset_manager_id = :asset_manager_id"""
 
     INSERT = """INSERT INTO "${table_prefix}${table_name}" 
-    (   "asset_manager_id","asset_manager_uri" )  VALUES (  :asset_manager_id,:asset_manager_uri) 
+    ( "asset_manager_uri" )  VALUES (  :asset_manager_uri) 
     """
 
 

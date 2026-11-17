@@ -3,6 +3,7 @@ from typing import Union, Optional
 from ke_client import BindingsBase, ki_object, ki_split_uri, SplitURIBase, OptionalLiteral
 from ke_client.utils import time_utils
 from rdflib import URIRef, Literal
+from rdflib.util import from_n3
 
 from capacity_market_utils import POLAND_TZ
 from tm_capacity_pl.contract.config import market_settings
@@ -117,8 +118,8 @@ class KEFlexRequest(BindingsBase):
 
     @staticmethod
     def init(request: FlexRequest) -> 'KEFlexRequest':
-        return KEFlexRequest(flex_request=URIRef(request.flex_request_uri),
-                             offer_period=URIRef(request.offer_period_uri),
+        return KEFlexRequest(flex_request=from_n3(request.flex_request_uri),
+                             offer_period=from_n3(request.offer_period_uri),
                              ts=Literal(time_utils.xsd_from_ts(request.create_ts, tz=POLAND_TZ)),
                              ts_date_from=Literal(time_utils.xsd_from_ts(request.ts_from, tz=POLAND_TZ)),
                              ts_date_to=Literal(time_utils.xsd_from_ts(request.ts_to, tz=POLAND_TZ)))
@@ -240,18 +241,18 @@ class KEFlexPriceOffer(BindingsBase):
     #         ts=time_utils.xsd_from_ts(o.ts), value=Literal(o.flex_value),)
 
 
-@ki_split_uri(uri_template="/baseline/${ts_from}/${ts_to}")
+@ki_split_uri(uri_template="baseline/${ts_from}/${ts_to}")
 class BaselineUri(SplitURIBase):
     ts_from :int
     ts_to :int
 
 
-@ki_split_uri(uri_template="/flex_request/${ts}")
+@ki_split_uri(uri_template="flex_request/${ts}")
 class FlexRequestUri(SplitURIBase):
     ts: int
 
 
-@ki_split_uri(uri_template="/flex_contract/${ts}")
+@ki_split_uri(uri_template="flex_contract/${ts}")
 class FlexContractUri(SplitURIBase):
     ts: int
 
@@ -269,23 +270,23 @@ class MarketPrice(BindingsBase):
 
 
 #############################################################################
-@ki_split_uri(uri_template="/price")
+@ki_split_uri(uri_template="price")
 class MarketOfferUri(SplitURIBase):
     pass
 
 
-@ki_split_uri(uri_template="/year/${year}/${quarter}")
+@ki_split_uri(uri_template="year/${year}/${quarter}")
 class DurationURI(SplitURIBase):
     year: int
     quarter: int = 0
 
 
-@ki_split_uri(uri_template="/dp/${year}/${quarter}")
+@ki_split_uri(uri_template="dp/${year}/${quarter}")
 class MarketOfferDPUri(SplitURIBase):
     year: int
     quarter: int = 0
 
 
-@ki_split_uri(uri_template="/dpr/${isp}")
+@ki_split_uri(uri_template="dpr/${isp}")
 class MarketOfferDPRUri(SplitURIBase):
     isp: int

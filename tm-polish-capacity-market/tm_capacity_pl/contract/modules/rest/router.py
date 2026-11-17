@@ -19,6 +19,7 @@ async def current_request() -> FlexRequest:
     from tm_capacity_pl.contract.modules.rest import service
     return service.get_current_request()
 
+
 @router.get("/flex_offer")
 async def get_current_offer() -> List[FlexPriceOffer]:
     from tm_capacity_pl.contract.modules.market.contract import current_offer
